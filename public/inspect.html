@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>ERP Design Assets Gallery</title>
+  <style>
+    body { font-family: Inter, sans-serif; background: #0A0B0D; color: #fff; margin: 0; padding: 20px; }
+    h1 { color: #0052FF; margin-bottom: 8px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px; }
+    .card { background: #16181C; border: 1px solid #2B2F38; border-radius: 8px; overflow: hidden; }
+    .card-header { padding: 12px 16px; font-weight: 600; font-size: 14px; background: #20232B; border-bottom: 1px solid #2B2F38; display: flex; justify-content: space-between; }
+    .badge { background: #0052FF; padding: 2px 8px; border-radius: 4px; font-size: 11px; }
+    img { width: 100%; height: auto; display: block; background: #fff; }
+  </style>
+</head>
+<body>
+  <h1>AAVIL ERP — Figma Design Specs Viewer</h1>
+  <p style="color: #8A8F98; margin-bottom: 24px;">Inspecting all 30+ screens across Auth, Admin, Employees, Dashboard, Leaves, Payroll, Projects, Timesheets, and Appraisals.</p>
+  <div class="grid" id="container"></div>
+
+  <script>
+    const assets = [
+      { section: "Auth", name: "Login — Default", path: "/design-assets/Login — Default.svg" },
+      { section: "Auth", name: "Login — Error", path: "/design-assets/Login — Error.svg" },
+      { section: "Auth", name: "Forgot Password", path: "/design-assets/Forgot Password.svg" },
+      { section: "Auth", name: "Two-Factor Auth", path: "/design-assets/Two-Factor Authentication.svg" },
+      { section: "Admin", name: "Admin Dashboard — Default", path: "/design-assets/Admin/Admin Dashboard — Default.svg" },
+      { section: "Admin", name: "Admin Dashboard — Empty", path: "/design-assets/Admin/Admin Dashboard — Empty.svg" },
+      { section: "Admin", name: "Admin Dashboard — Loading", path: "/design-assets/Admin/Admin Dashboard — Loading.svg" },
+      { section: "Dashboard", name: "Employee Dashboard — Default", path: "/design-assets/Dashboard/Employee Dashboard — Default.svg" },
+      { section: "Dashboard", name: "Employee Dashboard — Enriched", path: "/design-assets/Dashboard/Employee Dashboard — Enriched.svg" },
+      { section: "Employees", name: "Directory", path: "/design-assets/Employees/Employees — Directory.svg" },
+      { section: "Employees", name: "Employee Profile", path: "/design-assets/Employees/Employee — Profile.svg" },
+      { section: "Employees", name: "My Profile", path: "/design-assets/Employees/Employee — My Profile.svg" },
+      { section: "Employees", name: "Add Employee Form", path: "/design-assets/Employees/Employees — Add Employee Form.svg" },
+      { section: "Leaves", name: "Leaves — Admin Dashboard", path: "/design-assets/Leaves/Leaves — Admin Dashboard.svg" },
+      { section: "Leaves", name: "Leaves — Apply Leave", path: "/design-assets/Leaves/Leaves — Apply Leave.svg" },
+      { section: "Leaves", name: "Leaves — Approval Modal", path: "/design-assets/Leaves/Leaves — Approval Modal.svg" },
+      { section: "Leaves", name: "Employee — Leave Balance", path: "/design-assets/Leaves/Employee — Leave Balance.svg" },
+      { section: "Payroll", name: "Payroll — Overview", path: "/design-assets/Payroll/Payroll — Overview.svg" },
+      { section: "Payroll", name: "Payroll — Payslip Detail", path: "/design-assets/Payroll/Payroll — Payslip Detail.svg" },
+      { section: "Payroll", name: "Employee — My Payslips", path: "/design-assets/Payroll/Employee — My Payslips.svg" },
+      { section: "Projects", name: "Projects — List", path: "/design-assets/Projects/Projects — List.svg" },
+      { section: "Projects", name: "Projects — Detail View", path: "/design-assets/Projects/Projects — Detail View.svg" },
+      { section: "Projects", name: "Projects — Add Project", path: "/design-assets/Projects/Projects — Add Project.svg" },
+      { section: "Projects", name: "Projects — Empty State", path: "/design-assets/Projects/Projects — Empty State.svg" },
+      { section: "Timesheets", name: "Timesheets — Weekly View", path: "/design-assets/Timesheets/Timesheets — Weekly View.svg" },
+      { section: "Timesheets", name: "Timesheets — Admin Approval", path: "/design-assets/Timesheets/Timesheets — Admin Approval.svg" },
+      { section: "Timesheets", name: "Timesheets — Empty State", path: "/design-assets/Timesheets/Timesheets — Empty State.svg" },
+      { section: "Timesheets", name: "Employee — My Timesheet", path: "/design-assets/Timesheets/Employee — My Timesheet.svg" },
+      { section: "Appraisals", name: "Appraisals — Overview", path: "/design-assets/Appraisals/Appraisals — Overview.svg" },
+      { section: "Appraisals", name: "Appraisals — Review Detail", path: "/design-assets/Appraisals/Appraisals — Review Detail.svg" },
+      { section: "Appraisals", name: "Appraisals — Completed Review", path: "/design-assets/Appraisals/Appraisals — Completed Review.svg" },
+      { section: "Appraisals", name: "Employee — Self Assessment", path: "/design-assets/Appraisals/Employee — Self Assessment.svg" }
+    ];
+
+    const container = document.getElementById('container');
+    assets.forEach(asset => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="card-header">
+          <span>${asset.name}</span>
+          <span class="badge">${asset.section}</span>
+        </div>
+        <a href="${asset.path}" target="_blank">
+          <img src="${asset.path}" alt="${asset.name}" loading="lazy" />
+        </a>
+      `;
+      container.appendChild(card);
+    });
+  </script>
+</body>
+</html>
