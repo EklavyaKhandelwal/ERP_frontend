@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { 
   LayoutDashboard, 
   Users, 
@@ -18,6 +18,29 @@ import { AppView } from '../../types/erp';
 
 export const Sidebar: React.FC = () => {
   const { currentView, setCurrentView, currentUser, logout } = useERP();
+  const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const cancelLogoutButton = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!showLogoutConfirmation) return;
+    cancelLogoutButton.current?.focus();
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape' && !isLoggingOut) setShowLogoutConfirmation(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showLogoutConfirmation, isLoggingOut]);
+
+  const confirmLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+    } finally {
+      setIsLoggingOut(false);
+      setShowLogoutConfirmation(false);
+    }
+  };
 
   const menuItems: { id: AppView; label: string; icon: React.ReactNode }[] = [
     { 
@@ -110,7 +133,6 @@ export const Sidebar: React.FC = () => {
         <div>
           <div style={{ color: '#FFFFFF', fontWeight: '700', fontSize: '16px', letterSpacing: '-0.02em', display: 'flex', alignItems: 'center', gap: '6px' }}>
             AAVIL ERP
-            <span style={{ fontSize: '10px', background: 'rgba(0, 82, 255, 0.25)', color: '#3880FF', padding: '1px 6px', borderRadius: '4px' }}>v2.0</span>
           </div>
           <div style={{ color: 'var(--dark-text-muted)', fontSize: '11px', fontWeight: '500' }}>Enterprise Suite</div>
         </div>
@@ -205,7 +227,8 @@ export const Sidebar: React.FC = () => {
         </div>
 
         <button
-          onClick={logout}
+          onClick={() => setShowLogoutConfirmation(true)}
+          aria-label="Sign out"
           title="Sign out"
           style={{
             background: 'transparent',
@@ -230,6 +253,51 @@ export const Sidebar: React.FC = () => {
           <LogOut size={16} />
         </button>
       </div>
+      {showLogoutConfirmation && (
+        <div
+          className="modal-overlay"
+          role="presentation"
+          onMouseDown={event => {
+            if (event.target === event.currentTarget && !isLoggingOut) {
+              setShowLogoutConfirmation(false);
+            }
+          }}
+        >
+          <section
+            className="modal-content"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="logout-confirmation-title"
+            style={{ maxWidth: '420px', padding: '28px' }}
+          >
+            <h2 id="logout-confirmation-title" style={{ fontSize: '18px', margin: 0, color: 'var(--text-main)' }}>
+              Sign out?
+            </h2>
+            <p style={{ margin: '10px 0 24px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+              Are you sure you want to sign out of your account?
+            </p>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                ref={cancelLogoutButton}
+                type="button"
+                className="btn btn-secondary"
+                disabled={isLoggingOut}
+                onClick={() => setShowLogoutConfirmation(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={isLoggingOut}
+                onClick={() => void confirmLogout()}
+              >
+                {isLoggingOut ? 'Signing out…' : 'Sign out'}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </aside>
   );
 };

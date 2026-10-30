@@ -1,16 +1,36 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { 
   Search, 
   Bell, 
   CheckCircle2
 } from 'lucide-react';
 import { useERP } from '../../context/ERPContext';
+import type { AppView } from '../../types/erp';
+
+interface SearchResult {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  view: AppView;
+  employeeId?: string;
+  projectId?: string;
+}
 
 export const Header: React.FC = () => {
   const { 
     currentView, 
     currentUser, 
     role, 
+    employees,
+    leaves,
+    timesheets,
+    payroll,
+    projects,
+    appraisals,
+    setCurrentView,
+    setSelectedEmployeeId,
+    setSelectedProjectId,
     notifications, 
     notificationError,
     markNotificationsRead
@@ -18,8 +38,102 @@ export const Header: React.FC = () => {
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const searchContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const closeSearchOnOutsideClick = (event: PointerEvent) => {
+      if (!searchContainerRef.current?.contains(event.target as Node)) {
+        setShowSearchResults(false);
+      }
+    };
+    document.addEventListener('pointerdown', closeSearchOnOutsideClick);
+    return () => document.removeEventListener('pointerdown', closeSearchOnOutsideClick);
+  }, []);
 
   const unreadCount = notifications.filter(notification => !notification.readAt).length;
+  const searchResults = useMemo(() => {
+    const query = searchQuery.trim().toLocaleLowerCase();
+    if (query.length < 2) return [];
+
+    const results: SearchResult[] = [];
+    const add = (result: SearchResult, searchableText: string) => {
+      if (searchableText.toLocaleLowerCase().includes(query)) results.push(result);
+    };
+
+    for (const employee of employees) {
+      add({
+        id: `employee-${employee.id}`,
+        title: `${employee.firstName} ${employee.lastName}`,
+        description: `${employee.employeeCode} · ${employee.department} · ${employee.email}`,
+        category: 'Employee',
+        view: 'employee-profile',
+        employeeId: employee.id,
+      }, `${employee.firstName} ${employee.lastName} ${employee.employeeCode} ${employee.department} ${employee.designation} ${employee.email}`);
+    }
+
+    for (const project of projects) {
+      add({
+        id: `project-${project.id}`,
+        title: project.name,
+        description: `${project.code} · ${project.client} · ${project.status}`,
+        category: 'Project',
+        view: 'project-detail',
+        projectId: project.id,
+      }, `${project.name} ${project.code} ${project.client} ${project.status} ${project.description} ${project.tasks.map(task => `${task.title} ${task.description}`).join(' ')}`);
+    }
+
+    for (const leave of leaves) {
+      add({
+        id: `leave-${leave.id}`,
+        title: `${leave.employeeName} · ${leave.leaveType}`,
+        description: `${leave.status} · ${leave.startDate} to ${leave.endDate}`,
+        category: 'Leave request',
+        view: 'leaves',
+      }, `${leave.employeeName} ${leave.leaveType} ${leave.status} ${leave.reason} ${leave.startDate} ${leave.endDate}`);
+    }
+
+    for (const timesheet of timesheets) {
+      add({
+        id: `timesheet-${timesheet.id}`,
+        title: `${timesheet.employeeName} · Week of ${timesheet.weekStart}`,
+        description: `${timesheet.status} · ${timesheet.totalHours} hours`,
+        category: 'Timesheet',
+        view: 'timesheets',
+      }, `${timesheet.employeeName} ${timesheet.weekStart} ${timesheet.weekEnd} ${timesheet.status} ${timesheet.entries.map(entry => `${entry.projectName} ${entry.taskDescription}`).join(' ')}`);
+    }
+
+    for (const record of payroll) {
+      add({
+        id: `payroll-${record.id}`,
+        title: `${record.employeeName} · ${record.month} ${record.year}`,
+        description: `${record.employeeCode} · ${record.status}`,
+        category: 'Payroll',
+        view: 'payroll',
+      }, `${record.employeeName} ${record.employeeCode} ${record.department} ${record.month} ${record.year} ${record.status}`);
+    }
+
+    for (const appraisal of appraisals) {
+      add({
+        id: `appraisal-${appraisal.id}`,
+        title: `${appraisal.employeeName} · ${appraisal.cycle}`,
+        description: `${appraisal.status} · ${appraisal.department}`,
+        category: 'Appraisal',
+        view: 'appraisals',
+        employeeId: appraisal.employeeId,
+      }, `${appraisal.employeeName} ${appraisal.cycle} ${appraisal.status} ${appraisal.department} ${appraisal.designation}`);
+    }
+
+    return results.slice(0, 10);
+  }, [searchQuery, employees, projects, leaves, timesheets, payroll, appraisals]);
+
+  const selectSearchResult = (result: SearchResult) => {
+    if (result.employeeId) setSelectedEmployeeId(result.employeeId);
+    if (result.projectId) setSelectedProjectId(result.projectId);
+    setCurrentView(result.view);
+    setSearchQuery('');
+    setShowSearchResults(false);
+  };
 
   const viewTitles: Record<string, { title: string; subtitle: string }> = {
     settings: {
@@ -103,39 +217,127 @@ export const Header: React.FC = () => {
       {/* Right Controls */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         {/* Search Bar */}
-        <div style={{
-          position: 'relative',
-          width: '280px',
-          display: 'flex',
-          alignItems: 'center'
-        }}>
-          <Search size={15} style={{ position: 'absolute', left: '12px', color: 'var(--text-muted)' }} />
-          <input 
-            type="text" 
-            placeholder="Search employees, projects, tickets..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '8px 12px 8px 36px',
-              fontSize: '13px',
-              borderRadius: '8px',
-              border: '1px solid var(--border-default)',
-              backgroundColor: 'var(--bg-canvas)',
-              outline: 'none',
-              transition: 'all 0.15s ease'
+        <div ref={searchContainerRef} style={{ position: 'relative', width: 'min(360px, 36vw)' }}>
+          <form
+            role="search"
+            onSubmit={event => {
+              event.preventDefault();
+              setShowSearchResults(true);
+              if (searchResults[0]) selectSearchResult(searchResults[0]);
             }}
-            onFocus={e => {
-              e.currentTarget.style.borderColor = 'var(--primary)';
-              e.currentTarget.style.backgroundColor = '#FFFFFF';
-              e.currentTarget.style.boxShadow = '0 0 0 3px rgba(0, 82, 255, 0.1)';
-            }}
-            onBlur={e => {
-              e.currentTarget.style.borderColor = 'var(--border-default)';
-              e.currentTarget.style.backgroundColor = 'var(--bg-canvas)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          />
+            style={{ position: 'relative', display: 'flex', alignItems: 'center' }}
+          >
+            <Search size={15} style={{ position: 'absolute', left: '12px', color: 'var(--text-muted)', pointerEvents: 'none' }} />
+            <input
+              type="search"
+              aria-label="Search employees, projects, and records"
+              aria-expanded={showSearchResults && searchQuery.trim().length >= 2}
+              aria-controls="global-search-results"
+              placeholder="Search employees, projects, and records..."
+              value={searchQuery}
+              onChange={event => {
+                setSearchQuery(event.target.value);
+                setShowSearchResults(true);
+              }}
+              onFocus={() => setShowSearchResults(true)}
+              onKeyDown={event => {
+                if (event.key === 'Escape') setShowSearchResults(false);
+              }}
+              style={{
+                width: '100%',
+                padding: '8px 42px 8px 36px',
+                fontSize: '13px',
+                borderRadius: '8px',
+                border: '1px solid var(--border-default)',
+                backgroundColor: 'var(--bg-canvas)',
+                outline: 'none',
+                transition: 'all 0.15s ease'
+              }}
+              onFocusCapture={event => {
+                event.currentTarget.style.borderColor = 'var(--primary)';
+                event.currentTarget.style.backgroundColor = '#FFFFFF';
+                event.currentTarget.style.boxShadow = '0 0 0 3px rgba(0, 82, 255, 0.1)';
+              }}
+              onBlur={event => {
+                event.currentTarget.style.borderColor = 'var(--border-default)';
+                event.currentTarget.style.backgroundColor = 'var(--bg-canvas)';
+                event.currentTarget.style.boxShadow = 'none';
+              }}
+            />
+            <button
+              type="submit"
+              aria-label="Search"
+              title="Search"
+              style={{
+                position: 'absolute',
+                right: '5px',
+                width: '30px',
+                height: '30px',
+                border: 0,
+                borderRadius: '6px',
+                display: 'grid',
+                placeItems: 'center',
+                background: 'transparent',
+                color: 'var(--text-secondary)',
+                cursor: 'pointer',
+              }}
+            >
+              <Search size={15} />
+            </button>
+          </form>
+          {showSearchResults && searchQuery.trim().length >= 2 && (
+            <div
+              id="global-search-results"
+              role="listbox"
+              aria-label="Search results"
+              style={{
+                position: 'absolute',
+                top: 'calc(100% + 8px)',
+                right: 0,
+                width: 'min(440px, 90vw)',
+                maxHeight: 'min(480px, 70vh)',
+                overflowY: 'auto',
+                background: '#FFFFFF',
+                border: '1px solid var(--border-light)',
+                borderRadius: '12px',
+                boxShadow: 'var(--shadow-modal)',
+                zIndex: 110,
+              }}
+            >
+              {searchResults.length === 0 ? (
+                <div style={{ padding: '18px', color: 'var(--text-secondary)', fontSize: '13px' }}>
+                  No matching employees, projects, or records.
+                </div>
+              ) : searchResults.map(result => (
+                <button
+                  key={result.id}
+                  type="button"
+                  role="option"
+                  aria-selected="false"
+                  onMouseDown={event => event.preventDefault()}
+                  onClick={() => selectSearchResult(result)}
+                  style={{
+                    width: '100%',
+                    display: 'block',
+                    padding: '12px 16px',
+                    textAlign: 'left',
+                    border: 0,
+                    borderBottom: '1px solid var(--border-light)',
+                    background: '#FFFFFF',
+                    cursor: 'pointer',
+                  }}
+                  onMouseEnter={event => { event.currentTarget.style.background = 'var(--bg-hover)'; }}
+                  onMouseLeave={event => { event.currentTarget.style.background = '#FFFFFF'; }}
+                >
+                  <span style={{ display: 'flex', justifyContent: 'space-between', gap: '12px', color: 'var(--text-main)', fontWeight: 600, fontSize: '13px' }}>
+                    <span>{result.title}</span>
+                    <span style={{ flexShrink: 0, color: 'var(--primary)', fontSize: '11px', fontWeight: 500 }}>{result.category}</span>
+                  </span>
+                  <span style={{ display: 'block', marginTop: '3px', color: 'var(--text-muted)', fontSize: '11px' }}>{result.description}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Notifications Bell */}
