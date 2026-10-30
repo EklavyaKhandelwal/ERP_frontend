@@ -49,7 +49,7 @@ export const CreatePayrollRunModal: React.FC<Props> = ({ isOpen, onClose }) => {
       if (activeEmployees.length === 0) throw new Error('There are no active employees to include in this run.');
       await createPayrollRun(payPeriod, activeEmployees.map(employee => ({
         employeeId: employee.id,
-        ...payrollFor(employee.id, employee.salary),
+        ...payrollFor(employee.id, employee.salary ?? 0),
       })));
       onClose();
     } catch (submitError) {
@@ -76,7 +76,7 @@ export const CreatePayrollRunModal: React.FC<Props> = ({ isOpen, onClose }) => {
           <div>
             <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>Create payroll run</h3>
             <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-              Enter and verify amounts. The server calculates totals; creating a run does not send payments.
+              Monthly base salary pre-fills Basic. Enter all amounts in Indian rupees (₹); totals are calculated, but deductions are not tax-advised and creating a run does not send payments.
             </p>
           </div>
           <button type="button" aria-label="Close" onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
@@ -113,8 +113,8 @@ export const CreatePayrollRunModal: React.FC<Props> = ({ isOpen, onClose }) => {
                           aria-label={`${field.label} for ${employee.firstName} ${employee.lastName}`}
                           className="form-control"
                           style={{ minWidth: '100px' }}
-                          value={payrollFor(employee.id, employee.salary)[field.key]}
-                          onChange={event => updateFigure(employee.id, employee.salary, field.key, Number(event.target.value))}
+                          value={payrollFor(employee.id, employee.salary ?? 0)[field.key]}
+                          onChange={event => updateFigure(employee.id, employee.salary ?? 0, field.key, Number(event.target.value))}
                         />
                       </td>
                     ))}

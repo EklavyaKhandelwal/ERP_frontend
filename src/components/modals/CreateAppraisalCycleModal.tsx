@@ -41,7 +41,7 @@ export const CreateAppraisalCycleModal: React.FC<Props> = ({ isOpen, onClose }) 
           <div>
             <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>Start appraisal cycle</h3>
             <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-              Creates one self-assessment for each active employee.
+              Creates one self-review for each active employee.
             </p>
           </div>
           <button type="button" aria-label="Close" onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>

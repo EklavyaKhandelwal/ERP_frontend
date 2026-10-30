@@ -1,9 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { CheckCircle2, FileText, Send, Sparkles } from 'lucide-react';
+import { CheckCircle2, ChevronRight, FileText, Send } from 'lucide-react';
 import { useERP } from '../../context/ERPContext';
 import type { PayrollRecord } from '../../types/erp';
 import { CreatePayrollRunModal } from '../../components/modals/CreatePayrollRunModal';
 import { PayslipDetailModal } from '../../components/modals/PayslipDetailModal';
+import { TableSkeletonRows } from '../../components/feedback/LoadingSkeleton';
+import { formatINR } from '../../lib/formatCurrency';
 
 export const PayrollView: React.FC = () => {
   const {
@@ -14,7 +16,6 @@ export const PayrollView: React.FC = () => {
     currentUser,
     employees,
     updatePayrollStatus,
-    setFigmaOverlayAsset,
   } = useERP();
   const [selectedRecord, setSelectedRecord] = useState<PayrollRecord | null>(null);
   const [filterPeriod, setFilterPeriod] = useState('all');
@@ -64,17 +65,6 @@ export const PayrollView: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', gap: '12px' }}>
-          <button
-            onClick={() => setFigmaOverlayAsset(
-              role === 'admin'
-                ? '/design-assets/Payroll/Payroll — Overview.svg'
-                : '/design-assets/Payroll/Employee — My Payslips.svg'
-            )}
-            className="btn btn-secondary btn-sm"
-          >
-            <Sparkles size={14} color="#0052FF" />
-            <span>Compare Figma Spec</span>
-          </button>
           {role === 'admin' && (
             <button onClick={() => setIsCreateModalOpen(true)} className="btn btn-primary">
               <Send size={16} />
@@ -93,17 +83,17 @@ export const PayrollView: React.FC = () => {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '28px' }}>
         <div className="card" style={{ padding: '20px' }}>
           <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>NET PAY IN VIEW</span>
-          <div style={{ fontSize: '26px', fontWeight: '800', color: '#0052FF', marginTop: '4px' }}>${totalNetPay.toLocaleString()}</div>
+          <div style={{ fontSize: '26px', fontWeight: '800', color: '#0052FF', marginTop: '4px' }}>{formatINR(totalNetPay)}</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{displayedPayroll.length} payroll records</div>
         </div>
         <div className="card" style={{ padding: '20px' }}>
           <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>TOTAL EARNINGS</span>
-          <div style={{ fontSize: '26px', fontWeight: '800', color: '#05B169', marginTop: '4px' }}>${totalEarnings.toLocaleString()}</div>
+          <div style={{ fontSize: '26px', fontWeight: '800', color: '#05B169', marginTop: '4px' }}>{formatINR(totalEarnings)}</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Admin-entered amounts</div>
         </div>
         <div className="card" style={{ padding: '20px' }}>
           <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>TOTAL DEDUCTIONS</span>
-          <div style={{ fontSize: '26px', fontWeight: '800', color: '#CF202F', marginTop: '4px' }}>${totalDeductions.toLocaleString()}</div>
+          <div style={{ fontSize: '26px', fontWeight: '800', color: '#CF202F', marginTop: '4px' }}>{formatINR(totalDeductions)}</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>No tax rules are applied</div>
         </div>
         <div className="card" style={{ padding: '20px' }}>
@@ -143,24 +133,25 @@ export const PayrollView: React.FC = () => {
           </thead>
           <tbody>
             {payrollLoading ? (
-              <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>Loading payroll records…</td></tr>
+              <TableSkeletonRows columns={8} rows={5} />
             ) : displayedPayroll.length === 0 ? (
               <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>No payroll records for this period.</td></tr>
             ) : displayedPayroll.map(record => (
-              <tr key={record.id} onClick={() => setSelectedRecord(record)} style={{ cursor: 'pointer' }}>
+              <tr key={record.id} className="arrow-lift-row" onClick={() => setSelectedRecord(record)} style={{ cursor: 'pointer' }}>
                 <td>
                   <div style={{ fontWeight: '600', color: 'var(--text-main)' }}>{record.employeeName}</div>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>{record.employeeCode} · {record.designation}</div>
                 </td>
                 <td><span style={{ color: 'var(--text-secondary)' }}>{record.department}</span></td>
-                <td>${record.basicSalary.toLocaleString()}</td>
-                <td><span style={{ fontWeight: '600', color: '#05B169' }}>+${record.totalEarnings.toLocaleString()}</span></td>
-                <td><span style={{ fontWeight: '600', color: '#CF202F' }}>-${record.totalDeductions.toLocaleString()}</span></td>
-                <td><strong style={{ fontSize: '15px', color: '#0052FF' }}>${record.netPay.toLocaleString()}</strong></td>
+                <td>{formatINR(record.basicSalary)}</td>
+                <td><span style={{ fontWeight: '600', color: '#05B169' }}>+{formatINR(record.totalEarnings)}</span></td>
+                <td><span style={{ fontWeight: '600', color: '#CF202F' }}>−{formatINR(record.totalDeductions)}</span></td>
+                <td><strong style={{ fontSize: '15px', color: '#0052FF' }}>{formatINR(record.netPay)}</strong></td>
                 <td><span className={`badge ${record.status === 'Paid' ? 'badge-success' : 'badge-warning'}`}><span className="badge-dot" />{record.status}</span></td>
                 <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                   <button onClick={event => { event.stopPropagation(); setSelectedRecord(record); }} className="btn btn-sm btn-ghost">
                     <FileText size={14} color="#0052FF" /> View
+                    <ChevronRight className="arrow-lift-trigger" size={14} />
                   </button>
                   {role === 'admin' && record.status !== 'Paid' && (
                     <button

@@ -1,7 +1,7 @@
 import React from 'react';
-import { X, Printer, Sparkles } from 'lucide-react';
-import { useERP } from '../../context/ERPContext';
+import { X, Printer } from 'lucide-react';
 import { PayrollRecord } from '../../types/erp';
+import { formatINR } from '../../lib/formatCurrency';
 
 interface Props {
   record: PayrollRecord | null;
@@ -9,8 +9,6 @@ interface Props {
 }
 
 export const PayslipDetailModal: React.FC<Props> = ({ record, onClose }) => {
-  const { setFigmaOverlayAsset } = useERP();
-
   if (!record) return null;
 
   return (
@@ -33,13 +31,6 @@ export const PayslipDetailModal: React.FC<Props> = ({ record, onClose }) => {
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <button
-              onClick={() => setFigmaOverlayAsset('/design-assets/Payroll/Payroll — Payslip Detail.svg')}
-              className="btn btn-ghost btn-sm"
-            >
-              <Sparkles size={14} color="#0052FF" />
-              <span>Figma Spec</span>
-            </button>
             <button 
               onClick={() => window.print()}
               className="btn btn-secondary btn-sm"
@@ -122,25 +113,25 @@ export const PayslipDetailModal: React.FC<Props> = ({ record, onClose }) => {
               <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: 'var(--text-secondary)' }}>Basic Salary</span>
-                  <span style={{ fontWeight: '600' }}>${record.basicSalary.toLocaleString()}</span>
+                  <span style={{ fontWeight: '600' }}>{formatINR(record.basicSalary)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: 'var(--text-secondary)' }}>House Rent Allowance (HRA)</span>
-                  <span style={{ fontWeight: '600' }}>${record.hra.toLocaleString()}</span>
+                  <span style={{ fontWeight: '600' }}>{formatINR(record.hra)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: 'var(--text-secondary)' }}>Special Allowance</span>
-                  <span style={{ fontWeight: '600' }}>${record.specialAllowance.toLocaleString()}</span>
+                  <span style={{ fontWeight: '600' }}>{formatINR(record.specialAllowance)}</span>
                 </div>
                 {record.bonus > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                     <span style={{ color: 'var(--text-secondary)' }}>Performance Bonus</span>
-                    <span style={{ fontWeight: '600', color: '#05B169' }}>+${record.bonus.toLocaleString()}</span>
+                    <span style={{ fontWeight: '600', color: '#05B169' }}>+{formatINR(record.bonus)}</span>
                   </div>
                 )}
                 <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '8px', marginTop: '4px', display: 'flex', justifyContent: 'space-between', fontWeight: '700' }}>
                   <span>Gross Earnings</span>
-                  <span style={{ color: '#05B169' }}>${record.totalEarnings.toLocaleString()}</span>
+                  <span style={{ color: '#05B169' }}>{formatINR(record.totalEarnings)}</span>
                 </div>
               </div>
             </div>
@@ -152,20 +143,20 @@ export const PayslipDetailModal: React.FC<Props> = ({ record, onClose }) => {
               </div>
               <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Provident Fund (401k / PF)</span>
-                  <span style={{ fontWeight: '600' }}>${record.providentFund.toLocaleString()}</span>
+                  <span style={{ color: 'var(--text-secondary)' }}>Provident Fund (PF)</span>
+                  <span style={{ fontWeight: '600' }}>{formatINR(record.providentFund)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Federal & State Income Tax</span>
-                  <span style={{ fontWeight: '600' }}>${record.incomeTax.toLocaleString()}</span>
+                  <span style={{ color: 'var(--text-secondary)' }}>Income Tax (TDS)</span>
+                  <span style={{ fontWeight: '600' }}>{formatINR(record.incomeTax)}</span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   <span style={{ color: 'var(--text-secondary)' }}>Professional Tax</span>
-                  <span style={{ fontWeight: '600' }}>${record.professionalTax.toLocaleString()}</span>
+                  <span style={{ fontWeight: '600' }}>{formatINR(record.professionalTax)}</span>
                 </div>
                 <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '8px', marginTop: '28px', display: 'flex', justifyContent: 'space-between', fontWeight: '700' }}>
                   <span>Total Deductions</span>
-                  <span style={{ color: '#CF202F' }}>-${record.totalDeductions.toLocaleString()}</span>
+                  <span style={{ color: '#CF202F' }}>−{formatINR(record.totalDeductions)}</span>
                 </div>
               </div>
             </div>
@@ -190,7 +181,7 @@ export const PayslipDetailModal: React.FC<Props> = ({ record, onClose }) => {
               </div>
             </div>
             <div style={{ fontSize: '32px', fontWeight: '800', color: '#FFFFFF', letterSpacing: '-0.02em' }}>
-              ${record.netPay.toLocaleString()}
+              {formatINR(record.netPay)}
             </div>
           </div>
         </div>

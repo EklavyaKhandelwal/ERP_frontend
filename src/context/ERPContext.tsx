@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { 
   User, 
   UserRole, 
@@ -28,9 +28,11 @@ import {
   type LeaveBalance,
   type LeaveInput,
   type ProjectInput,
+  type ProjectTaskInput,
+  type ProjectTaskUpdate,
   type PayrollRunRecordInput,
   type TimesheetEntryInput,
-  type ManagerReviewInput,
+  type AdminReviewInput,
   type SelfAssessmentInput,
 } from '../lib/api';
 
@@ -54,8 +56,10 @@ interface ERPContextType {
   // Data Stores & CRUD
   employees: Employee[];
   employeesLoading: boolean;
+  refreshEmployees: () => Promise<void>;
   addEmployee: (emp: EmployeeInput) => Promise<Employee>;
   updateEmployee: (id: string, updates: Partial<EmployeeInput>) => Promise<Employee>;
+  updateProfileAvatar: (file: File) => Promise<void>;
   issueEmployeeAccessLink: (employeeId: string) => Promise<AccessLinkResult>;
   setEmployeeAccountActive: (employeeId: string, isActive: boolean) => Promise<void>;
 
@@ -69,8 +73,13 @@ interface ERPContextType {
   timesheets: Timesheet[];
   timesheetsLoading: boolean;
   timesheetsError: string | null;
-  saveTimesheet: (weekStart: string, status: 'Draft' | 'Submitted', entries: TimesheetEntryInput[]) => Promise<Timesheet>;
-  reviewTimesheet: (id: string, status: 'Approved' | 'Rejected') => Promise<Timesheet>;
+  saveTimesheet: (
+    weekStart: string,
+    status: 'Draft' | 'Submitted',
+    entries: TimesheetEntryInput[],
+    summary: Pick<Timesheet, 'workCompleted' | 'nextWeekFocus' | 'blockers'>,
+  ) => Promise<Timesheet>;
+  reviewTimesheet: (id: string, status: 'Approved' | 'Rejected', note?: string) => Promise<Timesheet>;
 
   payroll: PayrollRecord[];
   payrollLoading: boolean;
@@ -82,22 +91,20 @@ interface ERPContextType {
   projectsLoading: boolean;
   projectsError: string | null;
   addProject: (proj: ProjectInput) => Promise<Project>;
-  updateProjectProgress: (id: string, progress: number) => Promise<void>;
+  addProjectTask: (projectId: string, task: ProjectTaskInput) => Promise<void>;
+  updateProjectTask: (projectId: string, taskId: string, updates: ProjectTaskUpdate) => Promise<void>;
 
   appraisals: AppraisalReview[];
   appraisalsLoading: boolean;
   appraisalsError: string | null;
   createAppraisalCycle: (cycle: string) => Promise<AppraisalReview[]>;
   submitSelfAssessment: (id: string, assessment: SelfAssessmentInput) => Promise<AppraisalReview>;
-  completeManagerReview: (id: string, review: ManagerReviewInput) => Promise<AppraisalReview>;
+  completeAdminReview: (id: string, review: AdminReviewInput) => Promise<AppraisalReview>;
 
-  // Design inspection helper
-  figmaOverlayAsset: string | null;
-  setFigmaOverlayAsset: (path: string | null) => void;
-  
   // Notifications
   notifications: AppNotification[];
   notificationError: string | null;
+  refreshNotifications: () => Promise<void>;
   markNotificationsRead: () => Promise<void>;
 }
 
@@ -112,7 +119,6 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [currentView, setCurrentView] = useState<AppView>('dashboard');
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>('proj-001');
-  const [figmaOverlayAsset, setFigmaOverlayAsset] = useState<string | null>(null);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [employeesLoading, setEmployeesLoading] = useState(false);
   const [leaves, setLeaves] = useState<LeaveRequest[]>([]);
@@ -128,6 +134,9 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [appraisals, setAppraisals] = useState<AppraisalReview[]>([]);
   const [appraisalsLoading, setAppraisalsLoading] = useState(false);
   const [appraisalsError, setAppraisalsError] = useState<string | null>(null);
+  const sessionVersion = useRef(0);
+  const loadedData = useRef(new Set<string>());
+  const pendingData = useRef(new Set<string>());
 
   useEffect(() => {
     let active = true;
@@ -138,11 +147,10 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setCurrentUser(user);
         setRoleState(user.role);
         setEmployeesLoading(true);
-        setLeavesLoading(true);
-        setTimesheetsLoading(true);
         setProjectsLoading(true);
         setPayrollLoading(true);
-        setAppraisalsLoading(true);
+        if (user.role === 'admin') setLeavesLoading(true);
+        else setTimesheetsLoading(true);
         setLeavesError(null);
         setTimesheetsError(null);
         setProjectsError(null);
@@ -174,76 +182,112 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [notificationError, setNotificationError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!isAuthenticated) return;
+  const refreshNotifications = async () => {
+    try {
+      const records = await notificationsApi.list();
+      setNotifications(records);
+      setNotificationError(null);
+    } catch (error) {
+      setNotificationError(error instanceof Error ? error.message : 'Unable to load notifications.');
+    }
+  };
 
-    let active = true;
+  useEffect(() => {
+    const shouldLoad = currentView === 'employees'
+      || currentView === 'employee-profile'
+      || currentView === 'my-profile'
+      || currentView === 'admin-access'
+      || currentView === 'reports';
+    const key = 'employees';
+    if (!isAuthenticated || !shouldLoad || loadedData.current.has(key) || pendingData.current.has(key)) return;
+    const version = sessionVersion.current;
+    pendingData.current.add(key);
+    setEmployeesLoading(true);
     void employeesApi.list()
       .then(records => {
-        if (!active) return;
+        if (version !== sessionVersion.current) return;
         setEmployees(records);
         if (role === 'employee' && records[0]) {
-          setSelectedEmployeeId(records[0].id);
+          const ownEmployee = records.find(employee => employee.email.toLowerCase() === currentUser.email.toLowerCase());
+          setSelectedEmployeeId(ownEmployee?.id ?? records[0].id);
         }
+        loadedData.current.add(key);
       })
       .catch((error: unknown) => {
-        if (active) {
+        if (version === sessionVersion.current) {
           setAuthError(error instanceof Error ? error.message : 'Unable to load employees.');
         }
       })
       .finally(() => {
-        if (active) setEmployeesLoading(false);
+        if (version === sessionVersion.current) {
+          pendingData.current.delete(key);
+          setEmployeesLoading(false);
+        }
       });
-
-    return () => {
-      active = false;
-    };
-  }, [isAuthenticated, role]);
+  }, [isAuthenticated, role, currentView, currentUser.email]);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
-
-    let active = true;
+    const shouldLoad = currentView === 'leaves' || currentView === 'reports';
+    const key = 'leaves';
+    if (!isAuthenticated || !shouldLoad || loadedData.current.has(key) || pendingData.current.has(key)) return;
+    const version = sessionVersion.current;
+    pendingData.current.add(key);
+    setLeavesLoading(true);
+    setLeavesError(null);
     void leavesApi.list()
       .then(result => {
-        if (!active) return;
+        if (version !== sessionVersion.current) return;
         setLeaves(result.leaves);
         setLeaveBalance(result.leaveBalance);
+        loadedData.current.add(key);
       })
       .catch((error: unknown) => {
-        if (!active) return;
+        if (version !== sessionVersion.current) return;
         setLeavesError(error instanceof Error ? error.message : 'Unable to load leave requests.');
       })
       .finally(() => {
-        if (active) setLeavesLoading(false);
+        if (version === sessionVersion.current) {
+          pendingData.current.delete(key);
+          setLeavesLoading(false);
+        }
       });
-
-    return () => {
-      active = false;
-    };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, role, currentView]);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
-    let active = true;
+    const shouldLoad = currentView === 'projects'
+      || currentView === 'project-detail'
+      || currentView === 'timesheets'
+      || currentView === 'employee-profile';
+    const key = 'projects';
+    if (!isAuthenticated || !shouldLoad || loadedData.current.has(key) || pendingData.current.has(key)) return;
+    const version = sessionVersion.current;
+    pendingData.current.add(key);
+    setProjectsLoading(true);
+    setProjectsError(null);
     void projectsApi.list()
       .then(records => {
-        if (active) setProjects(records);
+        if (version !== sessionVersion.current) return;
+        setProjects(records);
+        loadedData.current.add(key);
       })
       .catch((error: unknown) => {
-        if (active) setProjectsError(error instanceof Error ? error.message : 'Unable to load projects.');
+        if (version === sessionVersion.current) {
+          setProjectsError(error instanceof Error ? error.message : 'Unable to load projects.');
+        }
       })
       .finally(() => {
-        if (active) setProjectsLoading(false);
+        if (version === sessionVersion.current) {
+          pendingData.current.delete(key);
+          setProjectsLoading(false);
+        }
       });
-    return () => { active = false; };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, role, currentView]);
 
   useEffect(() => {
     if (!isAuthenticated) return;
     let active = true;
 
-    const refreshNotifications = async () => {
+    const pollNotifications = async () => {
       try {
         const records = await notificationsApi.list();
         if (active) {
@@ -257,8 +301,8 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       }
     };
 
-    void refreshNotifications();
-    const intervalId = window.setInterval(() => void refreshNotifications(), 30_000);
+    void pollNotifications();
+    const intervalId = window.setInterval(() => void pollNotifications(), 30_000);
     return () => {
       active = false;
       window.clearInterval(intervalId);
@@ -266,66 +310,101 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   }, [isAuthenticated, currentUser.id]);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
-    let active = true;
+    const shouldLoad = currentView === 'timesheets' || currentView === 'reports';
+    const key = 'timesheets';
+    if (!isAuthenticated || !shouldLoad || loadedData.current.has(key) || pendingData.current.has(key)) return;
+    const version = sessionVersion.current;
+    pendingData.current.add(key);
+    setTimesheetsLoading(true);
+    setTimesheetsError(null);
     void timesheetsApi.list()
       .then(records => {
-        if (active) setTimesheets(records);
+        if (version !== sessionVersion.current) return;
+        setTimesheets(records);
+        loadedData.current.add(key);
       })
       .catch((error: unknown) => {
-        if (active) setTimesheetsError(error instanceof Error ? error.message : 'Unable to load timesheets.');
+        if (version === sessionVersion.current) {
+          setTimesheetsError(error instanceof Error ? error.message : 'Unable to load timesheets.');
+        }
       })
       .finally(() => {
-        if (active) setTimesheetsLoading(false);
+        if (version === sessionVersion.current) {
+          pendingData.current.delete(key);
+          setTimesheetsLoading(false);
+        }
       });
-    return () => { active = false; };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, role, currentView]);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
-    let active = true;
+    const shouldLoad = currentView === 'payroll'
+      || currentView === 'reports';
+    const key = 'payroll';
+    if (!isAuthenticated || !shouldLoad || loadedData.current.has(key) || pendingData.current.has(key)) return;
+    const version = sessionVersion.current;
+    pendingData.current.add(key);
+    setPayrollLoading(true);
+    setPayrollError(null);
     void payrollApi.list()
       .then(records => {
-        if (active) setPayroll(records);
+        if (version !== sessionVersion.current) return;
+        setPayroll(records);
+        loadedData.current.add(key);
       })
       .catch((error: unknown) => {
-        if (active) setPayrollError(error instanceof Error ? error.message : 'Unable to load payroll records.');
+        if (version === sessionVersion.current) {
+          setPayrollError(error instanceof Error ? error.message : 'Unable to load payroll records.');
+        }
       })
       .finally(() => {
-        if (active) setPayrollLoading(false);
+        if (version === sessionVersion.current) {
+          pendingData.current.delete(key);
+          setPayrollLoading(false);
+        }
       });
-    return () => { active = false; };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, role, currentView]);
 
   useEffect(() => {
-    if (!isAuthenticated) return;
-    let active = true;
+    const key = 'appraisals';
+    if (!isAuthenticated || currentView !== 'appraisals' || loadedData.current.has(key) || pendingData.current.has(key)) return;
+    const version = sessionVersion.current;
+    pendingData.current.add(key);
+    setAppraisalsLoading(true);
+    setAppraisalsError(null);
     void appraisalsApi.list()
       .then(records => {
-        if (active) setAppraisals(records);
+        if (version !== sessionVersion.current) return;
+        setAppraisals(records);
+        loadedData.current.add(key);
       })
       .catch((error: unknown) => {
-        if (active) setAppraisalsError(error instanceof Error ? error.message : 'Unable to load performance reviews.');
+        if (version === sessionVersion.current) {
+          setAppraisalsError(error instanceof Error ? error.message : 'Unable to load performance reviews.');
+        }
       })
       .finally(() => {
-        if (active) setAppraisalsLoading(false);
+        if (version === sessionVersion.current) {
+          pendingData.current.delete(key);
+          setAppraisalsLoading(false);
+        }
       });
-    return () => { active = false; };
-  }, [isAuthenticated]);
+  }, [isAuthenticated, currentView]);
 
   // Auth
   const login = async (email: string, pass: string, rememberMe: boolean) => {
     setAuthError(null);
     try {
       const user = await authApi.login(email, pass, rememberMe);
+      sessionVersion.current += 1;
+      loadedData.current.clear();
+      pendingData.current.clear();
       setCurrentUser(user);
       setRoleState(user.role);
       setEmployeesLoading(true);
-      setLeavesLoading(true);
-      setTimesheetsLoading(true);
       setProjectsLoading(true);
       setPayrollLoading(true);
-      setAppraisalsLoading(true);
+      if (user.role === 'admin') setLeavesLoading(true);
+      else setTimesheetsLoading(true);
       setLeavesError(null);
       setTimesheetsError(null);
       setProjectsError(null);
@@ -345,18 +424,25 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setAuthError(null);
     try {
       await authApi.logout();
+      sessionVersion.current += 1;
+      loadedData.current.clear();
+      pendingData.current.clear();
       setIsAuthenticated(false);
       setEmployees([]);
       setEmployeesLoading(false);
       setLeaves([]);
       setLeavesLoading(false);
+      setLeavesError(null);
       setLeaveBalance(null);
       setTimesheets([]);
       setTimesheetsLoading(false);
+      setTimesheetsError(null);
       setProjects([]);
       setProjectsLoading(false);
+      setProjectsError(null);
       setPayroll([]);
       setPayrollLoading(false);
+      setPayrollError(null);
       setAppraisals([]);
       setAppraisalsLoading(false);
       setAppraisalsError(null);
@@ -379,6 +465,32 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const employee = await employeesApi.update(id, updates);
     setEmployees(prev => prev.map(existing => existing.id === id ? employee : existing));
     return employee;
+  };
+
+  const updateProfileAvatar = async (file: File) => {
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type)) {
+      throw new Error('Choose a PNG, JPEG, or WebP image.');
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      throw new Error('Choose an image that is 5 MB or smaller.');
+    }
+
+    const avatar = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') resolve(reader.result);
+        else reject(new Error('Unable to read the selected image.'));
+      };
+      reader.onerror = () => reject(new Error('Unable to read the selected image.'));
+      reader.readAsDataURL(file);
+    });
+    const updatedUser = await authApi.updateAvatar(avatar);
+    setCurrentUser(updatedUser);
+    setEmployees(previous => previous.map(employee => (
+      employee.email.toLowerCase() === updatedUser.email.toLowerCase()
+        ? { ...employee, avatar }
+        : employee
+    )));
   };
 
   const issueEmployeeAccessLink = async (employeeId: string) => {
@@ -424,13 +536,14 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     weekStart: string,
     status: 'Draft' | 'Submitted',
     entries: TimesheetEntryInput[],
+    summary: Pick<Timesheet, 'workCompleted' | 'nextWeekFocus' | 'blockers'>,
   ) => {
     const employee = employees.find(existing => existing.email === currentUser.email);
     if (!employee) throw new Error('Your account does not have a linked employee profile.');
     const existing = timesheets.find(sheet => sheet.employeeId === employee.id && sheet.weekStart === weekStart);
     const result = existing
-      ? await timesheetsApi.update(existing.id, { status, entries })
-      : await timesheetsApi.create({ weekStart, status, entries });
+      ? await timesheetsApi.update(existing.id, { status, entries, ...summary })
+      : await timesheetsApi.create({ weekStart, status, entries, ...summary });
     setTimesheets(prev => existing
       ? prev.map(sheet => sheet.id === result.timesheet.id ? result.timesheet : sheet)
       : [result.timesheet, ...prev]);
@@ -438,8 +551,8 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return result.timesheet;
   };
 
-  const reviewTimesheet = async (id: string, status: 'Approved' | 'Rejected') => {
-    const result = await timesheetsApi.review(id, status);
+  const reviewTimesheet = async (id: string, status: 'Approved' | 'Rejected', note?: string) => {
+    const result = await timesheetsApi.review(id, status, note);
     setTimesheets(prev => prev.map(sheet => sheet.id === result.timesheet.id ? result.timesheet : sheet));
     setTimesheetsError(null);
     return result.timesheet;
@@ -471,14 +584,18 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return created;
   };
 
-  const updateProjectProgress = async (id: string, progress: number) => {
-    try {
-      await projectsApi.updateProgress(id, progress);
-      setProjects(prev => prev.map(project => project.id === id ? { ...project, progress } : project));
-      setProjectsError(null);
-    } catch (error) {
-      setProjectsError(error instanceof Error ? error.message : 'Unable to update project progress.');
-    }
+  const addProjectTask = async (projectId: string, task: ProjectTaskInput) => {
+    await projectsApi.createTask(projectId, task);
+    const updatedProjects = await projectsApi.list();
+    setProjects(updatedProjects);
+    setProjectsError(null);
+  };
+
+  const updateProjectTask = async (projectId: string, taskId: string, updates: ProjectTaskUpdate) => {
+    await projectsApi.updateTask(projectId, taskId, updates);
+    const updatedProjects = await projectsApi.list();
+    setProjects(updatedProjects);
+    setProjectsError(null);
   };
 
   // Appraisal Methods
@@ -496,8 +613,8 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return updated;
   };
 
-  const completeManagerReview = async (id: string, review: ManagerReviewInput) => {
-    const updated = await appraisalsApi.completeManagerReview(id, review);
+  const completeAdminReview = async (id: string, review: AdminReviewInput) => {
+    const updated = await appraisalsApi.completeAdminReview(id, review);
     setAppraisals(prev => prev.map(appraisal => appraisal.id === id ? updated : appraisal));
     setAppraisalsError(null);
     return updated;
@@ -533,8 +650,13 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       logout,
       employees,
       employeesLoading,
+      refreshEmployees: async () => {
+        const records = await employeesApi.list();
+        setEmployees(records);
+      },
       addEmployee,
       updateEmployee,
+      updateProfileAvatar,
       issueEmployeeAccessLink,
       setEmployeeAccountActive,
       leaves,
@@ -557,17 +679,17 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       projectsLoading,
       projectsError,
       addProject,
-      updateProjectProgress,
+      addProjectTask,
+      updateProjectTask,
       appraisals,
       appraisalsLoading,
       appraisalsError,
       createAppraisalCycle,
       submitSelfAssessment,
-      completeManagerReview,
-      figmaOverlayAsset,
-      setFigmaOverlayAsset,
+      completeAdminReview,
       notifications,
       notificationError,
+      refreshNotifications,
       markNotificationsRead
     }}>
       {children}

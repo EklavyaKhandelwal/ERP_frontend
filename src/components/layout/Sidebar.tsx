@@ -7,65 +7,75 @@ import {
   Briefcase, 
   Clock, 
   Award, 
-  LogOut, 
-  Layers,
-  Sparkles
+  LogOut,
+  ShieldCheck,
+  UserRound,
+  FileText,
+  SlidersHorizontal,
 } from 'lucide-react';
 import { useERP } from '../../context/ERPContext';
 import { AppView } from '../../types/erp';
 
 export const Sidebar: React.FC = () => {
-  const { currentView, setCurrentView, currentUser, role, logout, setFigmaOverlayAsset } = useERP();
+  const { currentView, setCurrentView, currentUser, logout } = useERP();
 
-  const menuItems: { id: AppView; label: string; icon: React.ReactNode; specAsset?: string }[] = [
+  const menuItems: { id: AppView; label: string; icon: React.ReactNode }[] = [
     { 
       id: 'dashboard', 
-      label: 'Dashboard', 
-      icon: <LayoutDashboard size={18} />, 
-      specAsset: role === 'admin' ? '/design-assets/Admin/Admin Dashboard — Default.svg' : '/design-assets/Dashboard/Employee Dashboard — Default.svg' 
+      label: 'Dashboard',
+      icon: <LayoutDashboard size={18} />
     },
     { 
       id: 'employees', 
-      label: 'Employees', 
-      icon: <Users size={18} />, 
-      specAsset: '/design-assets/Employees/Employees — Directory.svg' 
+      label: 'Employees',
+      icon: <Users size={18} />
     },
     { 
       id: 'leaves', 
-      label: 'Leaves & Calendar', 
-      icon: <Calendar size={18} />, 
-      specAsset: role === 'admin' ? '/design-assets/Leaves/Leaves — Admin Dashboard.svg' : '/design-assets/Leaves/Employee — Leave Balance.svg' 
+      label: 'Leaves & Calendar',
+      icon: <Calendar size={18} />
     },
     { 
       id: 'payroll', 
-      label: 'Payroll', 
-      icon: <CreditCard size={18} />, 
-      specAsset: role === 'admin' ? '/design-assets/Payroll/Payroll — Overview.svg' : '/design-assets/Payroll/Employee — My Payslips.svg' 
+      label: 'Payroll',
+      icon: <CreditCard size={18} />
     },
     { 
       id: 'projects', 
-      label: 'Projects', 
-      icon: <Briefcase size={18} />, 
-      specAsset: '/design-assets/Projects/Projects — List.svg' 
+      label: 'Projects',
+      icon: <Briefcase size={18} />
     },
     { 
       id: 'timesheets', 
-      label: 'Timesheets', 
-      icon: <Clock size={18} />, 
-      specAsset: role === 'admin' ? '/design-assets/Timesheets/Timesheets — Admin Approval.svg' : '/design-assets/Timesheets/Timesheets — Weekly View.svg' 
+      label: 'Timesheets',
+      icon: <Clock size={18} />
     },
+    ...(currentUser.role === 'admin' ? [{
+      id: 'reports' as AppView,
+      label: 'Reports',
+      icon: <FileText size={18} />,
+    }] : []),
     { 
       id: 'appraisals', 
-      label: 'Appraisals', 
-      icon: <Award size={18} />, 
-      specAsset: '/design-assets/Appraisals/Appraisals — Overview.svg' 
+      label: 'Appraisals',
+      icon: <Award size={18} />
+    },
+    {
+      id: 'resignation',
+      label: 'Resignation',
+      icon: <FileText size={18} />
     }
   ];
+  if (currentUser.isOwner) {
+    menuItems.push({ id: 'admin-access', label: 'HR Admin Access', icon: <ShieldCheck size={18} /> });
+  }
+  menuItems.push({ id: 'settings', label: 'Settings', icon: <SlidersHorizontal size={18} /> });
+  menuItems.push({ id: 'my-profile', label: 'My Profile', icon: <UserRound size={18} /> });
 
   return (
     <aside style={{
       width: '260px',
-      height: '100vh',
+      height: '100dvh',
       backgroundColor: 'var(--dark-sidebar)',
       borderRight: '1px solid var(--dark-border)',
       display: 'flex',
@@ -117,10 +127,7 @@ export const Sidebar: React.FC = () => {
             return (
               <button
                 key={item.id}
-                onClick={() => {
-                  setCurrentView(item.id);
-                  if (item.specAsset) setFigmaOverlayAsset(null);
-                }}
+                onClick={() => setCurrentView(item.id)}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -170,36 +177,6 @@ export const Sidebar: React.FC = () => {
           })}
         </div>
 
-        {/* Figma Spec Quick Action */}
-        <div style={{ marginTop: '20px', padding: '0 8px' }}>
-          <button
-            onClick={() => {
-              const current = menuItems.find(m => m.id === currentView);
-              if (current?.specAsset) {
-                setFigmaOverlayAsset(current.specAsset);
-              }
-            }}
-            style={{
-              width: '100%',
-              padding: '10px 12px',
-              background: 'linear-gradient(135deg, rgba(0, 82, 255, 0.15) 0%, rgba(138, 56, 245, 0.15) 100%)',
-              border: '1px solid rgba(0, 82, 255, 0.3)',
-              borderRadius: '8px',
-              color: '#9BB8FF',
-              fontSize: '12px',
-              fontWeight: '600',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              transition: 'all 0.2s ease'
-            }}
-          >
-            <Sparkles size={14} color="#0052FF" />
-            <span>Compare Figma Spec</span>
-          </button>
-        </div>
       </nav>
 
       {/* User Profile Footer */}

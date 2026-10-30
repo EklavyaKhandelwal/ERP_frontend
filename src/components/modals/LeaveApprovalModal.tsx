@@ -6,10 +6,11 @@ import { LeaveRequest } from '../../types/erp';
 interface Props {
   leave: LeaveRequest | null;
   onClose: () => void;
+  onReviewed?: () => void;
 }
 
-export const LeaveApprovalModal: React.FC<Props> = ({ leave, onClose }) => {
-  const { reviewLeave, setFigmaOverlayAsset } = useERP();
+export const LeaveApprovalModal: React.FC<Props> = ({ leave, onClose, onReviewed }) => {
+  const { reviewLeave, role } = useERP();
   const [note, setNote] = useState('');
   const [resultState, setResultState] = useState<'approved' | 'rejected' | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +24,7 @@ export const LeaveApprovalModal: React.FC<Props> = ({ leave, onClose }) => {
     try {
       await reviewLeave(leave.id, status, note);
       setResultState(status === 'Approved' ? 'approved' : 'rejected');
+      onReviewed?.();
     } catch (reviewError) {
       setError(reviewError instanceof Error ? reviewError.message : 'Unable to review leave request.');
     } finally {
@@ -43,10 +45,10 @@ export const LeaveApprovalModal: React.FC<Props> = ({ leave, onClose }) => {
         }}>
           <div>
             <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>
-              Leave Application Review
+              {role === 'admin' && leave.status === 'Pending' ? 'Review Leave Application' : 'Leave Request Details'}
             </h3>
             <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '2px 0 0 0' }}>
-              Decision approval flow for manager authorization
+              {role === 'admin' && leave.status === 'Pending' ? 'Review and record a decision' : `Request status: ${leave.status}`}
             </p>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
@@ -74,19 +76,9 @@ export const LeaveApprovalModal: React.FC<Props> = ({ leave, onClose }) => {
               {resultState === 'approved' ? 'Leave Application Approved' : 'Leave Application Rejected'}
             </h4>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px' }}>
-              The request status has been saved. Email notifications and calendar sync are not enabled yet.
+              The request status has been saved. Email notifications and external calendar sync are not enabled yet.
             </p>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '24px' }}>
-              <button
-                onClick={() => setFigmaOverlayAsset(
-                  resultState === 'approved' 
-                    ? '/design-assets/Leaves/Leaves — Approved Success.svg' 
-                    : '/design-assets/Leaves/Leaves — Rejected.svg'
-                )}
-                className="btn btn-secondary btn-sm"
-              >
-                Inspect Figma Spec
-              </button>
               <button onClick={onClose} className="btn btn-primary btn-sm">
                 Done
               </button>
@@ -141,16 +133,25 @@ export const LeaveApprovalModal: React.FC<Props> = ({ leave, onClose }) => {
               </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Reviewer Notes / Feedback (Optional)</label>
-              <textarea 
-                rows={2}
-                placeholder="Add comments visible to the applicant..."
-                className="form-control"
-                value={note}
-                onChange={e => setNote(e.target.value)}
-              />
-            </div>
+            {role === 'admin' && leave.status === 'Pending' ? (
+              <div className="form-group">
+                <label className="form-label">Reviewer Notes / Feedback (Optional)</label>
+                <textarea
+                  rows={2}
+                  placeholder="Add comments visible to the applicant..."
+                  className="form-control"
+                  value={note}
+                  onChange={e => setNote(e.target.value)}
+                />
+              </div>
+            ) : leave.reviewNote ? (
+              <div style={{ marginBottom: '20px' }}>
+                <span style={{ color: 'var(--text-muted)', fontSize: '12px', fontWeight: '600' }}>Reviewer Notes</span>
+                <div style={{ marginTop: '4px', padding: '12px', backgroundColor: '#F8F9FA', borderRadius: '8px', fontSize: '13px', color: 'var(--text-main)' }}>
+                  {leave.reviewNote}
+                </div>
+              </div>
+            ) : null}
 
             {error && (
               <div role="alert" style={{ padding: '10px 12px', marginTop: '12px', borderRadius: '8px', color: '#CF202F', backgroundColor: '#FEECEE', fontSize: '13px' }}>
@@ -161,20 +162,13 @@ export const LeaveApprovalModal: React.FC<Props> = ({ leave, onClose }) => {
             <div style={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'space-between',
+              justifyContent: 'flex-end',
               marginTop: '24px',
               paddingTop: '16px',
               borderTop: '1px solid var(--border-light)'
             }}>
-              <button
-                type="button"
-                onClick={() => setFigmaOverlayAsset('/design-assets/Leaves/Leaves — Approval Modal.svg')}
-                style={{ background: 'none', border: 'none', color: '#0052FF', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
-              >
-                Compare Figma Spec ↗
-              </button>
-
-              <div style={{ display: 'flex', gap: '10px' }}>
+              {role === 'admin' && leave.status === 'Pending' ? (
+                <div style={{ display: 'flex', gap: '10px', marginRight: 'auto' }}>
                 <button
                   type="button"
                   disabled={isSubmitting}
@@ -196,6 +190,8 @@ export const LeaveApprovalModal: React.FC<Props> = ({ leave, onClose }) => {
                   <span>Approve Leave</span>
                 </button>
               </div>
+              ) : null}
+              <button type="button" onClick={onClose} className="btn btn-secondary">Close</button>
             </div>
           </div>
         )}

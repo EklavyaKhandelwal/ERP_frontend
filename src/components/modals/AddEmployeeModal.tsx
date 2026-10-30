@@ -15,7 +15,7 @@ export const AddEmployeeModal: React.FC<Props> = props => (
 );
 
 const EmployeeFormModal: React.FC<Props> = ({ onClose, employee }) => {
-  const { addEmployee, updateEmployee, setFigmaOverlayAsset } = useERP();
+  const { addEmployee, updateEmployee } = useERP();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -23,13 +23,13 @@ const EmployeeFormModal: React.FC<Props> = ({ onClose, employee }) => {
       firstName: employee.firstName,
       lastName: employee.lastName,
       email: employee.email,
-      phone: employee.phone,
+      phone: employee.phone ?? '',
       avatar: employee.avatar,
       role: employee.role,
       department: employee.department,
       designation: employee.designation,
       joinDate: employee.joinDate,
-      salary: employee.salary,
+      salary: employee.salary ?? 0,
       location: employee.location,
       status: employee.status,
       manager: employee.manager,
@@ -209,7 +209,7 @@ const EmployeeFormModal: React.FC<Props> = ({ onClose, employee }) => {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
             <div className="form-group">
-              <label className="form-label">Base Salary ($)</label>
+              <label className="form-label">Monthly Base Salary (₹)</label>
               <input 
                 type="number" 
                 className="form-control"
@@ -262,14 +262,6 @@ const EmployeeFormModal: React.FC<Props> = ({ onClose, employee }) => {
             paddingTop: '16px',
             borderTop: '1px solid var(--border-light)'
           }}>
-            <button
-              type="button"
-              onClick={() => setFigmaOverlayAsset('/design-assets/Employees/Employees — Add Employee Form.svg')}
-              style={{ background: 'none', border: 'none', color: '#0052FF', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
-            >
-              Compare Figma Spec ↗
-            </button>
-
             <div style={{ display: 'flex', gap: '12px' }}>
               <button type="button" onClick={onClose} className="btn btn-secondary">
                 Cancel

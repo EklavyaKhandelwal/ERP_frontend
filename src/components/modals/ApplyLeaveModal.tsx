@@ -23,7 +23,7 @@ interface Props {
 }
 
 export const ApplyLeaveModal: React.FC<Props> = ({ isOpen, onClose }) => {
-  const { applyLeave, leaveBalance, setFigmaOverlayAsset } = useERP();
+  const { applyLeave, leaveBalance } = useERP();
 
   const [leaveType, setLeaveType] = useState<LeaveType>('Annual Leave');
   const [startDate, setStartDate] = useState('');
@@ -65,7 +65,7 @@ export const ApplyLeaveModal: React.FC<Props> = ({ isOpen, onClose }) => {
               Apply for Leave
             </h3>
             <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '2px 0 0 0' }}>
-              Submit a formal time-off request to your reporting manager.
+              Leave allowances renew each January. Requests spanning calendar years count against both years.
             </p>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
@@ -81,9 +81,9 @@ export const ApplyLeaveModal: React.FC<Props> = ({ isOpen, onClose }) => {
               value={leaveType}
               onChange={e => setLeaveType(e.target.value as LeaveType)}
             >
-              <option value="Annual Leave">Annual Leave ({leaveBalance?.annual ?? 0} days available)</option>
-              <option value="Sick Leave">Sick Leave ({leaveBalance?.sick ?? 0} days available)</option>
-              <option value="Casual Leave">Casual Leave ({leaveBalance?.casual ?? 0} days available)</option>
+              <option value="Annual Leave">Annual Leave ({Math.max(0, (leaveBalance?.annual ?? 0) - (leaveBalance?.annualPending ?? 0))} days available)</option>
+              <option value="Sick Leave">Sick Leave ({Math.max(0, (leaveBalance?.sick ?? 0) - (leaveBalance?.sickPending ?? 0))} days available)</option>
+              <option value="Casual Leave">Casual Leave ({Math.max(0, (leaveBalance?.casual ?? 0) - (leaveBalance?.casualPending ?? 0))} days available)</option>
               <option value="Maternity/Paternity">Maternity/Paternity</option>
               <option value="Unpaid Leave">Unpaid Leave</option>
             </select>
@@ -146,14 +146,6 @@ export const ApplyLeaveModal: React.FC<Props> = ({ isOpen, onClose }) => {
             paddingTop: '16px',
             borderTop: '1px solid var(--border-light)'
           }}>
-            <button
-              type="button"
-              onClick={() => setFigmaOverlayAsset('/design-assets/Leaves/Leaves — Apply Leave.svg')}
-              style={{ background: 'none', border: 'none', color: '#0052FF', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
-            >
-              Compare Figma Spec ↗
-            </button>
-
             <div style={{ display: 'flex', gap: '12px' }}>
               <button type="button" onClick={onClose} className="btn btn-secondary">
                 Cancel

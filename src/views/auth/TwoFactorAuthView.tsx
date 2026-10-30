@@ -3,7 +3,7 @@ import { ShieldCheck, ArrowLeft, KeyRound, AlertCircle } from 'lucide-react';
 import { useERP } from '../../context/ERPContext';
 
 export const TwoFactorAuthView: React.FC = () => {
-  const { setCurrentView, currentUser, setFigmaOverlayAsset } = useERP();
+  const { setCurrentView, currentUser } = useERP();
   const [digits, setDigits] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState<string | null>(null);
   const inputsRef = useRef<(HTMLInputElement | null)[]>([]);
@@ -171,15 +171,6 @@ export const TwoFactorAuthView: React.FC = () => {
             <span>Verify & Authenticate</span>
           </button>
         </form>
-
-        <div style={{ marginTop: '24px', textAlign: 'center' }}>
-          <button
-            onClick={() => setFigmaOverlayAsset('/design-assets/Two-Factor Authentication.svg')}
-            style={{ color: '#0052FF', background: 'none', border: 'none', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}
-          >
-            Inspect Figma Spec ↗
-          </button>
-        </div>
       </div>
     </div>
   );

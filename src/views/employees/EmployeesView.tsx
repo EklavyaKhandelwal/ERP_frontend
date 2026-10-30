@@ -4,7 +4,6 @@ import {
   UserPlus, 
   ChevronRight, 
   MapPin, 
-  Sparkles,
   KeyRound,
   UserCheck,
   UserX,
@@ -13,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useERP } from '../../context/ERPContext';
 import { AddEmployeeModal } from '../../components/modals/AddEmployeeModal';
+import { TableSkeletonRows } from '../../components/feedback/LoadingSkeleton';
 
 export const EmployeesView: React.FC = () => {
   const { 
@@ -22,8 +22,7 @@ export const EmployeesView: React.FC = () => {
     issueEmployeeAccessLink,
     setEmployeeAccountActive,
     setCurrentView, 
-    setSelectedEmployeeId, 
-    setFigmaOverlayAsset 
+    setSelectedEmployeeId
   } = useERP();
 
   const [search, setSearch] = useState('');
@@ -115,13 +114,6 @@ export const EmployeesView: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', gap: '12px' }}>
-          <button
-            onClick={() => setFigmaOverlayAsset('/design-assets/Employees/Employees — Directory.svg')}
-            className="btn btn-secondary btn-sm"
-          >
-            <Sparkles size={14} color="#0052FF" />
-            <span>Compare Figma Directory</span>
-          </button>
           {role === 'admin' && (
             <button
               onClick={() => setIsAddModalOpen(true)}
@@ -178,16 +170,14 @@ export const EmployeesView: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500' }}>Status:</span>
             <select
+              className="form-control"
               value={selectedStatus}
               onChange={e => setSelectedStatus(e.target.value)}
               style={{
-                padding: '6px 12px',
-                borderRadius: '6px',
-                border: '1px solid var(--border-default)',
+                width: 'auto',
+                minWidth: '150px',
+                padding: '6px 36px 6px 12px',
                 fontSize: '12.5px',
-                color: 'var(--text-main)',
-                backgroundColor: '#FFFFFF',
-                outline: 'none'
               }}
             >
               <option value="All">All Statuses</option>
@@ -200,14 +190,11 @@ export const EmployeesView: React.FC = () => {
         </div>
       </div>
 
-      {/* Directory Table matching Figma spec */}
+      {/* Employee directory */}
       <div className="table-container">
         <table className="erp-table">
           <thead>
             <tr>
-              <th style={{ width: '40px' }}>
-                <input type="checkbox" style={{ accentColor: '#0052FF' }} />
-              </th>
               <th>Employee</th>
               <th>Department</th>
               <th>Designation</th>
@@ -220,14 +207,10 @@ export const EmployeesView: React.FC = () => {
           </thead>
           <tbody>
             {employeesLoading ? (
-              <tr>
-                <td colSpan={role === 'admin' ? 9 : 8} style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--text-muted)' }}>
-                  Loading employees…
-                </td>
-              </tr>
+              <TableSkeletonRows columns={role === 'admin' ? 8 : 7} rows={6} />
             ) : filteredEmployees.length === 0 ? (
               <tr>
-                <td colSpan={role === 'admin' ? 9 : 8} style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--text-muted)' }}>
+                <td colSpan={role === 'admin' ? 8 : 7} style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--text-muted)' }}>
                   No employees matched your current search filters.
                 </td>
               </tr>
@@ -235,15 +218,13 @@ export const EmployeesView: React.FC = () => {
               filteredEmployees.map(emp => (
                 <tr 
                   key={emp.id}
+                  className="arrow-lift-row"
                   onClick={() => {
                     setSelectedEmployeeId(emp.id);
                     setCurrentView('employee-profile');
                   }}
                   style={{ cursor: 'pointer' }}
                 >
-                  <td onClick={e => e.stopPropagation()}>
-                    <input type="checkbox" style={{ accentColor: '#0052FF' }} />
-                  </td>
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <img 
@@ -271,35 +252,37 @@ export const EmployeesView: React.FC = () => {
                     {getStatusBadge(emp.status)}
                   </td>
                   {role === 'admin' && (
-                    <td onClick={event => event.stopPropagation()}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <td className="employee-account-cell" onClick={event => event.stopPropagation()}>
+                      <div className="employee-account-controls">
                         <span className={`badge ${emp.accountStatus === 'Active' || emp.accountStatus === 'Admin account' ? 'badge-success' : emp.accountStatus === 'Deactivated' ? 'badge-neutral' : 'badge-warning'}`}>
                           <span className="badge-dot" />{emp.accountStatus ?? 'Not set up'}
                         </span>
-                        {emp.accountStatus !== 'Admin account' && (
-                          <button
-                            type="button"
-                            disabled={pendingAccountAction === emp.id || emp.status === 'Inactive'}
-                            onClick={() => void createAccessLink(emp.id, `${emp.firstName} ${emp.lastName}`)}
-                            className="btn btn-ghost btn-sm"
-                            title="Create a one-time password setup or reset link."
-                          >
-                            <KeyRound size={14} />
-                            {emp.accountStatus === 'Active' || emp.accountStatus === 'Deactivated' ? 'Reset link' : 'Setup link'}
-                          </button>
-                        )}
-                        {(emp.accountStatus === 'Active' || emp.accountStatus === 'Deactivated') && (
-                          <button
-                            type="button"
-                            disabled={pendingAccountAction === emp.id || (emp.accountStatus === 'Deactivated' && emp.status === 'Inactive')}
-                            onClick={() => void updateAccountAccess(emp.id, emp.accountStatus === 'Deactivated')}
-                            className="btn btn-ghost btn-sm"
-                            title={emp.accountStatus === 'Active' ? 'Deactivate and revoke this employee’s sessions.' : 'Reactivate login access.'}
-                          >
-                            {emp.accountStatus === 'Active' ? <UserX size={14} /> : <UserCheck size={14} />}
-                            {emp.accountStatus === 'Active' ? 'Deactivate' : 'Reactivate'}
-                          </button>
-                        )}
+                        <div className="employee-account-actions">
+                          {emp.accountStatus !== 'Admin account' && (
+                            <button
+                              type="button"
+                              disabled={pendingAccountAction === emp.id || emp.status === 'Inactive'}
+                              onClick={() => void createAccessLink(emp.id, `${emp.firstName} ${emp.lastName}`)}
+                              className="btn btn-secondary btn-sm"
+                              title="Create a one-time password setup or reset link."
+                            >
+                              <KeyRound size={14} />
+                              {pendingAccountAction === emp.id ? 'Please wait…' : emp.accountStatus === 'Active' || emp.accountStatus === 'Deactivated' ? 'Reset link' : 'Setup link'}
+                            </button>
+                          )}
+                          {(emp.accountStatus === 'Active' || emp.accountStatus === 'Deactivated') && (
+                            <button
+                              type="button"
+                              disabled={pendingAccountAction === emp.id || (emp.accountStatus === 'Deactivated' && emp.status === 'Inactive')}
+                              onClick={() => void updateAccountAccess(emp.id, emp.accountStatus === 'Deactivated')}
+                              className={`btn btn-sm ${emp.accountStatus === 'Active' ? 'employee-account-deactivate' : 'btn-secondary'}`}
+                              title={emp.accountStatus === 'Active' ? 'Deactivate and revoke this employee’s sessions.' : 'Reactivate login access.'}
+                            >
+                              {emp.accountStatus === 'Active' ? <UserX size={14} /> : <UserCheck size={14} />}
+                              {pendingAccountAction === emp.id ? 'Please wait…' : emp.accountStatus === 'Active' ? 'Deactivate' : 'Reactivate'}
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </td>
                   )}
@@ -322,7 +305,7 @@ export const EmployeesView: React.FC = () => {
                       className="btn btn-ghost btn-sm"
                     >
                       <span>View Profile</span>
-                      <ChevronRight size={14} />
+                      <ChevronRight className="arrow-lift-trigger" size={14} />
                     </button>
                   </td>
                 </tr>

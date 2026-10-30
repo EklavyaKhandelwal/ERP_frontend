@@ -5,6 +5,8 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  isOwner?: boolean;
+  onboardingComplete: boolean;
   avatar: string;
   designation: string;
   department: string;
@@ -16,25 +18,30 @@ export interface Employee {
   firstName: string;
   lastName: string;
   email: string;
-  phone: string;
+  phone?: string;
+  dateOfBirth?: string | null;
   avatar: string;
   role: string;
   department: string;
   designation: string;
   joinDate: string;
   status: 'Active' | 'On Leave' | 'Probation' | 'Inactive';
-  salary: number;
+  salary?: number;
   location: string;
   manager: string;
   skills: string[];
   accountStatus?: 'Not set up' | 'Invitation pending' | 'Active' | 'Deactivated' | 'Admin account';
-  leaveBalance: {
+  leaveBalance?: {
+    year?: number;
     annual: number;
     annualTotal: number;
+    annualPending?: number;
     sick: number;
     sickTotal: number;
+    sickPending?: number;
     casual: number;
     casualTotal: number;
+    casualPending?: number;
   };
 }
 
@@ -65,6 +72,15 @@ export interface TimesheetEntry {
   projectId: string;
   projectName: string;
   taskDescription: string;
+  dailyDescriptions: {
+    mon: string;
+    tue: string;
+    wed: string;
+    thu: string;
+    fri: string;
+    sat: string;
+    sun: string;
+  };
   hours: {
     mon: number;
     tue: number;
@@ -87,6 +103,9 @@ export interface Timesheet {
   entries: TimesheetEntry[];
   totalHours: number;
   status: TimesheetStatus;
+  workCompleted: string;
+  nextWeekFocus: string;
+  blockers: string;
   submittedOn?: string;
   reviewedBy?: string;
   reviewNote?: string;
@@ -133,6 +152,23 @@ export interface Project {
   description: string;
   tasksCompleted: number;
   totalTasks: number;
+  tasks: ProjectTask[];
+}
+
+export type ProjectTaskStatus = 'To Do' | 'In Progress' | 'Blocked' | 'Done';
+
+export interface ProjectTask {
+  id: string;
+  projectId: string;
+  title: string;
+  description: string;
+  assignedEmployeeId: string;
+  assignedEmployeeName: string;
+  assignedEmployeeAvatar: string;
+  status: ProjectTaskStatus;
+  dueDate: string | null;
+  updateNote: string;
+  updatedAt: string;
 }
 
 export interface AppraisalReview {
@@ -143,22 +179,30 @@ export interface AppraisalReview {
   department: string;
   designation: string;
   cycle: string;
-  status: 'Self Assessment' | 'Manager Review' | 'Completed';
+  status: 'Self Assessment' | 'Admin Review' | 'Completed';
   overallRating?: number; // 1-5
-  selfRating?: number;
-  managerRating?: number;
+  legacyAdminRating?: number;
   selfComments?: string;
-  managerComments?: string;
+  selfChallenges?: string;
+  nextGoals?: string;
   goalsAchieved?: string;
+  deliveryRating?: number;
+  qualityRating?: number;
+  ownershipRating?: number;
+  collaborationRating?: number;
+  adminComments?: string;
   areasOfImprovement?: string;
   completedDate?: string;
 }
 
 export type AppView = 
   | 'login'
+  | 'admin-access'
   | 'forgot-password'
   | 'two-factor'
   | 'dashboard'
+  | 'settings'
+  | 'my-profile'
   | 'employees'
   | 'employee-profile'
   | 'leaves'
@@ -166,4 +210,6 @@ export type AppView =
   | 'projects'
   | 'project-detail'
   | 'timesheets'
-  | 'appraisals';
+  | 'reports'
+  | 'appraisals'
+  | 'resignation';

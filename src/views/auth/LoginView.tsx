@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { ShieldCheck, ArrowRight, AlertCircle, Eye, EyeOff, Lock, Mail, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, AlertCircle, Eye, EyeOff, Lock, Mail } from 'lucide-react';
 import { useERP } from '../../context/ERPContext';
 
 export const LoginView: React.FC = () => {
-  const { login, authError, setFigmaOverlayAsset, setCurrentView } = useERP();
+  const { login, authError, setCurrentView } = useERP();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,14 +25,14 @@ export const LoginView: React.FC = () => {
   };
 
   return (
-    <div style={{
+    <div className="login-page" style={{
       display: 'flex',
       minHeight: '100vh',
       backgroundColor: '#FFFFFF',
       fontFamily: 'Inter, sans-serif'
     }}>
       {/* Left Branded Panel (matching #0A0B0D in Figma Login — Default.svg) */}
-      <div style={{
+      <div className="login-brand-panel" style={{
         width: '45%',
         minWidth: '480px',
         backgroundColor: '#0A0B0D',
@@ -80,60 +80,79 @@ export const LoginView: React.FC = () => {
         </div>
 
         {/* Hero Narrative */}
-        <div style={{ zIndex: 2, maxWidth: '420px', margin: '40px 0' }}>
-          <div style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            padding: '4px 12px',
-            backgroundColor: 'rgba(0, 82, 255, 0.15)',
-            border: '1px solid rgba(0, 82, 255, 0.3)',
-            borderRadius: '999px',
-            color: '#3880FF',
-            fontSize: '12px',
-            fontWeight: '600',
-            marginBottom: '20px'
-          }}>
-            <ShieldCheck size={14} />
-            <span>SOC2 Type II & ISO 27001 Certified</span>
-          </div>
-          <h2 style={{ fontSize: '36px', fontWeight: '800', lineHeight: '1.2', letterSpacing: '-0.03em', marginBottom: '16px' }}>
-            Streamline your workforce operations.
+        <div className="login-hero" style={{ zIndex: 2, maxWidth: '620px', margin: '40px 0', width: '100%' }}>
+          <h2 style={{ fontSize: '36px', fontWeight: '400', lineHeight: '1.14', letterSpacing: '-0.025em', marginBottom: '18px' }}>
+            Streamline your<br />workforce<br />operations
           </h2>
-          <p style={{ fontSize: '15px', color: '#8A8F98', lineHeight: '1.6' }}>
-            Unified human resources, automated payroll disbursements, real-time weekly timesheets, and continuous performance appraisal workflows.
+          <p style={{ fontSize: '15px', color: '#8A8F98', lineHeight: '1.6', maxWidth: '580px' }}>
+            Manage employees, projects, payroll, and more · all in one platform.
           </p>
 
-          <div style={{ marginTop: '36px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#DDE2E8', fontSize: '13.5px' }}>
-              <CheckCircle2 size={16} color="#05B169" />
-              <span>Multi-role access for Executives, HR, and Staff</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#DDE2E8', fontSize: '13.5px' }}>
-              <CheckCircle2 size={16} color="#05B169" />
-              <span>Automated tax deductions & payslip generator</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#DDE2E8', fontSize: '13.5px' }}>
-              <CheckCircle2 size={16} color="#05B169" />
-              <span>Granular leave quotas and team scheduling</span>
-            </div>
-          </div>
+          <svg
+            className="login-workforce-art"
+            viewBox="0 0 620 440"
+            role="img"
+            aria-label="Illustration of workforce, projects, and employee management cards"
+          >
+            <circle cx="310" cy="220" r="180" fill="#111319" />
+            <rect x="28" y="94" width="290" height="154" rx="20" fill="#17191D" stroke="#262930" strokeWidth="2" />
+            <rect x="58" y="122" width="100" height="9" rx="4.5" fill="#626875" />
+            <rect x="58" y="149" width="88" height="24" rx="6" fill="#FFFFFF" />
+            <rect x="58" y="188" width="78" height="7" rx="3.5" fill="#00B875" />
+            <rect x="202" y="212" width="18" height="36" rx="5" fill="#2A2D34" />
+            <rect x="231" y="188" width="18" height="60" rx="5" fill="#2A2D34" />
+            <rect x="260" y="160" width="18" height="88" rx="5" fill="#0757FF" />
+            <rect x="289" y="201" width="18" height="47" rx="5" fill="#2A2D34" />
+
+            <rect x="404" y="70" width="166" height="112" rx="20" fill="#17191D" stroke="#262930" strokeWidth="2" />
+            <rect x="429" y="94" width="64" height="8" rx="4" fill="#626875" />
+            <g fill="#292C33">
+              <rect x="430" y="119" width="18" height="18" rx="4" />
+              <rect x="456" y="119" width="18" height="18" rx="4" />
+              <rect x="482" y="119" width="18" height="18" rx="4" />
+              <rect x="508" y="119" width="18" height="18" rx="4" />
+              <rect x="534" y="119" width="18" height="18" rx="4" />
+              <rect x="430" y="145" width="18" height="18" rx="4" />
+              <rect x="456" y="145" width="18" height="18" rx="4" />
+              <rect x="482" y="145" width="18" height="18" rx="4" />
+              <rect x="508" y="145" width="18" height="18" rx="4" />
+              <rect x="534" y="145" width="18" height="18" rx="4" />
+            </g>
+            <rect x="482" y="119" width="18" height="18" rx="4" fill="#0757FF" />
+            <rect x="508" y="145" width="18" height="18" rx="4" fill="#12429C" />
+
+            <rect x="64" y="292" width="176" height="66" rx="33" fill="#0757FF" />
+            <circle cx="98" cy="325" r="17" fill="#367BFF" />
+            <path d="m90 325 6 6 11-12" fill="none" stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
+            <rect x="122" y="319" width="82" height="10" rx="5" fill="#FFFFFF" />
+
+            <rect x="248" y="238" width="322" height="170" rx="20" fill="#17191D" stroke="#262930" strokeWidth="2" />
+            <rect x="278" y="264" width="130" height="8" rx="4" fill="#626875" />
+            <circle cx="300" cy="310" r="17" fill="#10245A" />
+            <circle cx="300" cy="306" r="6" fill="#0757FF" />
+            <path d="M288 319c2-7 7-10 12-10s10 3 12 10" fill="#0757FF" />
+            <rect x="330" y="302" width="102" height="8" rx="4" fill="#E8E9EB" />
+            <rect x="330" y="318" width="72" height="7" rx="3.5" fill="#626875" />
+            <rect x="454" y="296" width="88" height="24" rx="12" fill="#073E2D" />
+            <rect x="472" y="305" width="52" height="7" rx="3.5" fill="#00B875" />
+            <circle cx="300" cy="360" r="17" fill="#4B390A" />
+            <circle cx="300" cy="356" r="6" fill="#FFB800" />
+            <path d="M288 369c2-7 7-10 12-10s10 3 12 10" fill="#FFB800" />
+            <rect x="330" y="352" width="88" height="8" rx="4" fill="#E8E9EB" />
+            <rect x="330" y="368" width="72" height="7" rx="3.5" fill="#626875" />
+            <rect x="454" y="346" width="88" height="24" rx="12" fill="#453507" />
+            <rect x="472" y="355" width="52" height="7" rx="3.5" fill="#FFB800" />
+          </svg>
         </div>
 
         {/* Footer info */}
-        <div style={{ zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', color: '#5B616E' }}>
-          <span>© 2026 AAVIL Inc. All rights reserved.</span>
-          <button 
-            onClick={() => setFigmaOverlayAsset('/design-assets/Login — Default.svg')}
-            style={{ color: '#0052FF', background: 'none', border: 'none', cursor: 'pointer', fontWeight: '600', fontSize: '12px' }}
-          >
-            Inspect Figma Spec ↗
-          </button>
+        <div className="login-brand-footer" style={{ zIndex: 2, display: 'flex', justifyContent: 'flex-start', alignItems: 'center', fontSize: '12px', color: '#5B616E' }}>
+          <span>Product by AAV Innovation Inc.</span>
         </div>
       </div>
 
       {/* Right Login Container (White canvas) */}
-      <div style={{
+      <div className="login-form-panel" style={{
         flex: 1,
         display: 'flex',
         flexDirection: 'column',
@@ -142,13 +161,13 @@ export const LoginView: React.FC = () => {
         padding: '48px',
         backgroundColor: '#FFFFFF'
       }}>
-        <div style={{ width: '100%', maxWidth: '400px' }}>
+        <div className="login-form-content" style={{ width: '100%', maxWidth: '400px' }}>
           <div style={{ marginBottom: '32px' }}>
             <h2 style={{ fontSize: '26px', fontWeight: '800', color: '#0A0B0D', letterSpacing: '-0.02em', margin: 0 }}>
-              Sign in to your account
+              Sign in
             </h2>
             <p style={{ fontSize: '14px', color: '#5B616E', marginTop: '6px' }}>
-              Enter your corporate email credentials to continue.
+              Welcome back. Enter your credentials to continue.
             </p>
           </div>
 
@@ -175,16 +194,17 @@ export const LoginView: React.FC = () => {
           <form onSubmit={handleSubmit}>
             {/* Email Field */}
             <div className="form-group">
-              <label className="form-label">Corporate Email</label>
+              <label className="form-label" htmlFor="login-email">Email address</label>
               <div style={{ position: 'relative' }}>
                 <Mail size={16} style={{ position: 'absolute', left: '12px', top: '12px', color: '#8A8F98' }} />
                 <input 
+                  id="login-email"
                   type="email" 
                   required
                   autoComplete="username"
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="name@aavil.inc"
+                  placeholder="name@company.com"
                   className="form-control"
                   style={{
                     paddingLeft: '38px',
@@ -196,10 +216,11 @@ export const LoginView: React.FC = () => {
 
             {/* Password Field */}
             <div className="form-group">
-              <label className="form-label">Password</label>
+              <label className="form-label" htmlFor="login-password">Password</label>
               <div style={{ position: 'relative' }}>
                 <Lock size={16} style={{ position: 'absolute', left: '12px', top: '12px', color: '#8A8F98' }} />
                 <input 
+                  id="login-password"
                   type={showPassword ? 'text' : 'password'}
                   required
                   autoComplete="current-password"

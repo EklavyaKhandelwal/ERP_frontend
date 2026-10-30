@@ -5,6 +5,8 @@ export const ADMIN_USER: User = {
   name: 'Alexander Wright',
   email: 'alexander.wright@aavil.inc',
   role: 'admin',
+  isOwner: true,
+  onboardingComplete: true,
   avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
   designation: 'VP of People & Operations',
   department: 'Executive'
@@ -15,6 +17,7 @@ export const EMPLOYEE_USER: User = {
   name: 'Marcus Vance',
   email: 'marcus.vance@aavil.inc',
   role: 'employee',
+  onboardingComplete: true,
   avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=256&q=80',
   designation: 'Senior Frontend Architect',
   department: 'Engineering'
@@ -263,7 +266,8 @@ export const INITIAL_PROJECTS: Project[] = [
     ],
     description: 'Comprehensive enterprise workforce management suite unifying HRMS, attendance, payroll calculation, project accounting, and timesheets.',
     tasksCompleted: 48,
-    totalTasks: 65
+    totalTasks: 65,
+    tasks: []
   },
   {
     id: 'proj-002',
@@ -285,7 +289,8 @@ export const INITIAL_PROJECTS: Project[] = [
     ],
     description: 'Universal cross-platform design token engine and component library for responsive web and mobile products.',
     tasksCompleted: 36,
-    totalTasks: 39
+    totalTasks: 39,
+    tasks: []
   },
   {
     id: 'proj-003',
@@ -307,7 +312,8 @@ export const INITIAL_PROJECTS: Project[] = [
     ],
     description: 'High-throughput payment orchestration and automated multi-currency treasury reconciliation engine.',
     tasksCompleted: 22,
-    totalTasks: 50
+    totalTasks: 50,
+    tasks: []
   }
 ];
 
@@ -323,12 +329,24 @@ export const INITIAL_TIMESHEETS: Timesheet[] = [
     totalHours: 40,
     status: 'Submitted',
     submittedOn: '2026-10-19',
+    workCompleted: 'Finished the project dashboard structure and reviewed design token alignment.',
+    nextWeekFocus: 'Connect dashboard views to the employee and project APIs.',
+    blockers: '',
     entries: [
       {
         id: 'tse-1',
         projectId: 'proj-001',
         projectName: 'Apollo ERP Platform 2.0',
         taskDescription: 'Modular UI architecture & Figma design token alignment',
+        dailyDescriptions: {
+          mon: 'Built the dashboard layout and navigation shell.',
+          tue: 'Connected the employee summary cards to typed data.',
+          wed: 'Reviewed spacing and typography against the design tokens.',
+          thu: 'Fixed responsive layout issues in the project overview.',
+          fri: 'Completed final UI checks and documented remaining follow-ups.',
+          sat: '',
+          sun: '',
+        },
         hours: { mon: 8, tue: 8, wed: 8, thu: 6, fri: 6, sat: 0, sun: 0 }
       },
       {
@@ -336,6 +354,15 @@ export const INITIAL_TIMESHEETS: Timesheet[] = [
         projectId: 'proj-002',
         projectName: 'Helios Design System',
         taskDescription: 'Dark mode theme token validation & audit',
+        dailyDescriptions: {
+          mon: '',
+          tue: '',
+          wed: '',
+          thu: 'Checked dark mode contrast for the navigation color tokens.',
+          fri: 'Updated and verified semantic surface tokens.',
+          sat: '',
+          sun: '',
+        },
         hours: { mon: 0, tue: 0, wed: 0, thu: 2, fri: 2, sat: 0, sun: 0 }
       }
     ]
@@ -351,6 +378,9 @@ export const INITIAL_TIMESHEETS: Timesheet[] = [
     totalHours: 38,
     status: 'Approved',
     submittedOn: '2026-10-19',
+    workCompleted: 'Delivered the responsive component specifications and updated the shared icon library.',
+    nextWeekFocus: 'Complete documentation and accessibility review for core components.',
+    blockers: 'Waiting on final product copy for the empty states.',
     reviewedBy: 'Alexander Wright',
     entries: [
       {
@@ -358,6 +388,15 @@ export const INITIAL_TIMESHEETS: Timesheet[] = [
         projectId: 'proj-002',
         projectName: 'Helios Design System',
         taskDescription: 'Component specs, responsive breakpoints, iconography',
+        dailyDescriptions: {
+          mon: 'Wrote the component behavior and props specifications.',
+          tue: 'Documented responsive breakpoints for layout components.',
+          wed: 'Reviewed icon sizing and alignment across the library.',
+          thu: 'Added accessibility notes to the component specifications.',
+          fri: 'Validated the documentation examples and merged updates.',
+          sat: '',
+          sun: '',
+        },
         hours: { mon: 8, tue: 8, wed: 8, thu: 7, fri: 7, sat: 0, sun: 0 }
       }
     ]

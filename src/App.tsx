@@ -2,7 +2,6 @@ import React from 'react';
 import { ERPProvider, useERP } from './context/ERPContext';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
-import { FigmaCompareModal } from './components/modals/FigmaCompareModal';
 
 // Auth Views
 import { LoginView } from './views/auth/LoginView';
@@ -20,13 +19,19 @@ import { PayrollView } from './views/payroll/PayrollView';
 import { ProjectsView } from './views/projects/ProjectsView';
 import { ProjectDetailView } from './views/projects/ProjectDetailView';
 import { TimesheetsView } from './views/timesheets/TimesheetsView';
+import { ReportsView } from './views/reports/ReportsView';
 import { AppraisalsView } from './views/appraisals/AppraisalsView';
+import { AdminAccessView } from './views/admin/AdminAccessView';
+import { MyProfileView } from './views/profile/MyProfileView';
+import { ResignationView } from './views/resignation/ResignationView';
+import { SettingsView } from './views/settings/SettingsView';
+import { AppLoadingSkeleton } from './components/feedback/LoadingSkeleton';
 
 const AppContent: React.FC = () => {
-  const { isAuthenticated, isAuthLoading, authError, currentView, role } = useERP();
+  const { isAuthenticated, isAuthLoading, authError, currentView, role, currentUser } = useERP();
 
-  if (window.location.pathname === '/account/setup') {
-    return <AccountSetupView />;
+  if (window.location.pathname === '/account/setup' || window.location.pathname === '/account/admin-setup') {
+    return <AccountSetupView adminInvite={window.location.pathname === '/account/admin-setup'} />;
   }
 
   if (window.location.pathname === '/account/password-reset') {
@@ -34,12 +39,16 @@ const AppContent: React.FC = () => {
   }
 
   if (isAuthLoading) {
-    return <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', color: 'var(--text-secondary)' }}>Checking your session…</div>;
+    return <AppLoadingSkeleton />;
   }
 
   // Wait until the API has checked the session before showing the app.
   if (!isAuthenticated) {
     return currentView === 'forgot-password' ? <ForgotPasswordView /> : <LoginView />;
+  }
+
+  if (role === 'employee' && !currentUser.onboardingComplete) {
+    return <AccountSetupView employeeOnboarding />;
   }
 
   // Active Main View Router
@@ -49,6 +58,14 @@ const AppContent: React.FC = () => {
         return role === 'admin' ? <AdminDashboardView /> : <EmployeeDashboardView />;
       case 'employees':
         return <EmployeesView />;
+      case 'my-profile':
+        return <MyProfileView />;
+      case 'settings':
+        return <SettingsView />;
+      case 'resignation':
+        return <ResignationView />;
+      case 'admin-access':
+        return currentUser.isOwner ? <AdminAccessView /> : <AdminDashboardView />;
       case 'employee-profile':
         return <EmployeeProfileView />;
       case 'leaves':
@@ -61,6 +78,8 @@ const AppContent: React.FC = () => {
         return <ProjectDetailView />;
       case 'timesheets':
         return <TimesheetsView />;
+      case 'reports':
+        return role === 'admin' ? <ReportsView /> : <EmployeeDashboardView />;
       case 'appraisals':
         return <AppraisalsView />;
       default:
@@ -69,25 +88,22 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', width: '100vw', overflowX: 'hidden' }}>
+    <div style={{ display: 'flex', height: '100dvh', width: '100vw', overflow: 'hidden' }}>
       {/* Dark Sidebar */}
       <Sidebar />
 
       {/* Main Workspace Area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, backgroundColor: 'var(--bg-canvas)' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, backgroundColor: 'var(--bg-canvas)' }}>
         <Header />
         {authError && (
           <div role="alert" style={{ padding: '12px 24px', color: '#CF202F', backgroundColor: '#FEECEE' }}>
             {authError}
           </div>
         )}
-        <main style={{ flex: 1, overflowY: 'auto' }}>
+        <main style={{ flex: 1, minHeight: 0, overflowY: 'auto', overscrollBehaviorY: 'contain' }}>
           {renderMainView()}
         </main>
       </div>
-
-      {/* Global Figma Spec Comparison Modal */}
-      <FigmaCompareModal />
     </div>
   );
 };

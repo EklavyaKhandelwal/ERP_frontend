@@ -2,10 +2,7 @@ import React, { useState } from 'react';
 import { 
   Search, 
   Bell, 
-  CheckCircle2, 
-  Sparkles,
-  ChevronDown,
-  X
+  CheckCircle2
 } from 'lucide-react';
 import { useERP } from '../../context/ERPContext';
 
@@ -16,8 +13,7 @@ export const Header: React.FC = () => {
     role, 
     notifications, 
     notificationError,
-    markNotificationsRead, 
-    setFigmaOverlayAsset 
+    markNotificationsRead
   } = useERP();
 
   const [showNotifications, setShowNotifications] = useState(false);
@@ -25,48 +21,60 @@ export const Header: React.FC = () => {
 
   const unreadCount = notifications.filter(notification => !notification.readAt).length;
 
-  const viewTitles: Record<string, { title: string; subtitle: string; spec: string }> = {
+  const viewTitles: Record<string, { title: string; subtitle: string }> = {
+    settings: {
+      title: 'Settings',
+      subtitle: 'Organization information, notification preferences, and workplace policies'
+    },
+    'my-profile': {
+      title: 'My Profile',
+      subtitle: 'View your account and employment information'
+    },
     'dashboard': {
       title: role === 'admin' ? 'Executive Admin Dashboard' : 'My Workspace',
-      subtitle: role === 'admin' ? 'Company health, workforce metrics, and pending actions' : 'Your day, leave balance, active projects, and timesheet',
-      spec: role === 'admin' ? '/design-assets/Admin/Admin Dashboard — Default.svg' : '/design-assets/Dashboard/Employee Dashboard — Default.svg'
+      subtitle: role === 'admin' ? 'Company health, workforce metrics, and pending actions' : 'Your day, leave balance, active projects, and timesheet'
     },
     'employees': {
       title: 'Employee Directory',
-      subtitle: 'Manage organizational staff, roles, departments, and records',
-      spec: '/design-assets/Employees/Employees — Directory.svg'
+      subtitle: 'Manage organizational staff, roles, departments, and records'
+    },
+    'admin-access': {
+      title: 'HR Admin Access',
+      subtitle: 'Invite and manage individual HR administrator accounts'
     },
     'leaves': {
       title: role === 'admin' ? 'Leaves & Attendance Management' : 'My Leave Balances & Time Off',
-      subtitle: role === 'admin' ? 'Review time off applications and team calendar' : 'Track accrued annual, sick, and casual allowances',
-      spec: role === 'admin' ? '/design-assets/Leaves/Leaves — Admin Dashboard.svg' : '/design-assets/Leaves/Employee — Leave Balance.svg'
+      subtitle: role === 'admin' ? 'Review time off applications and team calendar' : 'Track accrued annual, sick, and casual allowances'
     },
     'payroll': {
       title: role === 'admin' ? 'Payroll Overview & Disbursements' : 'My Compensation & Payslips',
-      subtitle: role === 'admin' ? 'Monthly salary calculation, tax withholdings, and processing' : 'Historical payslips, breakdown of allowances, and deductions',
-      spec: role === 'admin' ? '/design-assets/Payroll/Payroll — Overview.svg' : '/design-assets/Payroll/Employee — My Payslips.svg'
+      subtitle: role === 'admin' ? 'Monthly salary calculation, tax withholdings, and processing' : 'Historical payslips, breakdown of allowances, and deductions'
     },
     'projects': {
       title: 'Projects & Resource Allocation',
-      subtitle: 'Track team deliverables, budgets, deadlines, and milestone velocity',
-      spec: '/design-assets/Projects/Projects — List.svg'
+      subtitle: 'Track team deliverables, budgets, deadlines, and milestone velocity'
     },
     'timesheets': {
       title: role === 'admin' ? 'Timesheet Approvals' : 'Weekly Timesheet Logger',
-      subtitle: role === 'admin' ? 'Validate logged hours across projects before payroll cutoff' : 'Log billable hours against active client and internal initiatives',
-      spec: role === 'admin' ? '/design-assets/Timesheets/Timesheets — Admin Approval.svg' : '/design-assets/Timesheets/Timesheets — Weekly View.svg'
+      subtitle: role === 'admin' ? 'Validate logged hours across projects before payroll cutoff' : 'Log billable hours against active client and internal initiatives'
+    },
+    'reports': {
+      title: 'HR Reports',
+      subtitle: 'Review and export daily work, weekly summaries, leave, and payroll records'
     },
     'appraisals': {
       title: 'Performance & Appraisals',
-      subtitle: 'Quarterly review cycles, competency assessments, and career goals',
-      spec: '/design-assets/Appraisals/Appraisals — Overview.svg'
+      subtitle: 'Quarterly review cycles, competency assessments, and career goals'
+    },
+    'resignation': {
+      title: role === 'admin' ? 'Resignation Applications' : 'Resignation',
+      subtitle: role === 'admin' ? 'Review employee resignation requests and track overdue applications' : 'Submit and track your resignation application'
     }
   };
 
   const currentMeta = viewTitles[currentView] || {
     title: 'Workspace',
-    subtitle: 'AAVIL Integrated Management System',
-    spec: '/design-assets/Admin/Admin Dashboard — Default.svg'
+    subtitle: 'AAVIL Integrated Management System'
   };
 
   return (
@@ -129,34 +137,6 @@ export const Header: React.FC = () => {
             }}
           />
         </div>
-
-        {/* Figma Spec Button */}
-        <button
-          onClick={() => setFigmaOverlayAsset(currentMeta.spec)}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '7px 12px',
-            backgroundColor: '#F0F5FF',
-            color: 'var(--primary)',
-            border: '1px solid #D6E4FF',
-            borderRadius: '8px',
-            fontSize: '12.5px',
-            fontWeight: '600',
-            cursor: 'pointer',
-            transition: 'all 0.15s ease'
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.backgroundColor = '#E5EDFF';
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.backgroundColor = '#F0F5FF';
-          }}
-        >
-          <Sparkles size={14} />
-          <span>Figma Spec</span>
-        </button>
 
         {/* Notifications Bell */}
         <div style={{ position: 'relative' }}>
@@ -266,6 +246,19 @@ export const Header: React.FC = () => {
               </div>
             </div>
           )}
+        </div>
+        <div className="header-account">
+          <div className="header-account-avatar" aria-hidden="true">
+            <span>{currentUser.name.split(/\s+/).map(part => part[0]).slice(0, 2).join('').toUpperCase()}</span>
+            <img
+              src={currentUser.avatar}
+              alt=""
+              onError={event => {
+                event.currentTarget.style.display = 'none';
+              }}
+            />
+          </div>
+          <span className="header-account-name">{currentUser.name}</span>
         </div>
       </div>
     </header>

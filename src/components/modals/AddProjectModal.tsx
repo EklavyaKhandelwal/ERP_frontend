@@ -8,7 +8,7 @@ interface Props {
 }
 
 export const AddProjectModal: React.FC<Props> = ({ isOpen, onClose }) => {
-  const { addProject, employees, setFigmaOverlayAsset } = useERP();
+  const { addProject, employees } = useERP();
 
   const [name, setName] = useState('');
   const [client, setClient] = useState('');
@@ -57,7 +57,7 @@ export const AddProjectModal: React.FC<Props> = ({ isOpen, onClose }) => {
               Add New Project
             </h3>
             <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '2px 0 0 0' }}>
-              Initialize an enterprise project container, assign budgets, and define milestones.
+              Create a project, set its budget in Indian rupees, and assign its team.
             </p>
           </div>
           <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
@@ -91,7 +91,7 @@ export const AddProjectModal: React.FC<Props> = ({ isOpen, onClose }) => {
               />
             </div>
             <div className="form-group">
-              <label className="form-label">Approved Budget ($)</label>
+              <label className="form-label">Approved Budget (₹)</label>
               <input 
                 type="number"
                 required
@@ -160,14 +160,6 @@ export const AddProjectModal: React.FC<Props> = ({ isOpen, onClose }) => {
             paddingTop: '16px',
             borderTop: '1px solid var(--border-light)'
           }}>
-            <button
-              type="button"
-              onClick={() => setFigmaOverlayAsset('/design-assets/Projects/Projects — Add Project.svg')}
-              style={{ background: 'none', border: 'none', color: '#0052FF', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
-            >
-              Compare Figma Spec ↗
-            </button>
-
             <div style={{ display: 'flex', gap: '12px' }}>
               <button type="button" onClick={onClose} className="btn btn-secondary">
                 Cancel

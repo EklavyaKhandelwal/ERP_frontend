@@ -4,7 +4,7 @@ import { authApi } from '../../lib/api';
 import { useERP } from '../../context/ERPContext';
 
 export const ForgotPasswordView: React.FC = () => {
-  const { setCurrentView, setFigmaOverlayAsset } = useERP();
+  const { setCurrentView } = useERP();
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
@@ -79,14 +79,6 @@ export const ForgotPasswordView: React.FC = () => {
             </form>
           </>
         )}
-        <div style={{ marginTop: '24px', textAlign: 'center' }}>
-          <button
-            onClick={() => setFigmaOverlayAsset('/design-assets/Forgot Password.svg')}
-            style={{ color: '#0052FF', background: 'none', border: 'none', fontSize: '12px', cursor: 'pointer', fontWeight: '600' }}
-          >
-            Inspect Figma Spec ↗
-          </button>
-        </div>
       </div>
     </div>
   );

@@ -1,9 +1,21 @@
-import React, { useState } from 'react';
-import { Plus, Sparkles, ChevronRight } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { Plus, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
 import { useERP } from '../../context/ERPContext';
 import { LeaveRequest } from '../../types/erp';
 import { ApplyLeaveModal } from '../../components/modals/ApplyLeaveModal';
 import { LeaveApprovalModal } from '../../components/modals/LeaveApprovalModal';
+import { TableSkeletonRows } from '../../components/feedback/LoadingSkeleton';
+
+function dateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+const currentDate = new Date();
+const today = dateKey(currentDate);
+const upcomingBoundary = dateKey(new Date(currentDate.getTime() + 30 * 86_400_000));
 
 export const LeavesView: React.FC = () => {
   const { 
@@ -11,19 +23,50 @@ export const LeavesView: React.FC = () => {
     leavesLoading,
     leavesError,
     leaveBalance,
-    role, 
-    setFigmaOverlayAsset 
+    role,
   } = useERP();
 
   const [activeTab, setActiveTab] = useState<'All' | 'Pending' | 'Approved' | 'Rejected'>('All');
+  const [activeView, setActiveView] = useState<'Calendar' | 'Requests'>('Calendar');
+  const [calendarMonth, setCalendarMonth] = useState(() => {
+    const now = new Date();
+    return new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1));
+  });
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [selectedReviewLeave, setSelectedReviewLeave] = useState<LeaveRequest | null>(null);
 
-  // If in Employee mode, can choose to view only own leaves or all team leaves
   const displayedLeaves = leaves.filter(l => {
     if (activeTab === 'All') return true;
     return l.status === activeTab;
   });
+  const calendarDays = useMemo(() => {
+    const firstOfMonth = calendarMonth;
+    const mondayOffset = (firstOfMonth.getUTCDay() + 6) % 7;
+    const firstVisibleDate = new Date(Date.UTC(
+      firstOfMonth.getUTCFullYear(),
+      firstOfMonth.getUTCMonth(),
+      1 - mondayOffset,
+    ));
+    return Array.from({ length: 42 }, (_, index) => {
+      const date = new Date(firstVisibleDate);
+      date.setUTCDate(firstVisibleDate.getUTCDate() + index);
+      return date.toISOString().slice(0, 10);
+    });
+  }, [calendarMonth]);
+  const monthLabel = new Intl.DateTimeFormat('en-IN', {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(calendarMonth);
+  const calendarLeaves = leaves.filter(leave => leave.status !== 'Rejected');
+  const pendingCount = leaves.filter(leave => leave.status === 'Pending').length;
+  const onLeaveToday = new Set(calendarLeaves
+    .filter(leave => leave.status === 'Approved' && leave.startDate <= today && leave.endDate >= today)
+    .map(leave => leave.employeeId)).size;
+  const upcomingCount = calendarLeaves.filter(leave =>
+    leave.status === 'Approved' && leave.startDate > today
+    && leave.startDate <= upcomingBoundary,
+  ).length;
 
   const getStatusBadge = (status: LeaveRequest['status']) => {
     switch (status) {
@@ -37,7 +80,7 @@ export const LeavesView: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '32px' }}>
+    <div className="leaves-page" style={{ padding: '32px' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
@@ -56,17 +99,6 @@ export const LeavesView: React.FC = () => {
 
         <div style={{ display: 'flex', gap: '12px' }}>
           <button
-            onClick={() => setFigmaOverlayAsset(
-              role === 'admin' 
-                ? '/design-assets/Leaves/Leaves — Admin Dashboard.svg' 
-                : '/design-assets/Leaves/Employee — Leave Balance.svg'
-            )}
-            className="btn btn-secondary btn-sm"
-          >
-            <Sparkles size={14} color="#0052FF" />
-            <span>Compare Figma Spec</span>
-          </button>
-          <button
             onClick={() => setIsApplyModalOpen(true)}
             className="btn btn-primary"
           >
@@ -76,42 +108,151 @@ export const LeavesView: React.FC = () => {
         </div>
       </div>
 
-      {/* Quota Cards Overview */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '28px' }}>
-        <div className="card" style={{ padding: '20px' }}>
-          <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>ANNUAL VACATION</span>
+      <div className="leaves-summary-grid">
+        {role === 'admin' ? (
+          <>
+            <div className="card interactive-lift-card leaves-summary-card">
+              <span className="leaves-summary-label">PENDING REVIEW</span>
+              <div className="leaves-summary-value" style={{ color: '#B45309' }}>{pendingCount}</div>
+              <div className="leaves-summary-caption">Requests awaiting a decision</div>
+            </div>
+            <div className="card interactive-lift-card leaves-summary-card">
+              <span className="leaves-summary-label">ON LEAVE TODAY</span>
+              <div className="leaves-summary-value" style={{ color: '#0052FF' }}>{onLeaveToday}</div>
+              <div className="leaves-summary-caption">Employees with approved leave</div>
+            </div>
+            <div className="card interactive-lift-card leaves-summary-card">
+              <span className="leaves-summary-label">UPCOMING (30 DAYS)</span>
+              <div className="leaves-summary-value" style={{ color: '#05B169' }}>{upcomingCount}</div>
+              <div className="leaves-summary-caption">Approved requests starting soon</div>
+            </div>
+            <div className="card interactive-lift-card leaves-summary-card">
+              <span className="leaves-summary-label">TOTAL REQUESTS</span>
+              <div className="leaves-summary-value">{leaves.length}</div>
+              <div className="leaves-summary-caption">Across all request statuses</div>
+            </div>
+          </>
+        ) : (
+          <>
+        <div className="card interactive-lift-card" style={{ padding: '20px' }}>
+          <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>ANNUAL LEAVE {leaveBalance?.year ? `(${leaveBalance.year})` : ''}</span>
           <div style={{ fontSize: '26px', fontWeight: '800', color: '#0052FF', marginTop: '4px' }}>
-            {leaveBalance ? `${leaveBalance.annual} / ${leaveBalance.annualTotal}` : '— / —'} <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-muted)' }}>days</span>
+            {leaveBalance ? `${leaveBalance.annual} / ${leaveBalance.annualTotal}` : '— / —'} <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-muted)' }}>days · {leaveBalance ? `${Math.max(0, leaveBalance.annualTotal - leaveBalance.annual)} used` : ''}</span>
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Current balance</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+            {leaveBalance?.annualPending ? `${leaveBalance.annualPending} days pending approval` : `Calendar-year balance${leaveBalance?.year ? ` · ${leaveBalance.year}` : ''}`}
+          </div>
         </div>
 
-        <div className="card" style={{ padding: '20px' }}>
+        <div className="card interactive-lift-card" style={{ padding: '20px' }}>
           <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>SICK / MEDICAL</span>
           <div style={{ fontSize: '26px', fontWeight: '800', color: '#05B169', marginTop: '4px' }}>
-            {leaveBalance ? `${leaveBalance.sick} / ${leaveBalance.sickTotal}` : '— / —'} <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-muted)' }}>days</span>
+            {leaveBalance ? `${leaveBalance.sick} / ${leaveBalance.sickTotal}` : '— / —'} <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-muted)' }}>days · {leaveBalance ? `${Math.max(0, leaveBalance.sickTotal - leaveBalance.sick)} used` : ''}</span>
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Current balance</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+            {leaveBalance?.sickPending ? `${leaveBalance.sickPending} days pending approval` : `Calendar-year balance${leaveBalance?.year ? ` · ${leaveBalance.year}` : ''}`}
+          </div>
         </div>
 
-        <div className="card" style={{ padding: '20px' }}>
+        <div className="card interactive-lift-card" style={{ padding: '20px' }}>
           <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>CASUAL / PERSONAL</span>
           <div style={{ fontSize: '26px', fontWeight: '800', color: '#F4B000', marginTop: '4px' }}>
-            {leaveBalance ? `${leaveBalance.casual} / ${leaveBalance.casualTotal}` : '— / —'} <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-muted)' }}>days</span>
+            {leaveBalance ? `${leaveBalance.casual} / ${leaveBalance.casualTotal}` : '— / —'} <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-muted)' }}>days · {leaveBalance ? `${Math.max(0, leaveBalance.casualTotal - leaveBalance.casual)} used` : ''}</span>
           </div>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Current balance</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
+            {leaveBalance?.casualPending ? `${leaveBalance.casualPending} days pending approval` : `Calendar-year balance${leaveBalance?.year ? ` · ${leaveBalance.year}` : ''}`}
+          </div>
         </div>
 
-        <div className="card" style={{ padding: '20px' }}>
+        <div className="card interactive-lift-card" style={{ padding: '20px' }}>
           <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>PENDING DECISIONS</span>
           <div style={{ fontSize: '26px', fontWeight: '800', color: '#B45309', marginTop: '4px' }}>
             {leaves.filter(l => l.status === 'Pending').length} <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-muted)' }}>awaiting</span>
           </div>
           <div style={{ fontSize: '12px', color: '#B45309', marginTop: '4px' }}>Awaiting administrator review</div>
         </div>
+          </>
+        )}
       </div>
 
-      {/* Tabs */}
+      <div className="leaves-view-tabs" role="tablist" aria-label="Leave views">
+        {(['Calendar', 'Requests'] as const).map(view => (
+          <button
+            key={view}
+            type="button"
+            role="tab"
+            aria-selected={activeView === view}
+            className={`leaves-view-tab ${activeView === view ? 'active' : ''}`}
+            onClick={() => setActiveView(view)}
+          >
+            {view === 'Calendar' && <CalendarDays size={16} />}
+            {view}
+          </button>
+        ))}
+      </div>
+
+      {leavesError && (
+        <div role="alert" style={{ padding: '12px 16px', marginBottom: '16px', borderRadius: '8px', color: '#CF202F', backgroundColor: '#FEECEE' }}>
+          {leavesError}
+        </div>
+      )}
+      {activeView === 'Calendar' ? (
+        <section className="card leaves-calendar" aria-label={`${monthLabel} leave calendar`}>
+          <div className="leaves-calendar-header">
+            <div>
+              <h3>{monthLabel}</h3>
+              <p>{role === 'admin' ? 'Approved and pending team leave' : 'Your approved and pending leave'}</p>
+            </div>
+            <div className="leaves-calendar-controls">
+              <button type="button" className="btn btn-secondary btn-sm" aria-label="Previous month" onClick={() => setCalendarMonth(month => new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth() - 1, 1)))}>
+                <ChevronLeft size={16} />
+              </button>
+              <button type="button" className="btn btn-secondary btn-sm" onClick={() => {
+                const now = new Date();
+                setCalendarMonth(new Date(Date.UTC(now.getFullYear(), now.getMonth(), 1)));
+              }}>Today</button>
+              <button type="button" className="btn btn-secondary btn-sm" aria-label="Next month" onClick={() => setCalendarMonth(month => new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth() + 1, 1)))}>
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+          <div className="leaves-calendar-grid">
+            {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+              <div className="leaves-calendar-weekday" key={day}>{day}</div>
+            ))}
+            {calendarDays.map(date => {
+              const dateObject = new Date(`${date}T00:00:00.000Z`);
+              const isCurrentMonth = dateObject.getUTCMonth() === calendarMonth.getUTCMonth();
+              const dayLeaves = calendarLeaves.filter(leave => leave.startDate <= date && leave.endDate >= date);
+              return (
+                <div className={`leaves-calendar-day${isCurrentMonth ? '' : ' outside-month'}${date === today ? ' today' : ''}`} key={date}>
+                  <span className="leaves-calendar-date">{dateObject.getUTCDate()}</span>
+                  <div className="leaves-calendar-events">
+                    {dayLeaves.slice(0, 2).map(leave => (
+                      <button
+                        type="button"
+                        key={leave.id}
+                        className={`leaves-calendar-event ${leave.status.toLowerCase()}`}
+                        title={`${leave.employeeName} · ${leave.leaveType} · ${leave.status}`}
+                        onClick={() => setSelectedReviewLeave(leave)}
+                      >
+                        <span>{role === 'admin' ? leave.employeeName : leave.leaveType}</span>
+                      </button>
+                    ))}
+                    {dayLeaves.length > 2 && <span className="leaves-calendar-more">+{dayLeaves.length - 2} more</span>}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="leaves-calendar-legend">
+            <span><i className="approved" /> Approved</span>
+            <span><i className="pending" /> Pending</span>
+            {leavesLoading && <span>Loading requests…</span>}
+          </div>
+        </section>
+      ) : (
+        <>
       <div className="tabs-container">
         {(['All', 'Pending', 'Approved', 'Rejected'] as const).map(tab => (
           <button
@@ -123,13 +264,6 @@ export const LeavesView: React.FC = () => {
           </button>
         ))}
       </div>
-
-      {/* Leave Requests Table */}
-      {leavesError && (
-        <div role="alert" style={{ padding: '12px 16px', marginBottom: '16px', borderRadius: '8px', color: '#CF202F', backgroundColor: '#FEECEE' }}>
-          {leavesError}
-        </div>
-      )}
       <div className="table-container">
         <table className="erp-table">
           <thead>
@@ -145,11 +279,7 @@ export const LeavesView: React.FC = () => {
           </thead>
           <tbody>
             {leavesLoading ? (
-              <tr>
-                <td colSpan={7} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
-                  Loading leave requests…
-                </td>
-              </tr>
+              <TableSkeletonRows columns={7} rows={5} />
             ) : displayedLeaves.length === 0 ? (
               <tr>
                 <td colSpan={7} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>
@@ -158,7 +288,7 @@ export const LeavesView: React.FC = () => {
               </tr>
             ) : (
               displayedLeaves.map(leave => (
-                <tr key={leave.id}>
+                <tr key={leave.id} className="arrow-lift-row">
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                       <img 
@@ -207,7 +337,7 @@ export const LeavesView: React.FC = () => {
                         style={{ padding: '6px 12px' }}
                       >
                         <span>Review</span>
-                        <ChevronRight size={14} />
+                        <ChevronRight className="arrow-lift-trigger" size={14} />
                       </button>
                     ) : (
                       <button
@@ -215,6 +345,7 @@ export const LeavesView: React.FC = () => {
                         className="btn btn-sm btn-ghost"
                       >
                         <span>View Details</span>
+                        <ChevronRight className="arrow-lift-trigger" size={14} />
                       </button>
                     )}
                   </td>
@@ -224,8 +355,8 @@ export const LeavesView: React.FC = () => {
           </tbody>
         </table>
       </div>
-
-      {/* Modals */}
+        </>
+      )}
       <ApplyLeaveModal 
         isOpen={isApplyModalOpen}
         onClose={() => setIsApplyModalOpen(false)}

@@ -2,120 +2,95 @@ import React, { useEffect, useState } from 'react';
 import { 
   Clock, 
   ArrowRight, 
-  Sparkles, 
-  Plus
+  Plus,
+  CalendarDays,
+  FileText,
+  UserRound,
 } from 'lucide-react';
 import { useERP } from '../../context/ERPContext';
+import { SectionSkeleton, SkeletonLine } from '../../components/feedback/LoadingSkeleton';
+import { formatINR } from '../../lib/formatCurrency';
+import { dashboardApi, type EmployeeDashboardSummary } from '../../lib/api';
+
+function mondayOf(date: Date): string {
+  const monday = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  monday.setUTCDate(monday.getUTCDate() - ((monday.getUTCDay() + 6) % 7));
+  return monday.toISOString().slice(0, 10);
+}
+
+function shiftDate(date: string, days: number): Date {
+  const shifted = new Date(`${date}T00:00:00.000Z`);
+  shifted.setUTCDate(shifted.getUTCDate() + days);
+  return shifted;
+}
+
+function formatDate(date: string): string {
+  return new Date(`${date}T00:00:00.000Z`).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
+function dateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
 
 export const EmployeeDashboardView: React.FC = () => {
   const { 
     currentUser, 
     setCurrentView, 
-    employees,
-    employeesLoading,
-    projects, 
-    projectsLoading,
-    projectsError,
-    timesheets, 
-    timesheetsLoading,
-    timesheetsError,
-    payroll,
-    payrollLoading,
-    payrollError,
-    setFigmaOverlayAsset 
+    setSelectedProjectId,
   } = useERP();
 
-  const [dashboardState, setDashboardState] = useState<'default' | 'enriched'>('default');
   const [now, setNow] = useState<Date | null>(null);
+  const [dashboard, setDashboard] = useState<EmployeeDashboardSummary | null>(null);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+  const [dashboardError, setDashboardError] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setNow(new Date()), 0);
     return () => window.clearTimeout(timer);
   }, []);
 
-  const myEmployee = employees.find(employee => employee.email.toLowerCase() === currentUser.email.toLowerCase());
-  const myProjects = projects.filter(project => (
-    project.team.some(member => member.id === myEmployee?.id)
-    && (project.status === 'Active' || project.status === 'In Progress')
-  ));
-  const myCurrentTimesheet = timesheets
-    .filter(timesheet => timesheet.employeeId === myEmployee?.id)
-    .sort((a, b) => b.weekStart.localeCompare(a.weekStart))[0];
-  const latestPayslip = payroll
-    .filter(record => record.employeeId === myEmployee?.id)
-    .sort((a, b) => {
-      const periodA = a.year * 12 + new Date(`${a.month} 1, ${a.year}`).getMonth();
-      const periodB = b.year * 12 + new Date(`${b.month} 1, ${b.year}`).getMonth();
-      return periodB - periodA;
-    })[0];
+  useEffect(() => {
+    let active = true;
+    dashboardApi.getEmployeeSummary(dateKey(new Date()))
+      .then(summary => {
+        if (active) setDashboard(summary);
+      })
+      .catch(error => {
+        if (active) setDashboardError(error instanceof Error ? error.message : 'Unable to load dashboard data.');
+      })
+      .finally(() => {
+        if (active) setDashboardLoading(false);
+      });
+    return () => { active = false; };
+  }, []);
+
+  const myProjects = dashboard?.projects.records ?? [];
+  const currentWeekStart = now ? mondayOf(now) : null;
+  const currentWeekEnd = currentWeekStart ? shiftDate(currentWeekStart, 6).toISOString().slice(0, 10) : null;
+  const currentWeekLabel = currentWeekStart && currentWeekEnd
+    ? `${formatDate(currentWeekStart)} – ${formatDate(currentWeekEnd)}`
+    : '';
+  const myCurrentTimesheet = dashboard?.timesheet ?? null;
+  const latestPayslip = dashboard?.payslip ?? null;
   const greeting = !now || now.getHours() < 12 ? 'Good morning' : now.getHours() < 18 ? 'Good afternoon' : 'Good evening';
   const todayLabel = now?.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) ?? '';
-  const leaveBalance = myEmployee?.leaveBalance;
+  const leaveBalance = dashboard?.leaveBalance;
+  const pendingLeaveCount = dashboard?.leaves.pendingCount ?? 0;
+  const pendingLeave = dashboard?.leaves.pending ?? null;
+  const upcomingLeave = dashboard?.leaves.upcoming ?? null;
 
   return (
-    <div style={{ padding: '32px' }}>
-      {/* Figma State Switcher */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '28px',
-        background: '#FFFFFF',
-        padding: '12px 20px',
-        borderRadius: '12px',
-        border: '1px solid var(--border-light)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Sparkles size={16} color="#0052FF" />
-          <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-main)' }}>Figma View:</span>
-          <div style={{ display: 'flex', gap: '4px', background: '#F1F3F5', padding: '3px', borderRadius: '6px' }}>
-            <button
-              onClick={() => setDashboardState('default')}
-              style={{
-                padding: '4px 10px',
-                border: 'none',
-                borderRadius: '4px',
-                fontSize: '12px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                backgroundColor: dashboardState === 'default' ? '#0052FF' : 'transparent',
-                color: dashboardState === 'default' ? '#FFFFFF' : 'var(--text-secondary)'
-              }}
-            >
-              Default
-            </button>
-            <button
-              onClick={() => setDashboardState('enriched')}
-              style={{
-                padding: '4px 10px',
-                border: 'none',
-                borderRadius: '4px',
-                fontSize: '12px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                backgroundColor: dashboardState === 'enriched' ? '#0052FF' : 'transparent',
-                color: dashboardState === 'enriched' ? '#FFFFFF' : 'var(--text-secondary)'
-              }}
-            >
-              Enriched (With Goals & Badges)
-            </button>
-          </div>
-        </div>
-
-        <button
-          onClick={() => setFigmaOverlayAsset(
-            dashboardState === 'default' 
-              ? '/design-assets/Dashboard/Employee Dashboard — Default.svg' 
-              : '/design-assets/Dashboard/Employee Dashboard — Enriched.svg'
-          )}
-          className="btn btn-sm btn-secondary"
-        >
-          Compare Figma Spec ↗
-        </button>
-      </div>
-
+    <div className="employee-dashboard-page" style={{ padding: '32px' }}>
       {/* Welcome Banner */}
-      <div style={{
+      <div className="employee-dashboard-welcome" style={{
         background: 'linear-gradient(135deg, #0A0B0D 0%, #16181C 100%)',
         color: '#FFFFFF',
         borderRadius: '16px',
@@ -136,13 +111,13 @@ export const EmployeeDashboardView: React.FC = () => {
             {greeting}, {currentUser.name.split(' ')[0]} 👋
           </h2>
           <p style={{ fontSize: '14px', color: '#B5BAC2', marginTop: '6px', maxWidth: '520px' }}>
-            {projectsLoading
-              ? 'Loading your assigned projects…'
-              : <>You are assigned to <strong>{myProjects.length} active {myProjects.length === 1 ? 'project' : 'projects'}</strong>.</>}
+            {dashboardLoading
+              ? <SkeletonLine width="260px" />
+              : <>You are assigned to <strong>{dashboard?.projects.activeCount ?? 0} active {(dashboard?.projects.activeCount ?? 0) === 1 ? 'project' : 'projects'}</strong>.</>}
             {' '}
-            {payrollLoading
-              ? 'Loading your payslip records…'
-              : payrollError
+            {dashboardLoading
+              ? <SkeletonLine width="210px" />
+              : dashboardError
                 ? 'Your payslip data is currently unavailable.'
                 : latestPayslip
               ? `Your latest recorded payslip is ${latestPayslip.month} ${latestPayslip.year} (${latestPayslip.status}).`
@@ -150,7 +125,15 @@ export const EmployeeDashboardView: React.FC = () => {
           </p>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px', zIndex: 2 }}>
+        <div className="employee-dashboard-welcome-actions" style={{ display: 'flex', gap: '12px', zIndex: 2 }}>
+          <button
+            onClick={() => setCurrentView('my-profile')}
+            className="btn btn-secondary"
+            style={{ padding: '10px 18px', backgroundColor: 'rgba(255, 255, 255, 0.1)', color: '#FFF', border: '1px solid rgba(255, 255, 255, 0.2)' }}
+          >
+            <UserRound size={16} />
+            <span>My Profile</span>
+          </button>
           <button 
             onClick={() => setCurrentView('leaves')} 
             className="btn btn-primary"
@@ -184,9 +167,9 @@ export const EmployeeDashboardView: React.FC = () => {
           </button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
+        <div className="employee-leave-balance-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
           {/* Annual Leave */}
-          <div className="card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div className="card interactive-lift-card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px' }}>
             <div style={{
               width: '60px',
               height: '60px',
@@ -201,18 +184,18 @@ export const EmployeeDashboardView: React.FC = () => {
               color: '#0052FF',
               flexShrink: 0
             }}>
-              {employeesLoading ? '…' : leaveBalance?.annual ?? '—'}
+              {dashboardLoading ? <SkeletonLine width="24px" height={18} /> : leaveBalance?.annual ?? '—'}
             </div>
             <div>
-              <div style={{ fontWeight: '700', fontSize: '15px', color: 'var(--text-main)' }}>Annual Leave</div>
+              <div style={{ fontWeight: '700', fontSize: '15px', color: 'var(--text-main)' }}>Annual Leave{leaveBalance?.year ? ` (${leaveBalance.year})` : ''}</div>
               <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                {employeesLoading ? 'Loading balance…' : leaveBalance ? `${leaveBalance.annual} of ${leaveBalance.annualTotal} days remaining` : 'Balance unavailable'}
+                {dashboardLoading ? <SkeletonLine width="155px" /> : leaveBalance ? `${leaveBalance.annual} remaining of ${leaveBalance.annualTotal} · ${Math.max(0, leaveBalance.annualTotal - leaveBalance.annual)} used${leaveBalance.annualPending ? ` · ${leaveBalance.annualPending} pending` : ''}` : 'Balance unavailable'}
               </div>
             </div>
           </div>
 
           {/* Sick Leave */}
-          <div className="card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div className="card interactive-lift-card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px' }}>
             <div style={{
               width: '60px',
               height: '60px',
@@ -227,18 +210,18 @@ export const EmployeeDashboardView: React.FC = () => {
               color: '#05B169',
               flexShrink: 0
             }}>
-              {employeesLoading ? '…' : leaveBalance?.sick ?? '—'}
+              {dashboardLoading ? <SkeletonLine width="24px" height={18} /> : leaveBalance?.sick ?? '—'}
             </div>
             <div>
-              <div style={{ fontWeight: '700', fontSize: '15px', color: 'var(--text-main)' }}>Sick Leave</div>
+              <div style={{ fontWeight: '700', fontSize: '15px', color: 'var(--text-main)' }}>Sick Leave{leaveBalance?.year ? ` (${leaveBalance.year})` : ''}</div>
               <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                {employeesLoading ? 'Loading balance…' : leaveBalance ? `${leaveBalance.sick} of ${leaveBalance.sickTotal} days remaining` : 'Balance unavailable'}
+                {dashboardLoading ? <SkeletonLine width="155px" /> : leaveBalance ? `${leaveBalance.sick} remaining of ${leaveBalance.sickTotal} · ${Math.max(0, leaveBalance.sickTotal - leaveBalance.sick)} used${leaveBalance.sickPending ? ` · ${leaveBalance.sickPending} pending` : ''}` : 'Balance unavailable'}
               </div>
             </div>
           </div>
 
           {/* Casual Leave */}
-          <div className="card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px' }}>
+          <div className="card interactive-lift-card" style={{ padding: '24px', display: 'flex', alignItems: 'center', gap: '20px' }}>
             <div style={{
               width: '60px',
               height: '60px',
@@ -253,115 +236,166 @@ export const EmployeeDashboardView: React.FC = () => {
               color: '#B45309',
               flexShrink: 0
             }}>
-              {employeesLoading ? '…' : leaveBalance?.casual ?? '—'}
+              {dashboardLoading ? <SkeletonLine width="24px" height={18} /> : leaveBalance?.casual ?? '—'}
             </div>
             <div>
-              <div style={{ fontWeight: '700', fontSize: '15px', color: 'var(--text-main)' }}>Casual / Personal</div>
+              <div style={{ fontWeight: '700', fontSize: '15px', color: 'var(--text-main)' }}>Casual / Personal{leaveBalance?.year ? ` (${leaveBalance.year})` : ''}</div>
               <div style={{ fontSize: '12.5px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                {employeesLoading ? 'Loading balance…' : leaveBalance ? `${leaveBalance.casual} of ${leaveBalance.casualTotal} days remaining` : 'Balance unavailable'}
+                {dashboardLoading ? <SkeletonLine width="155px" /> : leaveBalance ? `${leaveBalance.casual} remaining of ${leaveBalance.casualTotal} · ${Math.max(0, leaveBalance.casualTotal - leaveBalance.casual)} used${leaveBalance.casualPending ? ` · ${leaveBalance.casualPending} pending` : ''}` : 'Balance unavailable'}
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Grid: Timesheets & Projects */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: '24px' }}>
-        {/* Weekly Timesheet Status */}
-        <div className="card" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>
-              Current Timesheet
-            </h3>
-            {myCurrentTimesheet && <span className={`badge ${myCurrentTimesheet.status === 'Approved' ? 'badge-success' : 'badge-warning'}`}>
-              <span className="badge-dot" />
-              {myCurrentTimesheet.status}
-            </span>}
+      <div className="employee-dashboard-grid">
+        <section className="card employee-dashboard-card">
+          <div className="employee-dashboard-card-header">
+            <h3>Current Week Timesheet</h3>
+            {myCurrentTimesheet && (
+              <span className={`badge ${
+                myCurrentTimesheet.status === 'Approved' ? 'badge-success'
+                  : myCurrentTimesheet.status === 'Rejected' ? 'badge-danger'
+                    : myCurrentTimesheet.status === 'Draft' ? 'badge-neutral' : 'badge-warning'
+              }`}>
+                <span className="badge-dot" />
+                {myCurrentTimesheet.status}
+              </span>
+            )}
           </div>
-
-          {timesheetsLoading ? (
-            <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>Loading timesheets…</div>
-          ) : timesheetsError ? (
-            <div role="alert" style={{ padding: '32px 0', textAlign: 'center', color: '#CF202F', fontSize: '13px' }}>Unable to load timesheets: {timesheetsError}</div>
-          ) : !myCurrentTimesheet ? (
-            <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>No timesheet submitted yet.</div>
+          {dashboardLoading || !now ? (
+            <SectionSkeleton rows={2} />
+          ) : dashboardError ? (
+            <div role="alert" className="employee-dashboard-message error">Unable to load dashboard data: {dashboardError}</div>
           ) : (
             <>
-              <div style={{ backgroundColor: '#F8F9FA', padding: '16px', borderRadius: '10px', marginBottom: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--text-secondary)' }}>
-                  <span>Period:</span>
-                  <strong style={{ color: 'var(--text-main)' }}>{myCurrentTimesheet.weekStart} — {myCurrentTimesheet.weekEnd}</strong>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', color: 'var(--text-secondary)', marginTop: '8px' }}>
-                  <span>Total Hours:</span>
-                  <strong style={{ color: '#0052FF', fontSize: '16px' }}>{myCurrentTimesheet.totalHours} hrs</strong>
-                </div>
+              <div className="employee-dashboard-period">
+                <span>This week</span>
+                <strong>{currentWeekLabel}</strong>
+                {myCurrentTimesheet && <strong>{myCurrentTimesheet.totalHours} hrs logged</strong>}
               </div>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
-                {myCurrentTimesheet.entries.map(entry => (
-                  <div key={entry.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12.5px', borderBottom: '1px solid var(--border-light)', paddingBottom: '6px' }}>
-                    <span style={{ color: 'var(--text-main)', fontWeight: '500' }}>{entry.projectName}</span>
-                    <span style={{ color: 'var(--text-secondary)', fontWeight: '600' }}>
-                      {Object.values(entry.hours).reduce((a, b) => a + b, 0)} hrs
-                    </span>
-                  </div>
-                ))}
-              </div>
-
+              <p className="employee-dashboard-description">
+                {!myCurrentTimesheet
+                  ? 'You have not started this week’s report.'
+                  : myCurrentTimesheet.status === 'Draft'
+                    ? 'Your report is saved as a draft and still needs to be submitted.'
+                    : myCurrentTimesheet.status === 'Rejected'
+                      ? 'Your report was returned. Update it and submit it again.'
+                      : `This week’s report is ${myCurrentTimesheet.status.toLowerCase()}.`}
+              </p>
               <button
+                type="button"
                 onClick={() => setCurrentView('timesheets')}
-                className="btn btn-outline-primary"
-                style={{ width: '100%', fontSize: '13px' }}
+                className="btn btn-outline-primary employee-dashboard-action"
               >
-                <span>Edit Weekly Hours</span>
-                <ArrowRight size={14} />
+                <span>{!myCurrentTimesheet ? 'Start This Week’s Report' : myCurrentTimesheet.status === 'Draft' || myCurrentTimesheet.status === 'Rejected' ? 'Continue This Week’s Report' : 'View This Week’s Report'}</span>
+                <ArrowRight size={15} />
               </button>
             </>
           )}
-        </div>
+        </section>
 
-        {/* Assigned Projects */}
-        <div className="card" style={{ padding: '24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>
-              My Active Projects
-            </h3>
-            <button 
-              onClick={() => setCurrentView('projects')} 
-              style={{ fontSize: '12.5px', color: '#0052FF', background: 'none', border: 'none', fontWeight: '600', cursor: 'pointer' }}
-            >
-              All Projects →
-            </button>
+        <section className="card employee-dashboard-card">
+          <div className="employee-dashboard-card-header">
+            <h3>My Leave</h3>
+            <button type="button" className="employee-dashboard-text-link" onClick={() => setCurrentView('leaves')}>Leave history <ArrowRight size={14} /></button>
           </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {projectsLoading ? (
-              <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>Loading assigned projects…</div>
-            ) : projectsError ? (
-              <div role="alert" style={{ padding: '32px 0', textAlign: 'center', color: '#CF202F', fontSize: '13px' }}>Unable to load projects: {projectsError}</div>
-            ) : myProjects.length === 0 ? (
-              <div style={{ padding: '32px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>You have no active project assignments.</div>
-            ) : myProjects.map(proj => (
-              <div key={proj.id} style={{ padding: '16px', borderRadius: '10px', backgroundColor: '#F8F9FA', border: '1px solid var(--border-light)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <div>
-                    <span style={{ fontWeight: '700', fontSize: '14px', color: 'var(--text-main)' }}>{proj.name}</span>
-                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', marginLeft: '8px' }}>{proj.code}</span>
-                  </div>
-                  <span className="badge badge-primary">{proj.progress}%</span>
+          {dashboardLoading ? (
+            <SectionSkeleton rows={2} />
+          ) : dashboardError ? (
+            <div role="alert" className="employee-dashboard-message error">Unable to load dashboard data: {dashboardError}</div>
+          ) : (
+            <div className="employee-dashboard-leave-content">
+              {upcomingLeave ? (
+                <div className="employee-dashboard-highlight">
+                  <span className="employee-dashboard-eyebrow">NEXT APPROVED LEAVE</span>
+                  <strong>{upcomingLeave.leaveType}</strong>
+                  <span>{formatDate(upcomingLeave.startDate)} – {formatDate(upcomingLeave.endDate)}</span>
                 </div>
-                <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', lineHeight: '1.4', margin: '4px 0 10px 0' }}>
-                  {proj.description}
-                </p>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', color: 'var(--text-muted)' }}>
-                  <span>Tasks: <strong>{proj.tasksCompleted} / {proj.totalTasks}</strong></span>
-                  <span>Deadline: <strong>{proj.deadline}</strong></span>
-                </div>
+              ) : (
+                <div className="employee-dashboard-empty">No upcoming approved leave.</div>
+              )}
+              <div className="employee-dashboard-pending">
+                <span className={`badge ${pendingLeaveCount ? 'badge-warning' : 'badge-neutral'}`}>
+                  <span className="badge-dot" />
+                  {pendingLeaveCount} pending {pendingLeaveCount === 1 ? 'request' : 'requests'}
+                </span>
+                {pendingLeave && <span>{pendingLeave.leaveType} · {formatDate(pendingLeave.startDate)}</span>}
               </div>
-            ))}
+            </div>
+          )}
+          <button type="button" onClick={() => setCurrentView('leaves')} className="btn btn-outline-primary employee-dashboard-action">
+            <CalendarDays size={15} />
+            <span>View Leave Calendar</span>
+          </button>
+        </section>
+
+        <section className="card employee-dashboard-card">
+          <div className="employee-dashboard-card-header">
+            <h3>Latest Payslip</h3>
           </div>
-        </div>
+          {dashboardLoading ? (
+            <SectionSkeleton rows={2} />
+          ) : dashboardError ? (
+            <div role="alert" className="employee-dashboard-message error">Unable to load dashboard data: {dashboardError}</div>
+          ) : latestPayslip ? (
+            <>
+              <div className="employee-dashboard-payslip">
+                <span className="employee-dashboard-eyebrow">{latestPayslip.month} {latestPayslip.year}</span>
+                <strong>{formatINR(latestPayslip.netPay)}</strong>
+                <span className={`badge ${latestPayslip.status === 'Paid' ? 'badge-success' : 'badge-warning'}`}>
+                  <span className="badge-dot" />
+                  {latestPayslip.status}
+                </span>
+              </div>
+              <button type="button" onClick={() => setCurrentView('payroll')} className="btn btn-outline-primary employee-dashboard-action">
+                <FileText size={15} />
+                <span>View Payslip Details</span>
+                <ArrowRight size={15} />
+              </button>
+            </>
+          ) : (
+            <div className="employee-dashboard-empty">No payslip has been recorded yet.</div>
+          )}
+        </section>
+
+        <section className="card employee-dashboard-card">
+          <div className="employee-dashboard-card-header">
+            <h3>My Active Projects</h3>
+            <button type="button" className="employee-dashboard-text-link" onClick={() => setCurrentView('projects')}>All projects <ArrowRight size={14} /></button>
+          </div>
+          {dashboardLoading ? (
+            <SectionSkeleton rows={3} />
+          ) : dashboardError ? (
+            <div role="alert" className="employee-dashboard-message error">Unable to load dashboard data: {dashboardError}</div>
+          ) : myProjects.length === 0 ? (
+            <div className="employee-dashboard-empty">You have no active project assignments.</div>
+          ) : (
+            <div className="employee-dashboard-project-list">
+              {myProjects.slice(0, 3).map((project, index) => (
+                <button
+                  key={project.id}
+                  type="button"
+                  className="employee-project-item"
+                  onClick={() => {
+                    setSelectedProjectId(project.id);
+                    setCurrentView('project-detail');
+                  }}
+                >
+                  <span className="employee-project-main">
+                    <strong>{project.name}</strong>
+                    <small>{project.code} · {project.progress}% complete</small>
+                  </span>
+                  <span className="employee-project-deadline">
+                    <small>{index === 0 ? 'Nearest deadline' : 'Deadline'}</small>
+                    <strong>{formatDate(project.deadline)}</strong>
+                  </span>
+                  <ArrowRight size={16} />
+                </button>
+              ))}
+            </div>
+          )}
+        </section>
       </div>
     </div>
   );
