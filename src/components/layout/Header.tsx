@@ -36,10 +36,13 @@ export const Header: React.FC = () => {
     markNotificationsRead
   } = useERP();
 
-  const [showNotifications, setShowNotifications] = useState(false);
+  const [notificationsPinned, setNotificationsPinned] = useState(false);
+  const [notificationsHovered, setNotificationsHovered] = useState(false);
+  const [notificationsFocused, setNotificationsFocused] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
+  const showNotifications = notificationsPinned || notificationsHovered || notificationsFocused;
 
   useEffect(() => {
     const closeSearchOnOutsideClick = (event: PointerEvent) => {
@@ -341,11 +344,22 @@ export const Header: React.FC = () => {
         </div>
 
         {/* Notifications Bell */}
-        <div style={{ position: 'relative' }}>
+        <div
+          style={{ position: 'relative' }}
+          onMouseEnter={() => setNotificationsHovered(true)}
+          onMouseLeave={() => setNotificationsHovered(false)}
+          onFocusCapture={() => setNotificationsFocused(true)}
+          onBlurCapture={event => {
+            if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+              setNotificationsFocused(false);
+            }
+          }}
+        >
           <button
-            onClick={() => setShowNotifications(!showNotifications)}
+            onClick={() => setNotificationsPinned(value => !value)}
             aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
             aria-expanded={showNotifications}
+            aria-controls="header-notifications-dropdown"
             style={{
               position: 'relative',
               width: '38px',
@@ -384,7 +398,7 @@ export const Header: React.FC = () => {
 
           {/* Notifications Dropdown */}
           {showNotifications && (
-            <div style={{
+            <div id="header-notifications-dropdown" style={{
               position: 'absolute',
               right: 0,
               top: '46px',
@@ -449,7 +463,20 @@ export const Header: React.FC = () => {
             </div>
           )}
         </div>
-        <div className="header-account">
+        <button
+          type="button"
+          className="header-account"
+          onClick={() => setCurrentView('my-profile')}
+          aria-label="Open My Profile"
+          style={{
+            padding: 0,
+            border: 0,
+            background: 'transparent',
+            font: 'inherit',
+            textAlign: 'left',
+            cursor: 'pointer',
+          }}
+        >
           <div className="header-account-avatar" aria-hidden="true">
             <span>{currentUser.name.split(/\s+/).map(part => part[0]).slice(0, 2).join('').toUpperCase()}</span>
             <img
@@ -461,7 +488,7 @@ export const Header: React.FC = () => {
             />
           </div>
           <span className="header-account-name">{currentUser.name}</span>
-        </div>
+        </button>
       </div>
     </header>
   );

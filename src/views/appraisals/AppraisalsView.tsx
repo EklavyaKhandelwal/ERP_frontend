@@ -180,7 +180,9 @@ export const AppraisalsView: React.FC = () => {
       </div>
 
       <AppraisalDetailModal key={selectedAppraisal?.id ?? 'closed'} appraisal={selectedAppraisal} onClose={() => setSelectedAppraisal(null)} />
-      <CreateAppraisalCycleModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
+      {isCreateModalOpen && (
+        <CreateAppraisalCycleModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
+      )}
     </div>
   );
 };

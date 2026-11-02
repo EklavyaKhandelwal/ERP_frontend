@@ -3,7 +3,7 @@ import { X, Calendar as CalendarIcon } from 'lucide-react';
 import { useERP } from '../../context/ERPContext';
 import { LeaveType } from '../../types/erp';
 
-function countWeekdays(startDate: string, endDate: string): number {
+function countChargeableDays(startDate: string, endDate: string, holidays: Set<string>): number {
   if (!startDate || !endDate || endDate < startDate) return 0;
 
   const date = new Date(`${startDate}T00:00:00.000Z`);
@@ -11,7 +11,7 @@ function countWeekdays(startDate: string, endDate: string): number {
   let total = 0;
   while (date <= end) {
     const day = date.getUTCDay();
-    if (day !== 0 && day !== 6) total += 1;
+    if (day !== 0 && day !== 6 && !holidays.has(date.toISOString().slice(0, 10))) total += 1;
     date.setUTCDate(date.getUTCDate() + 1);
   }
   return total;
@@ -23,7 +23,7 @@ interface Props {
 }
 
 export const ApplyLeaveModal: React.FC<Props> = ({ isOpen, onClose }) => {
-  const { applyLeave, leaveBalance } = useERP();
+  const { applyLeave, leaveBalance, companyHolidays } = useERP();
 
   const [leaveType, setLeaveType] = useState<LeaveType>('Annual Leave');
   const [startDate, setStartDate] = useState('');
@@ -34,7 +34,16 @@ export const ApplyLeaveModal: React.FC<Props> = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const days = countWeekdays(startDate, endDate);
+  const holidayDates = new Set<string>();
+  for (const holiday of companyHolidays) {
+    const date = new Date(`${holiday.startDate}T00:00:00.000Z`);
+    const end = new Date(`${holiday.endDate}T00:00:00.000Z`);
+    while (date <= end) {
+      holidayDates.add(date.toISOString().slice(0, 10));
+      date.setUTCDate(date.getUTCDate() + 1);
+    }
+  }
+  const days = countChargeableDays(startDate, endDate, holidayDates);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -116,7 +125,7 @@ export const ApplyLeaveModal: React.FC<Props> = ({ isOpen, onClose }) => {
           </div>
 
           <div className="form-group">
-            <label className="form-label">Total Business Days (Monday–Friday)</label>
+            <label className="form-label">Chargeable weekdays (excluding weekends and company holidays)</label>
             <div className="form-control" aria-live="polite">{days}</div>
           </div>
 

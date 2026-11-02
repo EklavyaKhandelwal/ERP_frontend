@@ -3,9 +3,9 @@ import {
   Clock, 
   ArrowRight, 
   Plus,
+  Cake,
   CalendarDays,
   FileText,
-  UserRound,
 } from 'lucide-react';
 import { useERP } from '../../context/ERPContext';
 import { SectionSkeleton, SkeletonLine } from '../../components/feedback/LoadingSkeleton';
@@ -48,6 +48,7 @@ export const EmployeeDashboardView: React.FC = () => {
   } = useERP();
 
   const [now, setNow] = useState<Date | null>(null);
+  const [today, setToday] = useState(() => dateKey(new Date()));
   const [dashboard, setDashboard] = useState<EmployeeDashboardSummary | null>(null);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
@@ -58,8 +59,16 @@ export const EmployeeDashboardView: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      const currentDate = dateKey(new Date());
+      setToday(previousDate => previousDate === currentDate ? previousDate : currentDate);
+    }, 60_000);
+    return () => window.clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
     let active = true;
-    dashboardApi.getEmployeeSummary(dateKey(new Date()))
+    dashboardApi.getEmployeeSummary(today)
       .then(summary => {
         if (active) setDashboard(summary);
       })
@@ -70,7 +79,7 @@ export const EmployeeDashboardView: React.FC = () => {
         if (active) setDashboardLoading(false);
       });
     return () => { active = false; };
-  }, []);
+  }, [today]);
 
   const myProjects = dashboard?.projects.records ?? [];
   const currentWeekStart = now ? mondayOf(now) : null;
@@ -126,14 +135,6 @@ export const EmployeeDashboardView: React.FC = () => {
         </div>
 
         <div className="employee-dashboard-welcome-actions" style={{ display: 'flex', gap: '12px', zIndex: 2 }}>
-          <button
-            onClick={() => setCurrentView('my-profile')}
-            className="btn btn-secondary"
-            style={{ padding: '10px 18px', backgroundColor: 'rgba(255, 255, 255, 0.1)', color: '#FFF', border: '1px solid rgba(255, 255, 255, 0.2)' }}
-          >
-            <UserRound size={16} />
-            <span>My Profile</span>
-          </button>
           <button 
             onClick={() => setCurrentView('leaves')} 
             className="btn btn-primary"
@@ -152,6 +153,16 @@ export const EmployeeDashboardView: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {dashboard?.birthday.isToday && (
+        <section className="card employee-dashboard-birthday" aria-label="Birthday celebration">
+          <div className="employee-dashboard-birthday-icon"><Cake size={24} /></div>
+          <div>
+            <h3>Happy Birthday, {currentUser.name.split(' ')[0]}!</h3>
+            <p>Wishing you a wonderful day and a fantastic year ahead.</p>
+          </div>
+        </section>
+      )}
 
       {/* Leave Balance Quotas */}
       <div style={{ marginBottom: '32px' }}>

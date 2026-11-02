@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Camera, Check, ChevronRight, Download, Eye, FileText, LoaderCircle, RefreshCw, UserRound, X } from 'lucide-react';
+import { Camera, Check, ChevronRight, Download, Eye, FileText, LoaderCircle, Pencil, RefreshCw, UserRound, X } from 'lucide-react';
 import { useERP } from '../../context/ERPContext';
 import { accountApi, type EmployeeDocument, type EmployeeDocumentType } from '../../lib/api';
 import { CardGridSkeleton, SectionSkeleton } from '../../components/feedback/LoadingSkeleton';
@@ -58,16 +58,21 @@ const readDocumentFile = (file: File, documentType: EmployeeDocumentType) => new
 });
 
 export const MyProfileView: React.FC = () => {
-  const { currentUser, employees, employeesLoading, updateProfileAvatar } = useERP();
+  const { currentUser, employees, employeesLoading, updateProfileAvatar, updateProfile } = useERP();
   const fileInput = useRef<HTMLInputElement>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileName, setProfileName] = useState('');
+  const [profilePhone, setProfilePhone] = useState('');
+  const [profileDateOfBirth, setProfileDateOfBirth] = useState('');
+  const [isSavingProfile, setIsSavingProfile] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
   const documentFileInput = useRef<HTMLInputElement>(null);
   const [documents, setDocuments] = useState<EmployeeDocument[] | null>(null);
   const [documentsError, setDocumentsError] = useState<string | null>(null);
-  const [documentSuccess, setDocumentSuccess] = useState<string | null>(null);
   const [previewDocument, setPreviewDocument] = useState<EmployeeDocument | null>(null);
   const [documentPreviewUrl, setDocumentPreviewUrl] = useState<string | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
@@ -141,13 +146,41 @@ export const MyProfileView: React.FC = () => {
     }
   };
 
+  const beginProfileEdit = () => {
+    setProfileName(fullName);
+    setProfilePhone(employee?.phone ?? '');
+    setProfileDateOfBirth(employee?.dateOfBirth ?? '');
+    setProfileError(null);
+    setIsEditingProfile(true);
+  };
+
+  const saveProfile = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setProfileError(null);
+    if (employee && profileName.trim().split(/\s+/).length < 2) {
+      setProfileError('Enter both your first name and last name.');
+      return;
+    }
+    setIsSavingProfile(true);
+    try {
+      await updateProfile({
+        name: profileName.trim(),
+        ...(employee ? { phone: profilePhone.trim(), dateOfBirth: profileDateOfBirth } : {}),
+      });
+      setIsEditingProfile(false);
+    } catch (saveError) {
+      setProfileError(saveError instanceof Error ? saveError.message : 'Unable to update your profile.');
+    } finally {
+      setIsSavingProfile(false);
+    }
+  };
+
   const uploadReplacementDocument = async (file?: File) => {
     const documentType = replaceDocumentType;
     if (!file || !documentType) return;
     setReplaceDocumentType(null);
     if (documentFileInput.current) documentFileInput.current.value = '';
     setDocumentsError(null);
-    setDocumentSuccess(null);
     if (!['application/pdf', 'image/jpeg', 'image/png'].includes(file.type)) {
       setDocumentsError('Choose a PDF, JPG, or PNG document.');
       return;
@@ -168,7 +201,6 @@ export const MyProfileView: React.FC = () => {
           ? currentDocuments.map(document => document.documentType === documentType ? result.document : document)
           : [...currentDocuments, result.document];
       });
-      setDocumentSuccess(`${documentLabels[documentType]} replaced successfully.`);
     } catch (uploadError) {
       setDocumentsError(uploadError instanceof Error ? uploadError.message : 'Unable to replace this document.');
     } finally {
@@ -178,7 +210,6 @@ export const MyProfileView: React.FC = () => {
 
   const downloadDocument = async (document: EmployeeDocument) => {
     setDocumentsError(null);
-    setDocumentSuccess(null);
     try {
       const blob = await accountApi.downloadMyDocument(document);
       const url = URL.createObjectURL(blob);
@@ -244,7 +275,7 @@ export const MyProfileView: React.FC = () => {
         <div>
           <h2 style={{ fontSize: '16px', margin: 0, fontWeight: '700' }}>Your profile, in one place</h2>
           <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-            View your account and employment information, and update your profile photo.
+            View your account and employment information, update your personal details, and change your profile photo.
           </p>
         </div>
         {!selectedFile ? (
@@ -356,22 +387,87 @@ export const MyProfileView: React.FC = () => {
       ) : (
         <>
           <section className="interactive-lift-card" style={{ ...cardStyle, marginBottom: '20px' }}>
-            <h3 style={{ fontSize: '15px', margin: '0 0 20px', fontWeight: '700' }}>Personal &amp; contact information</h3>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: '20px 28px',
-            }}>
-              <div><p style={labelStyle}>Full name</p><p style={valueStyle}>{fullName}</p></div>
-              <div><p style={labelStyle}>Work email</p><p style={valueStyle}>{currentUser.email}</p></div>
-              <div><p style={labelStyle}>Mobile number</p><p style={valueStyle}>{employee?.phone || 'Not provided'}</p></div>
-              <div><p style={labelStyle}>Date of birth</p><p style={valueStyle}>{formatDate(employee?.dateOfBirth)}</p></div>
-              <div><p style={labelStyle}>Department</p><p style={valueStyle}>{employee?.department ?? currentUser.department}</p></div>
-              <div><p style={labelStyle}>Job title</p><p style={valueStyle}>{employee?.designation ?? currentUser.designation}</p></div>
-              <div><p style={labelStyle}>Work location</p><p style={valueStyle}>{employee?.location ?? 'Not provided'}</p></div>
-              <div><p style={labelStyle}>Reporting manager</p><p style={valueStyle}>{employee?.manager || 'Not provided'}</p></div>
-              <div><p style={labelStyle}>Start date</p><p style={valueStyle}>{formatDate(employee?.joinDate)}</p></div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '20px' }}>
+              <h3 style={{ fontSize: '15px', margin: 0, fontWeight: '700' }}>Personal &amp; contact information</h3>
+              {!isEditingProfile && (
+                <button type="button" className="btn btn-secondary btn-sm" onClick={beginProfileEdit}>
+                  <Pencil size={14} /> Edit profile
+                </button>
+              )}
             </div>
+            {profileError && (
+              <div role="alert" style={{ padding: '10px 12px', marginBottom: '14px', borderRadius: '8px', color: 'var(--danger)', background: 'var(--danger-bg)' }}>
+                {profileError}
+              </div>
+            )}
+            {isEditingProfile ? (
+              <form onSubmit={event => void saveProfile(event)} style={{ display: 'grid', gap: '16px' }}>
+                <label className="form-group" style={{ margin: 0 }}>
+                  <span className="form-label">Full name *</span>
+                  <input
+                    className="form-control"
+                    autoComplete="name"
+                    required
+                    minLength={2}
+                    maxLength={200}
+                    value={profileName}
+                    onChange={event => setProfileName(event.target.value)}
+                  />
+                </label>
+                {employee && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+                    <label className="form-group" style={{ margin: 0 }}>
+                      <span className="form-label">Mobile number *</span>
+                      <input
+                        className="form-control"
+                        type="tel"
+                        autoComplete="tel"
+                        required
+                        minLength={7}
+                        maxLength={30}
+                        value={profilePhone}
+                        onChange={event => setProfilePhone(event.target.value)}
+                      />
+                    </label>
+                    <label className="form-group" style={{ margin: 0 }}>
+                      <span className="form-label">Date of birth *</span>
+                      <input
+                        className="form-control"
+                        type="date"
+                        required
+                        value={profileDateOfBirth}
+                        onChange={event => setProfileDateOfBirth(event.target.value)}
+                      />
+                    </label>
+                  </div>
+                )}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                  <button type="button" className="btn btn-secondary" disabled={isSavingProfile} onClick={() => setIsEditingProfile(false)}>
+                    Cancel
+                  </button>
+                  <button type="submit" className="btn btn-primary" disabled={isSavingProfile}>
+                    {isSavingProfile ? <LoaderCircle size={15} /> : <Check size={15} />}
+                    {isSavingProfile ? 'Saving…' : 'Save profile'}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                gap: '20px 28px',
+              }}>
+                <div><p style={labelStyle}>Full name</p><p style={valueStyle}>{fullName}</p></div>
+                <div><p style={labelStyle}>Work email</p><p style={valueStyle}>{currentUser.email}</p></div>
+                <div><p style={labelStyle}>Mobile number</p><p style={valueStyle}>{employee?.phone || 'Not provided'}</p></div>
+                <div><p style={labelStyle}>Date of birth</p><p style={valueStyle}>{formatDate(employee?.dateOfBirth)}</p></div>
+                <div><p style={labelStyle}>Department</p><p style={valueStyle}>{employee?.department ?? currentUser.department}</p></div>
+                <div><p style={labelStyle}>Job title</p><p style={valueStyle}>{employee?.designation ?? currentUser.designation}</p></div>
+                <div><p style={labelStyle}>Work location</p><p style={valueStyle}>{employee?.location ?? 'Not provided'}</p></div>
+                <div><p style={labelStyle}>Reporting manager</p><p style={valueStyle}>{employee?.manager || 'Not provided'}</p></div>
+                <div><p style={labelStyle}>Start date</p><p style={valueStyle}>{formatDate(employee?.joinDate)}</p></div>
+              </div>
+            )}
           </section>
 
           <section className="interactive-lift-card" style={cardStyle}>
@@ -429,17 +525,6 @@ export const MyProfileView: React.FC = () => {
                   background: 'var(--danger-bg)',
                 }}>
                   {documentsError}
-                </div>
-              )}
-              {documentSuccess && (
-                <div role="status" style={{
-                  padding: '10px 12px',
-                  marginBottom: '14px',
-                  borderRadius: '8px',
-                  color: 'var(--success)',
-                  background: 'var(--success-bg)',
-                }}>
-                  {documentSuccess}
                 </div>
               )}
 

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   ArrowRight,
   Briefcase,
+  Cake,
   Calendar,
   Check,
   Clock,
@@ -33,6 +34,7 @@ function formatDate(date: string): string {
 
 export const AdminDashboardView: React.FC = () => {
   const { setCurrentView } = useERP();
+  const [today, setToday] = useState(() => dateKey(new Date()));
   const [summary, setSummary] = useState<AdminDashboardSummary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
   const [summaryError, setSummaryError] = useState<string | null>(null);
@@ -40,8 +42,16 @@ export const AdminDashboardView: React.FC = () => {
   const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      const currentDate = dateKey(new Date());
+      setToday(previousDate => previousDate === currentDate ? previousDate : currentDate);
+    }, 60_000);
+    return () => window.clearInterval(intervalId);
+  }, []);
+
+  useEffect(() => {
     let active = true;
-    void dashboardApi.getSummary(dateKey(new Date()))
+    void dashboardApi.getSummary(today)
       .then(result => {
         if (!active) return;
         setSummary(result);
@@ -56,7 +66,7 @@ export const AdminDashboardView: React.FC = () => {
     return () => {
       active = false;
     };
-  }, [refreshKey]);
+  }, [refreshKey, today]);
 
   const refreshSummary = () => {
     setSummaryLoading(true);
@@ -66,6 +76,7 @@ export const AdminDashboardView: React.FC = () => {
   const pendingLeaves = summary?.leaves.pending ?? [];
   const pendingTimesheets = summary?.timesheets.pending ?? [];
   const upcomingLeaves = summary?.leaves.upcoming ?? [];
+  const birthdays = summary?.birthdays ?? [];
   const departmentHeadcounts = summary?.employees.departments ?? [];
   const largestDepartment = departmentHeadcounts[0]?.count ?? 0;
   const isEmptyWorkspace = !summaryLoading && !summaryError && summary?.employees.total === 0;
@@ -151,6 +162,24 @@ export const AdminDashboardView: React.FC = () => {
           'payroll',
         )}
       </div>
+
+      {birthdays.length > 0 && (
+        <section className="card admin-dashboard-birthdays" aria-labelledby="birthdays-heading">
+          <div className="admin-dashboard-birthday-icon"><Cake size={20} /></div>
+          <div className="admin-dashboard-birthday-content">
+            <h3 id="birthdays-heading">Birthdays today</h3>
+            <p>Send your wishes to these team members.</p>
+            <div className="admin-dashboard-birthday-list">
+              {birthdays.map(employee => (
+                <div className="admin-dashboard-birthday-person" key={employee.id}>
+                  <img src={employee.avatar} alt="" />
+                  <span>{employee.name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
 
       {isEmptyWorkspace ? (
         <section className="card dashboard-empty-state">
