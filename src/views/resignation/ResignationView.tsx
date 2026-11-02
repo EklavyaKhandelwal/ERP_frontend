@@ -69,7 +69,6 @@ export const ResignationView: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
   const [proposedLastDay, setProposedLastDay] = useState(() => localDateAfterDays(30));
   const [today] = useState(() => new Date().toISOString().slice(0, 10));
   const [reason, setReason] = useState<ResignationReason>('Career growth');
@@ -105,7 +104,6 @@ export const ResignationView: React.FC = () => {
   const submitApplication = async (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
-    setSuccess(null);
     if (!confirmed) {
       setError('Confirm that you understand the notice period and handover responsibilities before submitting.');
       return;
@@ -115,7 +113,6 @@ export const ResignationView: React.FC = () => {
     try {
       const result = await resignationsApi.apply({ proposedLastDay, reason, remarks });
       setApplications(previous => [result.resignation, ...previous]);
-      setSuccess('Your resignation application has been submitted to HR for review.');
       setRemarks('');
       setConfirmed(false);
     } catch (submitError) {
@@ -128,13 +125,11 @@ export const ResignationView: React.FC = () => {
   const reviewApplication = async (application: ResignationApplication, status: ResignationStatus) => {
     const note = reviewNotes[application.id] ?? '';
     setError(null);
-    setSuccess(null);
     try {
       const result = await resignationsApi.review(application.id, status, note);
       setApplications(previous => previous.map(existing => existing.id === application.id
         ? result.resignation
         : existing));
-      setSuccess(`${application.employeeName}'s resignation application was ${status.toLowerCase()}.`);
     } catch (reviewError) {
       setError(reviewError instanceof Error ? reviewError.message : 'Unable to review this application.');
     }
@@ -177,12 +172,6 @@ export const ResignationView: React.FC = () => {
           {error}
         </div>
       )}
-      {success && (
-        <div role="status" style={{ padding: '12px 14px', borderRadius: '8px', marginBottom: '14px', color: 'var(--success)', background: 'var(--success-bg)' }}>
-          {success}
-        </div>
-      )}
-
       {role === 'employee' ? (
         <>
           {profile}

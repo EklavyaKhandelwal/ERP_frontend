@@ -115,10 +115,8 @@ const SettingsContent: React.FC<{ userId: string }> = ({ userId }) => {
   const [isPolicyLoaded, setIsPolicyLoaded] = useState(false);
   const [isPolicySaving, setIsPolicySaving] = useState(false);
   const [policyError, setPolicyError] = useState<string | null>(null);
-  const [policyMessage, setPolicyMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
-  const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -165,12 +163,10 @@ const SettingsContent: React.FC<{ userId: string }> = ({ userId }) => {
   }, [activeTab, role, userId]);
 
   const savePreferences = async () => {
-    setSaveMessage(null);
     setError(null);
     setIsSaving(true);
     try {
       setPreferences(await notificationsApi.savePreferences(preferences));
-      setSaveMessage('Notification preferences saved.');
       void refreshNotifications();
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : 'Unable to save notification preferences.');
@@ -181,12 +177,10 @@ const SettingsContent: React.FC<{ userId: string }> = ({ userId }) => {
 
   const updatePreference = (id: string, checked: boolean) => {
     setPreferences(previous => ({ ...previous, [id]: checked }));
-    setSaveMessage(null);
   };
 
   const saveLeavePolicy = async () => {
     setPolicyError(null);
-    setPolicyMessage(null);
     setIsPolicySaving(true);
     try {
       const saved = await leavesApi.savePolicy(leavePolicy);
@@ -198,7 +192,6 @@ const SettingsContent: React.FC<{ userId: string }> = ({ userId }) => {
         setPolicyError(`Policy saved, but related data could not be refreshed: ${refreshError instanceof Error ? refreshError.message : 'Unknown error.'}`);
         return;
       }
-      setPolicyMessage('Company leave allowances saved. Existing balances were adjusted to preserve leave already used.');
     } catch (saveError) {
       setPolicyError(saveError instanceof Error ? saveError.message : 'Unable to save the company leave policy.');
     } finally {
@@ -277,7 +270,6 @@ const SettingsContent: React.FC<{ userId: string }> = ({ userId }) => {
             </div>
             {isLoading && <p className="settings-feedback" role="status">Loading notification preferences…</p>}
             {error && <p className="settings-feedback error" role="alert">{error}</p>}
-            {saveMessage && <p className="settings-feedback success" role="status">{saveMessage}</p>}
             <div className="settings-actions">
               <button
                 type="button"
@@ -309,7 +301,6 @@ const SettingsContent: React.FC<{ userId: string }> = ({ userId }) => {
                   value={leavePolicy.annual}
                   onChange={event => {
                     setLeavePolicy(previous => ({ ...previous, annual: Number(event.target.value) }));
-                    setPolicyMessage(null);
                   }}
                   disabled={role !== 'admin' || isPolicyLoading || !isPolicyLoaded || isPolicySaving}
                 />
@@ -325,7 +316,6 @@ const SettingsContent: React.FC<{ userId: string }> = ({ userId }) => {
                   value={leavePolicy.sick}
                   onChange={event => {
                     setLeavePolicy(previous => ({ ...previous, sick: Number(event.target.value) }));
-                    setPolicyMessage(null);
                   }}
                   disabled={role !== 'admin' || isPolicyLoading || !isPolicyLoaded || isPolicySaving}
                 />
@@ -341,7 +331,6 @@ const SettingsContent: React.FC<{ userId: string }> = ({ userId }) => {
                   value={leavePolicy.casual}
                   onChange={event => {
                     setLeavePolicy(previous => ({ ...previous, casual: Number(event.target.value) }));
-                    setPolicyMessage(null);
                   }}
                   disabled={role !== 'admin' || isPolicyLoading || !isPolicyLoaded || isPolicySaving}
                 />
@@ -352,7 +341,6 @@ const SettingsContent: React.FC<{ userId: string }> = ({ userId }) => {
             </p>
             {isPolicyLoading && <p className="settings-feedback" role="status">Loading company leave allowances…</p>}
             {policyError && <p className="settings-feedback error" role="alert">{policyError}</p>}
-            {policyMessage && <p className="settings-feedback success" role="status">{policyMessage}</p>}
             {role === 'admin' && (
               <div className="settings-actions">
                 <button

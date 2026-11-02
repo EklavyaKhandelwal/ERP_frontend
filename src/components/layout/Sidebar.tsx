@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { 
   LayoutDashboard, 
   Users, 
@@ -6,6 +7,7 @@ import {
   CreditCard, 
   Briefcase, 
   Clock, 
+  CalendarCheck,
   Award, 
   LogOut,
   ShieldCheck,
@@ -72,6 +74,11 @@ export const Sidebar: React.FC = () => {
       id: 'timesheets', 
       label: 'Timesheets',
       icon: <Clock size={18} />
+    },
+    {
+      id: 'attendance',
+      label: currentUser.role === 'admin' ? 'Attendance' : 'My Attendance',
+      icon: <CalendarCheck size={18} />,
     },
     ...(currentUser.role === 'admin' ? [{
       id: 'reports' as AppView,
@@ -254,49 +261,52 @@ export const Sidebar: React.FC = () => {
         </button>
       </div>
       {showLogoutConfirmation && (
-        <div
-          className="modal-overlay"
-          role="presentation"
-          onMouseDown={event => {
-            if (event.target === event.currentTarget && !isLoggingOut) {
-              setShowLogoutConfirmation(false);
-            }
-          }}
-        >
-          <section
-            className="modal-content"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="logout-confirmation-title"
-            style={{ maxWidth: '420px', padding: '28px' }}
+        createPortal(
+          <div
+            className="modal-overlay"
+            role="presentation"
+            onMouseDown={event => {
+              if (event.target === event.currentTarget && !isLoggingOut) {
+                setShowLogoutConfirmation(false);
+              }
+            }}
           >
-            <h2 id="logout-confirmation-title" style={{ fontSize: '18px', margin: 0, color: 'var(--text-main)' }}>
-              Sign out?
-            </h2>
-            <p style={{ margin: '10px 0 24px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
-              Are you sure you want to sign out of your account?
-            </p>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-              <button
-                ref={cancelLogoutButton}
-                type="button"
-                className="btn btn-secondary"
-                disabled={isLoggingOut}
-                onClick={() => setShowLogoutConfirmation(false)}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className="btn btn-primary"
-                disabled={isLoggingOut}
-                onClick={() => void confirmLogout()}
-              >
-                {isLoggingOut ? 'Signing out…' : 'Sign out'}
-              </button>
-            </div>
-          </section>
-        </div>
+            <section
+              className="modal-content"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="logout-confirmation-title"
+              style={{ maxWidth: '420px', padding: '28px' }}
+            >
+              <h2 id="logout-confirmation-title" style={{ fontSize: '18px', margin: 0, color: 'var(--text-main)' }}>
+                Sign out?
+              </h2>
+              <p style={{ margin: '10px 0 24px', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                Are you sure you want to sign out of your account?
+              </p>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  ref={cancelLogoutButton}
+                  type="button"
+                  className="btn btn-secondary"
+                  disabled={isLoggingOut}
+                  onClick={() => setShowLogoutConfirmation(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={isLoggingOut}
+                  onClick={() => void confirmLogout()}
+                >
+                  {isLoggingOut ? 'Signing out…' : 'Sign out'}
+                </button>
+              </div>
+            </section>
+          </div>,
+          document.body,
+        )
       )}
     </aside>
   );

@@ -65,6 +65,15 @@ export interface LeaveRequest {
   reviewNote?: string;
 }
 
+export interface CompanyHoliday {
+  id: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  description: string;
+  updatedAt: string;
+}
+
 export type TimesheetStatus = 'Draft' | 'Submitted' | 'Approved' | 'Rejected';
 
 export interface TimesheetEntry {
@@ -109,6 +118,29 @@ export interface Timesheet {
   submittedOn?: string;
   reviewedBy?: string;
   reviewNote?: string;
+}
+
+export interface AttendanceAdjustment {
+  id: string;
+  reason: string;
+  changedBy: string;
+  previousClockInAt: string;
+  previousClockOutAt: string | null;
+  newClockInAt: string;
+  newClockOutAt: string | null;
+  createdAt: string;
+}
+
+export interface AttendanceRecord {
+  id: string;
+  employeeId: string;
+  employeeName: string;
+  employeeCode: number;
+  department: string;
+  clockInAt: string;
+  clockOutAt: string | null;
+  updatedAt: string;
+  adjustments: AttendanceAdjustment[];
 }
 
 export interface PayrollRecord {
@@ -210,6 +242,7 @@ export type AppView =
   | 'projects'
   | 'project-detail'
   | 'timesheets'
+  | 'attendance'
   | 'reports'
   | 'appraisals'
   | 'resignation';

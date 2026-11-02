@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { Plus, ChevronLeft, ChevronRight, CalendarDays } from 'lucide-react';
+import { Plus, ChevronLeft, ChevronRight, CalendarDays, CalendarPlus, Pencil, Trash2, X } from 'lucide-react';
 import { useERP } from '../../context/ERPContext';
-import { LeaveRequest } from '../../types/erp';
+import { CompanyHoliday, LeaveRequest } from '../../types/erp';
 import { ApplyLeaveModal } from '../../components/modals/ApplyLeaveModal';
 import { LeaveApprovalModal } from '../../components/modals/LeaveApprovalModal';
 import { TableSkeletonRows } from '../../components/feedback/LoadingSkeleton';
@@ -24,6 +24,9 @@ export const LeavesView: React.FC = () => {
     leavesError,
     leaveBalance,
     role,
+    companyHolidays,
+    saveCompanyHoliday,
+    deleteCompanyHoliday,
   } = useERP();
 
   const [activeTab, setActiveTab] = useState<'All' | 'Pending' | 'Approved' | 'Rejected'>('All');
@@ -34,6 +37,16 @@ export const LeavesView: React.FC = () => {
   });
   const [isApplyModalOpen, setIsApplyModalOpen] = useState(false);
   const [selectedReviewLeave, setSelectedReviewLeave] = useState<LeaveRequest | null>(null);
+  const [editingHoliday, setEditingHoliday] = useState<CompanyHoliday | null>(null);
+  const [holidayToDelete, setHolidayToDelete] = useState<CompanyHoliday | null>(null);
+  const [isHolidayModalOpen, setIsHolidayModalOpen] = useState(false);
+  const [holidayName, setHolidayName] = useState('');
+  const [holidayStartDate, setHolidayStartDate] = useState(today);
+  const [holidayEndDate, setHolidayEndDate] = useState(today);
+  const [holidayDescription, setHolidayDescription] = useState('');
+  const [holidayError, setHolidayError] = useState<string | null>(null);
+  const [isSavingHoliday, setIsSavingHoliday] = useState(false);
+  const [isDeletingHoliday, setIsDeletingHoliday] = useState(false);
 
   const displayedLeaves = leaves.filter(l => {
     if (activeTab === 'All') return true;
@@ -67,6 +80,56 @@ export const LeavesView: React.FC = () => {
     leave.status === 'Approved' && leave.startDate > today
     && leave.startDate <= upcomingBoundary,
   ).length;
+  const openHolidayEditor = (holiday?: CompanyHoliday) => {
+    setEditingHoliday(holiday ?? null);
+    setIsHolidayModalOpen(true);
+    setHolidayName(holiday?.name ?? '');
+    setHolidayStartDate(holiday?.startDate ?? today);
+    setHolidayEndDate(holiday?.endDate ?? today);
+    setHolidayDescription(holiday?.description ?? '');
+    setHolidayError(null);
+  };
+  const submitHoliday = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setHolidayError(null);
+    if (holidayEndDate < holidayStartDate) {
+      setHolidayError('End date must be on or after the start date.');
+      return;
+    }
+    setIsSavingHoliday(true);
+    try {
+      await saveCompanyHoliday({
+        name: holidayName,
+        startDate: holidayStartDate,
+        endDate: holidayEndDate,
+        description: holidayDescription,
+      }, editingHoliday?.id);
+      setIsHolidayModalOpen(false);
+    } catch (saveError) {
+      setHolidayError(saveError instanceof Error ? saveError.message : 'Unable to save the company holiday.');
+    } finally {
+      setIsSavingHoliday(false);
+    }
+  };
+  const removeHoliday = (holiday: CompanyHoliday) => {
+    setHolidayError(null);
+    setHolidayToDelete(holiday);
+  };
+  const confirmRemoveHoliday = async () => {
+    if (!holidayToDelete) return;
+    setHolidayError(null);
+    setIsDeletingHoliday(true);
+    try {
+      await deleteCompanyHoliday(holidayToDelete.id);
+      if (editingHoliday?.id === holidayToDelete.id) setIsHolidayModalOpen(false);
+      setHolidayToDelete(null);
+    } catch (deleteError) {
+      setHolidayError(deleteError instanceof Error ? deleteError.message : 'Unable to remove the company holiday.');
+    }
+    finally {
+      setIsDeletingHoliday(false);
+    }
+  };
 
   const getStatusBadge = (status: LeaveRequest['status']) => {
     switch (status) {
@@ -98,6 +161,11 @@ export const LeavesView: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', gap: '12px' }}>
+          {role === 'admin' && activeView === 'Calendar' && (
+            <button type="button" className="btn btn-primary" onClick={() => openHolidayEditor()}>
+              <CalendarPlus size={16} /> <span>Add Holiday</span>
+            </button>
+          )}
           <button
             onClick={() => setIsApplyModalOpen(true)}
             className="btn btn-primary"
@@ -196,12 +264,17 @@ export const LeavesView: React.FC = () => {
           {leavesError}
         </div>
       )}
+      {holidayError && !isHolidayModalOpen && !holidayToDelete && (
+        <div role="alert" style={{ padding: '12px 16px', marginBottom: '16px', borderRadius: '8px', color: '#CF202F', backgroundColor: '#FEECEE' }}>
+          {holidayError}
+        </div>
+      )}
       {activeView === 'Calendar' ? (
         <section className="card leaves-calendar" aria-label={`${monthLabel} leave calendar`}>
           <div className="leaves-calendar-header">
             <div>
               <h3>{monthLabel}</h3>
-              <p>{role === 'admin' ? 'Approved and pending team leave' : 'Your approved and pending leave'}</p>
+              <p>{role === 'admin' ? 'Company holidays, approved and pending team leave' : 'Company holidays and your approved and pending leave'}</p>
             </div>
             <div className="leaves-calendar-controls">
               <button type="button" className="btn btn-secondary btn-sm" aria-label="Previous month" onClick={() => setCalendarMonth(month => new Date(Date.UTC(month.getUTCFullYear(), month.getUTCMonth() - 1, 1)))}>
@@ -224,11 +297,27 @@ export const LeavesView: React.FC = () => {
               const dateObject = new Date(`${date}T00:00:00.000Z`);
               const isCurrentMonth = dateObject.getUTCMonth() === calendarMonth.getUTCMonth();
               const dayLeaves = calendarLeaves.filter(leave => leave.startDate <= date && leave.endDate >= date);
+              const dayHolidays = companyHolidays.filter(holiday => holiday.startDate <= date && holiday.endDate >= date);
+              const visibleHolidays = dayHolidays.slice(0, 2);
+              const visibleLeaves = dayLeaves.slice(0, Math.max(0, 2 - visibleHolidays.length));
+              const eventCount = dayHolidays.length + dayLeaves.length;
               return (
                 <div className={`leaves-calendar-day${isCurrentMonth ? '' : ' outside-month'}${date === today ? ' today' : ''}`} key={date}>
                   <span className="leaves-calendar-date">{dateObject.getUTCDate()}</span>
                   <div className="leaves-calendar-events">
-                    {dayLeaves.slice(0, 2).map(leave => (
+                    {visibleHolidays.map(holiday => (
+                      <button
+                        type="button"
+                        key={holiday.id}
+                        className="leaves-calendar-event holiday"
+                        title={`${holiday.name}${holiday.description ? ` · ${holiday.description}` : ''}`}
+                        onClick={() => role === 'admin' && openHolidayEditor(holiday)}
+                        aria-label={`Company holiday: ${holiday.name}${role === 'admin' ? ', edit holiday' : ''}`}
+                      >
+                        <span>Holiday · {holiday.name}</span>
+                      </button>
+                    ))}
+                    {visibleLeaves.map(leave => (
                       <button
                         type="button"
                         key={leave.id}
@@ -239,17 +328,46 @@ export const LeavesView: React.FC = () => {
                         <span>{role === 'admin' ? leave.employeeName : leave.leaveType}</span>
                       </button>
                     ))}
-                    {dayLeaves.length > 2 && <span className="leaves-calendar-more">+{dayLeaves.length - 2} more</span>}
+                    {eventCount > visibleHolidays.length + visibleLeaves.length && (
+                      <span className="leaves-calendar-more">+{eventCount - visibleHolidays.length - visibleLeaves.length} more</span>
+                    )}
                   </div>
                 </div>
               );
             })}
           </div>
           <div className="leaves-calendar-legend">
+            <span><i className="holiday" /> Company holiday</span>
             <span><i className="approved" /> Approved</span>
             <span><i className="pending" /> Pending</span>
             {leavesLoading && <span>Loading requests…</span>}
           </div>
+          {role === 'admin' && companyHolidays.length > 0 && (
+            <div className="company-holiday-list">
+              <h4>Company holidays</h4>
+              {companyHolidays.map(holiday => (
+                <div className="company-holiday-row" key={holiday.id}>
+                  <div>
+                    <strong>{holiday.name}</strong>
+                    <span>
+                      {holiday.startDate === holiday.endDate
+                        ? holiday.startDate
+                        : `${holiday.startDate} – ${holiday.endDate}`}
+                      {holiday.description ? ` · ${holiday.description}` : ''}
+                    </span>
+                  </div>
+                  <div className="company-holiday-actions">
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={() => openHolidayEditor(holiday)} aria-label={`Edit ${holiday.name}`}>
+                      <Pencil size={14} /> Edit
+                    </button>
+                    <button type="button" className="btn btn-secondary btn-sm" onClick={() => removeHoliday(holiday)} aria-label={`Remove ${holiday.name}`}>
+                      <Trash2 size={14} /> Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
       ) : (
         <>
@@ -367,6 +485,86 @@ export const LeavesView: React.FC = () => {
         leave={selectedReviewLeave}
         onClose={() => setSelectedReviewLeave(null)}
       />
+      {isHolidayModalOpen && role === 'admin' ? (
+        <div className="modal-overlay" role="presentation" onMouseDown={event => {
+          if (event.target === event.currentTarget && !isSavingHoliday) setIsHolidayModalOpen(false);
+        }}>
+          <section className="modal-content" role="dialog" aria-modal="true" aria-labelledby="holiday-modal-title" style={{ maxWidth: '520px', padding: '24px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '12px' }}>
+              <div>
+                <h2 id="holiday-modal-title" style={{ margin: 0, fontSize: '18px' }}>{editingHoliday ? 'Edit Company Holiday' : 'Add Company Holiday'}</h2>
+                <p style={{ margin: '6px 0 0', color: 'var(--text-secondary)', fontSize: '12px' }}>
+                  This holiday is shown to everyone and excluded from leave days deducted.
+                </p>
+              </div>
+              <button type="button" aria-label="Close holiday form" onClick={() => setIsHolidayModalOpen(false)} disabled={isSavingHoliday} style={{ border: 0, background: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
+                <X size={18} />
+              </button>
+            </div>
+            <form onSubmit={event => void submitHoliday(event)} style={{ display: 'grid', gap: '14px', marginTop: '20px' }}>
+              <label className="form-group" style={{ margin: 0 }}>
+                <span className="form-label">Holiday name *</span>
+                <input required maxLength={150} className="form-control" value={holidayName} onChange={event => setHolidayName(event.target.value)} placeholder="e.g. Independence Day" />
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <label className="form-group" style={{ margin: 0 }}>
+                  <span className="form-label">From date *</span>
+                  <input required type="date" className="form-control" value={holidayStartDate} onChange={event => setHolidayStartDate(event.target.value)} />
+                </label>
+                <label className="form-group" style={{ margin: 0 }}>
+                  <span className="form-label">To date *</span>
+                  <input required type="date" className="form-control" value={holidayEndDate} onChange={event => setHolidayEndDate(event.target.value)} />
+                </label>
+              </div>
+              <label className="form-group" style={{ margin: 0 }}>
+                <span className="form-label">Description (optional)</span>
+                <textarea rows={3} maxLength={1000} className="form-control" value={holidayDescription} onChange={event => setHolidayDescription(event.target.value)} placeholder="Optional details for employees" />
+              </label>
+              {holidayError && <p role="alert" style={{ margin: 0, color: 'var(--danger)', fontSize: '12px' }}>{holidayError}</p>}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px', paddingTop: '8px', borderTop: '1px solid var(--border-light)' }}>
+                {editingHoliday && (
+                  <button type="button" className="btn btn-secondary" disabled={isSavingHoliday} onClick={() => removeHoliday(editingHoliday)}>
+                    <Trash2 size={14} /> Remove
+                  </button>
+                )}
+                <button type="button" className="btn btn-secondary" disabled={isSavingHoliday} onClick={() => setIsHolidayModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn btn-primary" disabled={isSavingHoliday}>
+                  {isSavingHoliday ? 'Saving…' : editingHoliday ? 'Save changes' : 'Add holiday'}
+                </button>
+              </div>
+            </form>
+          </section>
+        </div>
+      ) : null}
+      {holidayToDelete && (
+        <div className="holiday-delete-backdrop">
+          <section
+            className="holiday-delete-dialog"
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="holiday-delete-title"
+            aria-describedby="holiday-delete-message"
+          >
+            <div className="holiday-delete-icon"><Trash2 size={21} /></div>
+            <h2 id="holiday-delete-title">Are you sure you want to remove this holiday?</h2>
+            <p id="holiday-delete-message">
+              <strong>{holidayToDelete.name}</strong> will be removed from the company calendar. This may change leave-day calculations.
+            </p>
+            {holidayError && <p className="holiday-delete-error" role="alert">{holidayError}</p>}
+            <div className="holiday-delete-actions">
+              <button type="button" className="btn btn-secondary" disabled={isDeletingHoliday} onClick={() => {
+                setHolidayToDelete(null);
+                setHolidayError(null);
+              }}>
+                Cancel
+              </button>
+              <button type="button" className="btn btn-danger" disabled={isDeletingHoliday} onClick={() => void confirmRemoveHoliday()}>
+                {isDeletingHoliday ? 'Removing…' : 'Remove holiday'}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </div>
   );
 };

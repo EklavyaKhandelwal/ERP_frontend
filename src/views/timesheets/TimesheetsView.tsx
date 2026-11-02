@@ -1,8 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { Check, ChevronLeft, ChevronRight, Plus, Send, X } from 'lucide-react';
+import { AlertCircle, Check, ChevronLeft, ChevronRight, Plus, Send, X } from 'lucide-react';
 import { useERP } from '../../context/ERPContext';
 import { SectionSkeleton } from '../../components/feedback/LoadingSkeleton';
-import type { Timesheet, TimesheetEntry } from '../../types/erp';
+import type { Timesheet, TimesheetEntry, TimesheetStatus } from '../../types/erp';
 
 const weekdays: Array<{ key: keyof TimesheetEntry['hours']; label: string }> = [
   { key: 'mon', label: 'Mon' },
@@ -77,14 +77,17 @@ export const TimesheetsView: React.FC = () => {
     timesheetsLoading,
     timesheetsError,
     projects,
+    projectsLoading,
     employees,
+    employeesLoading,
     role,
     currentUser,
     saveTimesheet,
     reviewTimesheet,
   } = useERP();
   const viewMode = role === 'admin' ? 'approval' : 'weekly';
-  const [weekStart, setWeekStart] = useState(() => mondayOf(new Date()));
+  const [currentWeekStart] = useState(() => mondayOf(new Date()));
+  const [weekStart, setWeekStart] = useState(currentWeekStart);
   const [draftState, setDraftState] = useState<{ weekStart: string; rows: DraftRow[] } | null>(null);
   const [draftSummary, setDraftSummary] = useState<{ weekStart: string; summary: WeeklySummary } | null>(null);
   const [reviewWeek, setReviewWeek] = useState('');
@@ -92,13 +95,13 @@ export const TimesheetsView: React.FC = () => {
   const [reviewDateTo, setReviewDateTo] = useState('');
   const [reviewEmployee, setReviewEmployee] = useState('');
   const [reviewProject, setReviewProject] = useState('');
-  const [reviewStatus, setReviewStatus] = useState('Submitted');
+  const [reviewStatus, setReviewStatus] = useState<'All' | TimesheetStatus>('All');
   const [selectedSheetId, setSelectedSheetId] = useState<string | null>(null);
   const [reviewNote, setReviewNote] = useState('');
   const [reviewingSheetId, setReviewingSheetId] = useState<string | null>(null);
   const [exportingReport, setExportingReport] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const [submittingStatus, setSubmittingStatus] = useState<'Draft' | 'Submitted' | null>(null);
 
   const ownEmployee = employees.find(employee => employee.email === currentUser.email);
   const myTimesheet = timesheets.find(sheet => sheet.employeeId === ownEmployee?.id && sheet.weekStart === weekStart);
@@ -157,6 +160,10 @@ export const TimesheetsView: React.FC = () => {
 
   const handleSave = async (status: 'Draft' | 'Submitted') => {
     setError(null);
+    if (rows.length === 0) {
+      setError('Add at least one project or task entry before saving this timesheet.');
+      return;
+    }
     if (status === 'Submitted') {
       if (!summary.workCompleted.trim()) {
         setError('Describe the work completed this week before submitting.');
@@ -179,7 +186,7 @@ export const TimesheetsView: React.FC = () => {
         return;
       }
     }
-    setSubmitting(true);
+    setSubmittingStatus(status);
     try {
       const entries = rows.map(({ projectId, taskDescription, dailyDescriptions, hours }) => ({
         projectId,
@@ -212,7 +219,7 @@ export const TimesheetsView: React.FC = () => {
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : 'Unable to save timesheet.');
     } finally {
-      setSubmitting(false);
+      setSubmittingStatus(null);
     }
   };
 
@@ -237,15 +244,44 @@ export const TimesheetsView: React.FC = () => {
   const isCustomDateRange = reviewWeek === '__custom__';
   const customDateRangeIsValid = !isCustomDateRange
     || (Boolean(reviewDateFrom) && Boolean(reviewDateTo) && reviewDateFrom <= reviewDateTo);
-  const filteredTimesheets = timesheets.filter(sheet => (
+  const filteredByOtherCriteria = timesheets.filter(sheet => (
     (isCustomDateRange
       ? customDateRangeIsValid && sheet.weekStart <= reviewDateTo && sheet.weekEnd >= reviewDateFrom
       : (!reviewWeek || sheet.weekStart === reviewWeek))
     && (!reviewEmployee || sheet.employeeId === reviewEmployee)
     && (!reviewProject || sheet.entries.some(entry => entry.projectId === reviewProject))
-    && (reviewStatus === 'All' || sheet.status === reviewStatus)
+  ));
+  const statusCounts = filteredByOtherCriteria.reduce<Record<'All' | TimesheetStatus, number>>((counts, sheet) => {
+    counts.All += 1;
+    counts[sheet.status] += 1;
+    return counts;
+  }, { All: 0, Draft: 0, Submitted: 0, Approved: 0, Rejected: 0 });
+  const filteredTimesheets = filteredByOtherCriteria.filter(sheet => (
+    reviewStatus === 'All' || sheet.status === reviewStatus
   ));
   const availableWeeks = [...new Set(timesheets.map(sheet => sheet.weekStart))].sort().reverse();
+  const employeeOptions = [...new Map([
+    ...employees
+      .filter(employee => employee.accountStatus !== 'Admin account')
+      .map(employee => [employee.id, {
+        id: employee.id,
+        name: `${employee.firstName} ${employee.lastName}`.trim(),
+        department: employee.department,
+      }] as const),
+    ...timesheets.map(sheet => [sheet.employeeId, {
+      id: sheet.employeeId,
+      name: sheet.employeeName,
+      department: sheet.department,
+    }] as const),
+  ]).values()].sort((first, second) => first.name.localeCompare(second.name));
+  const clearReviewFilters = () => {
+    setReviewWeek('');
+    setReviewDateFrom('');
+    setReviewDateTo('');
+    setReviewEmployee('');
+    setReviewProject('');
+    setReviewStatus('All');
+  };
   const entriesForReport = (sheet: Timesheet) => reviewProject
     ? sheet.entries.filter(entry => entry.projectId === reviewProject)
     : sheet.entries;
@@ -371,8 +407,8 @@ export const TimesheetsView: React.FC = () => {
   };
 
   return (
-    <div style={{ padding: '32px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+    <div className="timesheet-page">
+      <div className="timesheet-page-heading">
         <div>
           <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-main)', margin: 0 }}>
             {role === 'admin' ? 'Weekly Work Reports' : 'Weekly Timesheet'}
@@ -402,8 +438,8 @@ export const TimesheetsView: React.FC = () => {
               {exportingReport ? 'Preparing Excel…' : 'Download Excel'}
             </button>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(170px, 1fr))', gap: '10px', marginBottom: '18px' }}>
-            <label className="form-group" style={{ margin: 0 }}>
+          <div className="timesheet-review-filters">
+            <label className="form-group timesheet-review-filter" style={{ margin: 0 }}>
               <span className="form-label">Week ({availableWeeks.length} with reports)</span>
               <select className="form-control" value={reviewWeek} onChange={event => setReviewWeek(event.target.value)}>
                 <option value="">All weeks</option>
@@ -413,28 +449,43 @@ export const TimesheetsView: React.FC = () => {
                 <option value="__custom__">Custom date range…</option>
               </select>
             </label>
-            <label className="form-group" style={{ margin: 0 }}>
+            <label className="form-group timesheet-review-filter" style={{ margin: 0 }}>
               <span className="form-label">Employee</span>
-              <select className="form-control" value={reviewEmployee} onChange={event => setReviewEmployee(event.target.value)}>
+              <select className="form-control timesheet-review-employee" value={reviewEmployee} onChange={event => setReviewEmployee(event.target.value)}>
                 <option value="">All employees</option>
-                {employees.filter(employee => employee.accountStatus !== 'Admin account').map(employee => (
-                  <option value={employee.id} key={employee.id}>{employee.firstName} {employee.lastName}</option>
+                {employeeOptions.map(employee => (
+                  <option value={employee.id} key={employee.id}>
+                    {employee.name}{employee.department ? ` · ${employee.department}` : ''}
+                  </option>
                 ))}
               </select>
             </label>
-            <label className="form-group" style={{ margin: 0 }}>
+            <label className="form-group timesheet-review-filter" style={{ margin: 0 }}>
               <span className="form-label">Project</span>
               <select className="form-control" value={reviewProject} onChange={event => setReviewProject(event.target.value)}>
                 <option value="">All projects</option>
                 {projects.map(project => <option value={project.id} key={project.id}>{project.name}</option>)}
               </select>
             </label>
-            <label className="form-group" style={{ margin: 0 }}>
+            <label className="form-group timesheet-review-filter" style={{ margin: 0 }}>
               <span className="form-label">Status</span>
-              <select className="form-control" value={reviewStatus} onChange={event => setReviewStatus(event.target.value)}>
-                {['All', 'Submitted', 'Approved', 'Rejected', 'Draft'].map(status => <option key={status}>{status}</option>)}
+              <select className="form-control" value={reviewStatus} onChange={event => {
+                const status = event.target.value;
+                if (status === 'All' || status === 'Draft' || status === 'Submitted' || status === 'Approved' || status === 'Rejected') {
+                  setReviewStatus(status);
+                }
+              }}>
+                <option value="All">All statuses ({statusCounts.All})</option>
+                <option value="Submitted">Submitted · Awaiting review ({statusCounts.Submitted})</option>
+                <option value="Approved">Approved ({statusCounts.Approved})</option>
+                <option value="Rejected">Returned ({statusCounts.Rejected})</option>
+                <option value="Draft">Draft ({statusCounts.Draft})</option>
               </select>
             </label>
+            <button type="button" className="btn btn-secondary btn-sm timesheet-review-clear" onClick={clearReviewFilters}
+              disabled={!reviewWeek && !reviewEmployee && !reviewProject && reviewStatus === 'All' && !reviewDateFrom && !reviewDateTo}>
+              Clear filters
+            </button>
           </div>
           {isCustomDateRange && (
             <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'end', gap: '10px', marginBottom: '18px', padding: '14px', border: '1px solid var(--border-light)', borderRadius: '10px', background: 'var(--bg-hover)' }}>
@@ -454,6 +505,13 @@ export const TimesheetsView: React.FC = () => {
                   Choose both dates and make sure the start date is on or before the end date.
                 </span>
               )}
+            </div>
+          )}
+          {!timesheetsLoading && (
+            <div className="timesheet-review-result-count" role="status">
+              Showing <strong>{filteredTimesheets.length}</strong> of {timesheets.length} reports
+              {' · '}
+              <strong>{filteredTimesheets.reduce((sum, sheet) => sum + hoursForReport(sheet), 0).toFixed(1)} hours</strong>
             </div>
           )}
           {timesheetsLoading ? (
@@ -577,76 +635,56 @@ export const TimesheetsView: React.FC = () => {
             </div>
           )}
         </section>
+      ) : employeesLoading || timesheetsLoading || projectsLoading ? (
+        <SectionSkeleton rows={5} />
+      ) : !ownEmployee ? (
+        <section className="card timesheet-profile-notice" role="status">
+          <div className="timesheet-profile-notice-icon"><AlertCircle size={21} aria-hidden="true" /></div>
+          <div>
+            <h3>Employee profile not linked</h3>
+            <p>Your timesheet cannot be connected to an employee record yet. Please contact HR or an administrator to link your account, then reload this page.</p>
+          </div>
+        </section>
       ) : (
         <>
-          <div className="card" style={{ padding: '16px 20px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px' }}>
+          <div className="card timesheet-week-toolbar">
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <button className="btn btn-sm btn-secondary" aria-label="Previous week" onClick={() => setWeekStart(shiftDate(weekStart, -7).toISOString().slice(0, 10))}>
                 <ChevronLeft size={14} />
               </button>
-              <strong>{formatDate(new Date(`${weekStart}T00:00:00.000Z`))} — {formatDate(shiftDate(weekStart, 6))}, {weekStart.slice(0, 4)}</strong>
-              <button className="btn btn-sm btn-secondary" aria-label="Next week" onClick={() => setWeekStart(shiftDate(weekStart, 7).toISOString().slice(0, 10))}>
+              <strong className="timesheet-week-label">{formatDate(new Date(`${weekStart}T00:00:00.000Z`))} — {formatDate(shiftDate(weekStart, 6))}, {weekStart.slice(0, 4)}</strong>
+              <button className="btn btn-sm btn-secondary" aria-label="Next week" disabled={weekStart >= currentWeekStart} onClick={() => setWeekStart(shiftDate(weekStart, 7).toISOString().slice(0, 10))}>
                 <ChevronRight size={14} />
               </button>
-              {myTimesheet && <span className={`badge ${myTimesheet.status === 'Approved' ? 'badge-success' : 'badge-warning'}`}>{myTimesheet.status}</span>}
+              {myTimesheet && <span className={`badge ${myTimesheet.status === 'Approved' ? 'badge-success' : myTimesheet.status === 'Rejected' ? 'badge-danger' : myTimesheet.status === 'Submitted' ? 'badge-warning' : 'badge-neutral'}`}>{myTimesheet.status}</span>}
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span>Total: <strong style={{ color: '#0052FF' }}>{totalHours.toFixed(1)} hrs</strong></span>
+            <div className="timesheet-week-actions">
+              <span className="timesheet-total-hours">Week total <strong>{totalHours.toFixed(1)} hrs</strong></span>
               {canEdit && (
                 <>
-                  <button disabled={submitting || projects.length === 0} className="btn btn-secondary btn-sm" onClick={() => void handleSave('Draft')}>Save Draft</button>
-                  <button disabled={submitting || projects.length === 0} className="btn btn-primary btn-sm" onClick={() => void handleSave('Submitted')}>
-                    <Send size={14} /> Submit
+                  <button disabled={submittingStatus !== null || projects.length === 0} className="btn btn-secondary btn-sm" onClick={() => void handleSave('Draft')}>
+                    {submittingStatus === 'Draft' ? 'Saving draft…' : 'Save draft'}
+                  </button>
+                  <button disabled={submittingStatus !== null || projects.length === 0} className="btn btn-primary btn-sm" onClick={() => void handleSave('Submitted')}>
+                    <Send size={14} /> {submittingStatus === 'Submitted' ? 'Submitting…' : 'Submit week'}
                   </button>
                 </>
               )}
             </div>
           </div>
 
-          <section className="card" style={{ padding: '20px', marginBottom: '20px' }}>
-            <h3 style={{ margin: '0 0 14px', fontSize: '16px' }}>Weekly Summary</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '14px' }}>
-              <label className="form-group" style={{ margin: 0 }}>
-                <span className="form-label">What did you complete this week? *</span>
-                <textarea className="form-control" rows={3} maxLength={5000} disabled={!canEdit} value={summary.workCompleted}
-                  onChange={event => setDraftSummary({ weekStart, summary: { ...summary, workCompleted: event.target.value } })}
-                  placeholder="Summarize your completed work..." />
-              </label>
-              <label className="form-group" style={{ margin: 0 }}>
-                <span className="form-label">What will you focus on next week? *</span>
-                <textarea className="form-control" rows={3} maxLength={5000} disabled={!canEdit} value={summary.nextWeekFocus}
-                  onChange={event => setDraftSummary({ weekStart, summary: { ...summary, nextWeekFocus: event.target.value } })}
-                  placeholder="Describe your planned priorities..." />
-              </label>
-              <label className="form-group" style={{ margin: 0 }}>
-                <span className="form-label">Blockers (optional)</span>
-                <textarea className="form-control" rows={3} maxLength={3000} disabled={!canEdit} value={summary.blockers}
-                  onChange={event => setDraftSummary({ weekStart, summary: { ...summary, blockers: event.target.value } })}
-                  placeholder="Mention blockers or support needed..." />
-              </label>
-            </div>
-            <p style={{ margin: '10px 0 0', color: 'var(--text-muted)', fontSize: '12px' }}>
-              Weekly summary and next-week focus are required when you submit. Drafts may be incomplete.
-            </p>
-          </section>
-
-          {!ownEmployee && !timesheetsLoading && (
-            <div className="card" style={{ padding: '32px', textAlign: 'center' }}>Your account does not have a linked employee profile.</div>
-          )}
-          {timesheetsLoading ? (
-            <SectionSkeleton rows={5} />
-          ) : projects.length === 0 ? (
+          {projects.length === 0 ? (
             <div className="card" style={{ padding: '40px', textAlign: 'center', color: 'var(--text-muted)' }}>
               No active projects are assigned to you. Ask an administrator to add you to a project team.
             </div>
           ) : (
-            <div className="table-container">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div className="timesheet-entry-list">
+              <div className="timesheet-entry-list-inner">
                 {rows.map(row => {
                   const rowHours = Object.values(row.hours).reduce((sum, hours) => sum + hours, 0);
                   return (
-                    <section key={row.key} style={{ padding: '16px', border: '1px solid var(--border-light)', borderRadius: '12px', background: '#FFFFFF' }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', alignItems: 'end', gap: '12px' }}>
+                    <section key={row.key} className="card timesheet-entry-card">
+                      <div className="timesheet-entry-header">
                         <label className="form-group" style={{ margin: 0 }}>
                           <span className="form-label">Project</span>
                           <select
@@ -679,9 +717,9 @@ export const TimesheetsView: React.FC = () => {
                           )}
                         </div>
                       </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '10px', marginTop: '14px' }}>
+                      <div className="timesheet-day-grid">
                         {dayHeaders.map(day => (
-                          <div key={day.key} style={{ padding: '12px', borderRadius: '9px', background: '#F8FAFC', border: `1px solid ${row.hours[day.key] > 0 && !row.dailyDescriptions[day.key].trim() ? '#F3D28A' : 'var(--border-light)'}` }}>
+                          <div key={day.key} className={`timesheet-day-card${row.hours[day.key] > 0 && !row.dailyDescriptions[day.key].trim() ? ' needs-description' : ''}`}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: '8px', marginBottom: '8px' }}>
                               <strong style={{ fontSize: '13px' }}>{day.label}</strong>
                               <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>{day.date}</span>
@@ -701,7 +739,7 @@ export const TimesheetsView: React.FC = () => {
                               style={{ height: '38px', fontWeight: '600' }}
                             />
                             <textarea
-                              className="form-control"
+                              className="form-control timesheet-day-description"
                               aria-label={`${day.label} work description`}
                               aria-required={row.hours[day.key] > 0}
                               placeholder={row.hours[day.key] > 0 ? 'Describe work done (required)' : 'Daily work (if hours logged)'}
@@ -712,7 +750,6 @@ export const TimesheetsView: React.FC = () => {
                               onChange={event => updateRow(row.key, {
                                 dailyDescriptions: { ...row.dailyDescriptions, [day.key]: event.target.value },
                               })}
-                              style={{ marginTop: '8px', minHeight: '72px', fontSize: '12px', resize: 'vertical' }}
                             />
                           </div>
                         ))}
@@ -720,7 +757,7 @@ export const TimesheetsView: React.FC = () => {
                     </section>
                   );
                 })}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', padding: '12px 16px', borderRadius: '10px', background: '#F1F5FF' }}>
+                <div className="timesheet-week-totals">
                   {canEdit && <button className="btn btn-secondary btn-sm" onClick={addRow}><Plus size={14} /> Add project task</button>}
                   {!canEdit && <strong>Weekly totals</strong>}
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px 20px' }}>
@@ -737,8 +774,40 @@ export const TimesheetsView: React.FC = () => {
           <p style={{ margin: '10px 0 0', color: 'var(--text-muted)', fontSize: '12px' }}>
             For each project/day where you log hours, describe the task you worked on that day before submitting.
           </p>
+          <section className="card timesheet-summary-card">
+            <div className="timesheet-summary-heading">
+              <div>
+                <h3>Weekly summary</h3>
+                <p>Wrap up your work and let HR know what comes next.</p>
+              </div>
+              <span className="timesheet-summary-required">Required to submit</span>
+            </div>
+            <div className="timesheet-summary-fields">
+              <label className="form-group" style={{ margin: 0 }}>
+                <span className="form-label">Work completed this week <span aria-hidden="true">*</span></span>
+                <textarea className="form-control" rows={4} maxLength={5000} disabled={!canEdit} value={summary.workCompleted}
+                  onChange={event => setDraftSummary({ weekStart, summary: { ...summary, workCompleted: event.target.value } })}
+                  placeholder="Summarize your completed work..." />
+                <span className="timesheet-character-count">{summary.workCompleted.length}/5000</span>
+              </label>
+              <label className="form-group" style={{ margin: 0 }}>
+                <span className="form-label">Focus for next week <span aria-hidden="true">*</span></span>
+                <textarea className="form-control" rows={4} maxLength={5000} disabled={!canEdit} value={summary.nextWeekFocus}
+                  onChange={event => setDraftSummary({ weekStart, summary: { ...summary, nextWeekFocus: event.target.value } })}
+                  placeholder="Describe your planned priorities..." />
+                <span className="timesheet-character-count">{summary.nextWeekFocus.length}/5000</span>
+              </label>
+              <label className="form-group" style={{ margin: 0 }}>
+                <span className="form-label">Blockers <span className="timesheet-optional">(optional)</span></span>
+                <textarea className="form-control" rows={4} maxLength={3000} disabled={!canEdit} value={summary.blockers}
+                  onChange={event => setDraftSummary({ weekStart, summary: { ...summary, blockers: event.target.value } })}
+                  placeholder="Mention blockers or support needed..." />
+                <span className="timesheet-character-count">{summary.blockers.length}/3000</span>
+              </label>
+            </div>
+          </section>
           {myTimesheet?.reviewNote && (
-            <div style={{ marginTop: '16px', padding: '12px 16px', borderRadius: '8px', background: '#FFF7E6' }}>
+            <div className="timesheet-review-note">
               Reviewer note: {myTimesheet.reviewNote}
             </div>
           )}

@@ -4,6 +4,7 @@ import {
   UserRole, 
   Employee, 
   LeaveRequest, 
+  CompanyHoliday,
   Timesheet, 
   PayrollRecord, 
   Project, 
@@ -11,6 +12,7 @@ import {
   AppView 
 } from '../types/erp';
 import { ADMIN_USER } from '../data/mockData';
+import type { ERPContextType } from './ERPContext.types';
 import {
   ApiError,
   accountApi,
@@ -23,7 +25,6 @@ import {
   projectsApi,
   timesheetsApi,
   type EmployeeInput,
-  type AccessLinkResult,
   type AppNotification,
   type LeaveBalance,
   type LeaveInput,
@@ -34,79 +35,8 @@ import {
   type TimesheetEntryInput,
   type AdminReviewInput,
   type SelfAssessmentInput,
+  type ProfileInput,
 } from '../lib/api';
-
-interface ERPContextType {
-  currentUser: User;
-  role: UserRole;
-  isAuthenticated: boolean;
-  isAuthLoading: boolean;
-  authError: string | null;
-  currentView: AppView;
-  setCurrentView: (view: AppView) => void;
-  selectedEmployeeId: string | null;
-  setSelectedEmployeeId: (id: string | null) => void;
-  selectedProjectId: string | null;
-  setSelectedProjectId: (id: string | null) => void;
-  
-  // Auth methods
-  login: (email: string, pass: string, rememberMe: boolean) => Promise<{ success: boolean; error?: string }>;
-  logout: () => Promise<void>;
-
-  // Data Stores & CRUD
-  employees: Employee[];
-  employeesLoading: boolean;
-  refreshEmployees: () => Promise<void>;
-  addEmployee: (emp: EmployeeInput) => Promise<Employee>;
-  updateEmployee: (id: string, updates: Partial<EmployeeInput>) => Promise<Employee>;
-  updateProfileAvatar: (file: File) => Promise<void>;
-  issueEmployeeAccessLink: (employeeId: string) => Promise<AccessLinkResult>;
-  setEmployeeAccountActive: (employeeId: string, isActive: boolean) => Promise<void>;
-
-  leaves: LeaveRequest[];
-  leavesLoading: boolean;
-  leavesError: string | null;
-  leaveBalance: LeaveBalance | null;
-  applyLeave: (data: LeaveInput) => Promise<LeaveRequest>;
-  reviewLeave: (id: string, status: 'Approved' | 'Rejected', note?: string) => Promise<LeaveRequest>;
-
-  timesheets: Timesheet[];
-  timesheetsLoading: boolean;
-  timesheetsError: string | null;
-  saveTimesheet: (
-    weekStart: string,
-    status: 'Draft' | 'Submitted',
-    entries: TimesheetEntryInput[],
-    summary: Pick<Timesheet, 'workCompleted' | 'nextWeekFocus' | 'blockers'>,
-  ) => Promise<Timesheet>;
-  reviewTimesheet: (id: string, status: 'Approved' | 'Rejected', note?: string) => Promise<Timesheet>;
-
-  payroll: PayrollRecord[];
-  payrollLoading: boolean;
-  payrollError: string | null;
-  createPayrollRun: (payPeriod: string, records: PayrollRunRecordInput[]) => Promise<PayrollRecord[]>;
-  updatePayrollStatus: (id: string, status: PayrollRecord['status']) => Promise<PayrollRecord>;
-
-  projects: Project[];
-  projectsLoading: boolean;
-  projectsError: string | null;
-  addProject: (proj: ProjectInput) => Promise<Project>;
-  addProjectTask: (projectId: string, task: ProjectTaskInput) => Promise<void>;
-  updateProjectTask: (projectId: string, taskId: string, updates: ProjectTaskUpdate) => Promise<void>;
-
-  appraisals: AppraisalReview[];
-  appraisalsLoading: boolean;
-  appraisalsError: string | null;
-  createAppraisalCycle: (cycle: string) => Promise<AppraisalReview[]>;
-  submitSelfAssessment: (id: string, assessment: SelfAssessmentInput) => Promise<AppraisalReview>;
-  completeAdminReview: (id: string, review: AdminReviewInput) => Promise<AppraisalReview>;
-
-  // Notifications
-  notifications: AppNotification[];
-  notificationError: string | null;
-  refreshNotifications: () => Promise<void>;
-  markNotificationsRead: () => Promise<void>;
-}
 
 const ERPContext = createContext<ERPContextType | undefined>(undefined);
 
@@ -122,6 +52,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [employeesLoading, setEmployeesLoading] = useState(false);
   const [leaves, setLeaves] = useState<LeaveRequest[]>([]);
+  const [companyHolidays, setCompanyHolidays] = useState<CompanyHoliday[]>([]);
   const [leavesLoading, setLeavesLoading] = useState(false);
   const [leavesError, setLeavesError] = useState<string | null>(null);
   const [leaveBalance, setLeaveBalance] = useState<LeaveBalance | null>(null);
@@ -197,7 +128,9 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       || currentView === 'employee-profile'
       || currentView === 'my-profile'
       || currentView === 'admin-access'
-      || currentView === 'reports';
+      || currentView === 'reports'
+      || currentView === 'timesheets'
+      || (currentView === 'project-detail' && role === 'admin');
     const key = 'employees';
     if (!isAuthenticated || !shouldLoad || loadedData.current.has(key) || pendingData.current.has(key)) return;
     const version = sessionVersion.current;
@@ -238,6 +171,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       .then(result => {
         if (version !== sessionVersion.current) return;
         setLeaves(result.leaves);
+        setCompanyHolidays(result.holidays);
         setLeaveBalance(result.leaveBalance);
         loadedData.current.add(key);
       })
@@ -431,6 +365,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       setEmployees([]);
       setEmployeesLoading(false);
       setLeaves([]);
+      setCompanyHolidays([]);
       setLeavesLoading(false);
       setLeavesError(null);
       setLeaveBalance(null);
@@ -493,6 +428,23 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     )));
   };
 
+  const updateProfile = async (profile: ProfileInput) => {
+    const updatedUser = await authApi.updateProfile(profile);
+    setCurrentUser(updatedUser);
+    const [firstName, ...lastNameParts] = profile.name.trim().split(/\s+/);
+    setEmployees(previous => previous.map(employee => (
+      employee.email.toLowerCase() === updatedUser.email.toLowerCase()
+        ? {
+          ...employee,
+          firstName,
+          lastName: lastNameParts.join(' '),
+          ...(profile.phone !== undefined ? { phone: profile.phone } : {}),
+          ...(profile.dateOfBirth !== undefined ? { dateOfBirth: profile.dateOfBirth } : {}),
+        }
+        : employee
+    )));
+  };
+
   const issueEmployeeAccessLink = async (employeeId: string) => {
     const result = await accountApi.issueEmployeeAccessLink(employeeId);
     if (result.purpose === 'setup') {
@@ -529,6 +481,23 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     )));
     setLeavesError(null);
     return result.leave;
+  };
+
+  const saveCompanyHoliday = async (holiday: Omit<CompanyHoliday, 'id' | 'updatedAt'>, id?: string) => {
+    if (id) await leavesApi.updateHoliday(id, holiday);
+    else await leavesApi.createHoliday(holiday);
+    const refreshed = await leavesApi.list();
+    setCompanyHolidays(refreshed.holidays);
+    setLeaves(refreshed.leaves);
+    setLeavesError(null);
+  };
+
+  const deleteCompanyHoliday = async (id: string) => {
+    await leavesApi.deleteHoliday(id);
+    const refreshed = await leavesApi.list();
+    setCompanyHolidays(refreshed.holidays);
+    setLeaves(refreshed.leaves);
+    setLeavesError(null);
   };
 
   // Timesheet Methods
@@ -575,32 +544,88 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Project Methods
   const addProject = async (project: ProjectInput) => {
-    const createdProject = await projectsApi.create(project);
-    const updatedProjects = await projectsApi.list();
-    setProjects(updatedProjects);
+    const { project: createdProject } = await projectsApi.create(project);
+    setProjects(previous => [createdProject, ...previous.filter(existing => existing.id !== createdProject.id)]);
     setProjectsError(null);
-    const created = updatedProjects.find(candidate => candidate.code === createdProject.code);
-    if (!created) throw new Error('Project was created, but the refreshed project list did not include it.');
-    return created;
+    return createdProject;
+  };
+
+  const updateProjectMembers = async (projectId: string, memberIds: string[]) => {
+    await projectsApi.updateMembers(projectId, memberIds);
+    const currentProject = projects.find(project => project.id === projectId);
+    if (currentProject) {
+      const ids = new Set(memberIds);
+      if (currentProject.leadId) ids.add(currentProject.leadId);
+      const team = [...ids].flatMap(id => {
+        const employee = employees.find(record => record.id === id);
+        return employee
+          ? [{ id, name: `${employee.firstName} ${employee.lastName}`, avatar: employee.avatar, role: id === currentProject.leadId ? 'Lead' : 'Team Member' }]
+          : [];
+      });
+      setProjects(previous => previous.map(project => project.id === projectId ? { ...project, team } : project));
+    }
+    setProjectsError(null);
   };
 
   const addProjectTask = async (projectId: string, task: ProjectTaskInput) => {
-    await projectsApi.createTask(projectId, task);
-    const updatedProjects = await projectsApi.list();
-    setProjects(updatedProjects);
+    const { taskId } = await projectsApi.createTask(projectId, task);
+    const assignee = employees.find(employee => employee.id === task.assignedEmployeeId);
+    if (assignee) {
+      const nextTask = {
+        ...task,
+        id: taskId,
+        projectId,
+        assignedEmployeeName: `${assignee.firstName} ${assignee.lastName}`,
+        assignedEmployeeAvatar: assignee.avatar,
+        status: 'To Do' as const,
+        updateNote: '',
+        updatedAt: new Date().toISOString(),
+      };
+      setProjects(previous => previous.map(project => {
+        if (project.id !== projectId) return project;
+        const tasks = [...project.tasks, nextTask];
+        const tasksCompleted = tasks.filter(item => item.status === 'Done').length;
+        return {
+          ...project,
+          tasks,
+          tasksCompleted,
+          totalTasks: tasks.length,
+          progress: Math.round((tasksCompleted / tasks.length) * 100),
+        };
+      }));
+    }
     setProjectsError(null);
   };
 
   const updateProjectTask = async (projectId: string, taskId: string, updates: ProjectTaskUpdate) => {
-    await projectsApi.updateTask(projectId, taskId, updates);
-    const updatedProjects = await projectsApi.list();
-    setProjects(updatedProjects);
+    const { task: updatedTask } = await projectsApi.updateTask(projectId, taskId, updates);
+    setProjects(previous => previous.map(project => {
+      if (project.id !== projectId) return project;
+      const tasks = project.tasks.map(task => {
+        if (task.id !== taskId) return task;
+        const assignee = employees.find(employee => employee.id === updatedTask.assignedEmployeeId);
+        return {
+          ...task,
+          ...updatedTask,
+          assignedEmployeeName: assignee ? `${assignee.firstName} ${assignee.lastName}` : task.assignedEmployeeName,
+          assignedEmployeeAvatar: assignee?.avatar ?? task.assignedEmployeeAvatar,
+        };
+      });
+      const tasksCompleted = tasks.filter(task => task.status === 'Done').length;
+      return {
+        ...project,
+        tasks,
+        tasksCompleted,
+        totalTasks: tasks.length,
+        progress: tasks.length ? Math.round((tasksCompleted / tasks.length) * 100) : 0,
+      };
+    }));
     setProjectsError(null);
   };
 
   // Appraisal Methods
-  const createAppraisalCycle = async (cycle: string) => {
-    const records = await appraisalsApi.createCycle(cycle);
+  const createAppraisalCycle = async (cycle: string, employeeIds: string[]) => {
+    const records = await appraisalsApi.createCycle(cycle, employeeIds);
     setAppraisals(prev => [...records, ...prev]);
     setAppraisalsError(null);
     return records;
@@ -657,14 +682,18 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       addEmployee,
       updateEmployee,
       updateProfileAvatar,
+      updateProfile,
       issueEmployeeAccessLink,
       setEmployeeAccountActive,
       leaves,
+      companyHolidays,
       leavesLoading,
       leavesError,
       leaveBalance,
       applyLeave,
       reviewLeave,
+      saveCompanyHoliday,
+      deleteCompanyHoliday,
       timesheets,
       timesheetsLoading,
       timesheetsError,
@@ -679,6 +708,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       projectsLoading,
       projectsError,
       addProject,
+      updateProjectMembers,
       addProjectTask,
       updateProjectTask,
       appraisals,
