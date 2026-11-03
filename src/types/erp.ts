@@ -5,6 +5,9 @@ export interface User {
   name: string;
   email: string;
   role: UserRole;
+  phone?: string;
+  dateOfBirth?: string | null;
+  location?: string;
   isOwner?: boolean;
   onboardingComplete: boolean;
   avatar: string;

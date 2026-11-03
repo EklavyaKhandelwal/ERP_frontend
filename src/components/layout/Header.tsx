@@ -39,10 +39,13 @@ export const Header: React.FC = () => {
   const [notificationsPinned, setNotificationsPinned] = useState(false);
   const [notificationsHovered, setNotificationsHovered] = useState(false);
   const [notificationsFocused, setNotificationsFocused] = useState(false);
+  const [notificationsDismissed, setNotificationsDismissed] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [showSearchResults, setShowSearchResults] = useState(false);
   const searchContainerRef = useRef<HTMLDivElement>(null);
-  const showNotifications = notificationsPinned || notificationsHovered || notificationsFocused;
+  const notificationsContainerRef = useRef<HTMLDivElement>(null);
+  const showNotifications = notificationsPinned
+    || ((notificationsHovered || notificationsFocused) && !notificationsDismissed);
 
   useEffect(() => {
     const closeSearchOnOutsideClick = (event: PointerEvent) => {
@@ -52,6 +55,17 @@ export const Header: React.FC = () => {
     };
     document.addEventListener('pointerdown', closeSearchOnOutsideClick);
     return () => document.removeEventListener('pointerdown', closeSearchOnOutsideClick);
+  }, []);
+
+  useEffect(() => {
+    const closeNotificationsOnOutsideClick = (event: PointerEvent) => {
+      if (!notificationsContainerRef.current?.contains(event.target as Node)) {
+        setNotificationsPinned(false);
+        setNotificationsDismissed(true);
+      }
+    };
+    document.addEventListener('pointerdown', closeNotificationsOnOutsideClick);
+    return () => document.removeEventListener('pointerdown', closeNotificationsOnOutsideClick);
   }, []);
 
   const unreadCount = notifications.filter(notification => !notification.readAt).length;
@@ -345,10 +359,17 @@ export const Header: React.FC = () => {
 
         {/* Notifications Bell */}
         <div
+          ref={notificationsContainerRef}
           style={{ position: 'relative' }}
-          onMouseEnter={() => setNotificationsHovered(true)}
+          onMouseEnter={() => {
+            setNotificationsHovered(true);
+            setNotificationsDismissed(false);
+          }}
           onMouseLeave={() => setNotificationsHovered(false)}
-          onFocusCapture={() => setNotificationsFocused(true)}
+          onFocusCapture={() => {
+            setNotificationsFocused(true);
+            setNotificationsDismissed(false);
+          }}
           onBlurCapture={event => {
             if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
               setNotificationsFocused(false);
@@ -356,7 +377,15 @@ export const Header: React.FC = () => {
           }}
         >
           <button
-            onClick={() => setNotificationsPinned(value => !value)}
+            onClick={() => {
+              if (notificationsPinned) {
+                setNotificationsPinned(false);
+                setNotificationsDismissed(true);
+              } else {
+                setNotificationsPinned(true);
+                setNotificationsDismissed(false);
+              }
+            }}
             aria-label={`Notifications${unreadCount > 0 ? `, ${unreadCount} unread` : ''}`}
             aria-expanded={showNotifications}
             aria-controls="header-notifications-dropdown"

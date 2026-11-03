@@ -68,6 +68,9 @@ export const MyProfileView: React.FC = () => {
   const [profileName, setProfileName] = useState('');
   const [profilePhone, setProfilePhone] = useState('');
   const [profileDateOfBirth, setProfileDateOfBirth] = useState('');
+  const [profileDepartment, setProfileDepartment] = useState('');
+  const [profileDesignation, setProfileDesignation] = useState('');
+  const [profileLocation, setProfileLocation] = useState('');
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [profileError, setProfileError] = useState<string | null>(null);
   const documentFileInput = useRef<HTMLInputElement>(null);
@@ -148,8 +151,11 @@ export const MyProfileView: React.FC = () => {
 
   const beginProfileEdit = () => {
     setProfileName(fullName);
-    setProfilePhone(employee?.phone ?? '');
-    setProfileDateOfBirth(employee?.dateOfBirth ?? '');
+    setProfilePhone(employee?.phone ?? currentUser.phone ?? '');
+    setProfileDateOfBirth(employee?.dateOfBirth ?? currentUser.dateOfBirth ?? '');
+    setProfileDepartment(employee?.department ?? currentUser.department);
+    setProfileDesignation(employee?.designation ?? currentUser.designation);
+    setProfileLocation(employee?.location ?? currentUser.location ?? '');
     setProfileError(null);
     setIsEditingProfile(true);
   };
@@ -161,11 +167,21 @@ export const MyProfileView: React.FC = () => {
       setProfileError('Enter both your first name and last name.');
       return;
     }
+    if (currentUser.role === 'admin' && (!profileDepartment.trim() || !profileDesignation.trim() || !profileLocation.trim())) {
+      setProfileError('Department, job title, and work location are required.');
+      return;
+    }
     setIsSavingProfile(true);
     try {
       await updateProfile({
         name: profileName.trim(),
-        ...(employee ? { phone: profilePhone.trim(), dateOfBirth: profileDateOfBirth } : {}),
+        phone: profilePhone.trim(),
+        dateOfBirth: profileDateOfBirth,
+        ...(currentUser.role === 'admin' ? {
+          department: profileDepartment.trim(),
+          designation: profileDesignation.trim(),
+          location: profileLocation.trim(),
+        } : {}),
       });
       setIsEditingProfile(false);
     } catch (saveError) {
@@ -275,7 +291,7 @@ export const MyProfileView: React.FC = () => {
         <div>
           <h2 style={{ fontSize: '16px', margin: 0, fontWeight: '700' }}>Your profile, in one place</h2>
           <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>
-            View your account and employment information, update your personal details, and change your profile photo.
+            View your account and employment information, update your profile details, and change your profile photo.
           </p>
         </div>
         {!selectedFile ? (
@@ -402,6 +418,11 @@ export const MyProfileView: React.FC = () => {
             )}
             {isEditingProfile ? (
               <form onSubmit={event => void saveProfile(event)} style={{ display: 'grid', gap: '16px' }}>
+                {currentUser.role === 'admin' && (
+                  <p style={{ color: 'var(--text-muted)', fontSize: '12px', margin: 0 }}>
+                    Work email, reporting manager, start date, and account access are managed separately.
+                  </p>
+                )}
                 <label className="form-group" style={{ margin: 0 }}>
                   <span className="form-label">Full name *</span>
                   <input
@@ -414,8 +435,7 @@ export const MyProfileView: React.FC = () => {
                     onChange={event => setProfileName(event.target.value)}
                   />
                 </label>
-                {employee && (
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
                     <label className="form-group" style={{ margin: 0 }}>
                       <span className="form-label">Mobile number *</span>
                       <input
@@ -439,6 +459,39 @@ export const MyProfileView: React.FC = () => {
                         onChange={event => setProfileDateOfBirth(event.target.value)}
                       />
                     </label>
+                </div>
+                {currentUser.role === 'admin' && (
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+                    <label className="form-group" style={{ margin: 0 }}>
+                      <span className="form-label">Department *</span>
+                      <input
+                        className="form-control"
+                        required
+                        maxLength={100}
+                        value={profileDepartment}
+                        onChange={event => setProfileDepartment(event.target.value)}
+                      />
+                    </label>
+                    <label className="form-group" style={{ margin: 0 }}>
+                      <span className="form-label">Job title *</span>
+                      <input
+                        className="form-control"
+                        required
+                        maxLength={150}
+                        value={profileDesignation}
+                        onChange={event => setProfileDesignation(event.target.value)}
+                      />
+                    </label>
+                    <label className="form-group" style={{ margin: 0 }}>
+                      <span className="form-label">Work location *</span>
+                      <input
+                        className="form-control"
+                        required
+                        maxLength={150}
+                        value={profileLocation}
+                        onChange={event => setProfileLocation(event.target.value)}
+                      />
+                    </label>
                   </div>
                 )}
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
@@ -459,11 +512,11 @@ export const MyProfileView: React.FC = () => {
               }}>
                 <div><p style={labelStyle}>Full name</p><p style={valueStyle}>{fullName}</p></div>
                 <div><p style={labelStyle}>Work email</p><p style={valueStyle}>{currentUser.email}</p></div>
-                <div><p style={labelStyle}>Mobile number</p><p style={valueStyle}>{employee?.phone || 'Not provided'}</p></div>
-                <div><p style={labelStyle}>Date of birth</p><p style={valueStyle}>{formatDate(employee?.dateOfBirth)}</p></div>
+                <div><p style={labelStyle}>Mobile number</p><p style={valueStyle}>{employee?.phone || currentUser.phone || 'Not provided'}</p></div>
+                <div><p style={labelStyle}>Date of birth</p><p style={valueStyle}>{formatDate(employee?.dateOfBirth ?? currentUser.dateOfBirth)}</p></div>
                 <div><p style={labelStyle}>Department</p><p style={valueStyle}>{employee?.department ?? currentUser.department}</p></div>
                 <div><p style={labelStyle}>Job title</p><p style={valueStyle}>{employee?.designation ?? currentUser.designation}</p></div>
-                <div><p style={labelStyle}>Work location</p><p style={valueStyle}>{employee?.location ?? 'Not provided'}</p></div>
+                <div><p style={labelStyle}>Work location</p><p style={valueStyle}>{employee?.location ?? currentUser.location ?? 'Not provided'}</p></div>
                 <div><p style={labelStyle}>Reporting manager</p><p style={valueStyle}>{employee?.manager || 'Not provided'}</p></div>
                 <div><p style={labelStyle}>Start date</p><p style={valueStyle}>{formatDate(employee?.joinDate)}</p></div>
               </div>
