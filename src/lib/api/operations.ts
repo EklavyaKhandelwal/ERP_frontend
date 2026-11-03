@@ -8,7 +8,11 @@ import type {
   NotificationPreferences,
   PayrollRunRecordInput,
   ResignationApplication,
+  ResignationChecklistItem,
+  ResignationPolicy,
+  ResignationPolicyChange,
   ResignationReason,
+  ResignationReviewer,
   ResignationStatus,
   SelfAssessmentInput,
 } from './types';
@@ -73,9 +77,24 @@ export const appraisalsApi = {
 };
 
 export const resignationsApi = {
+  getPolicy: async () => (
+    await request<{ policy: ResignationPolicy }>('/resignations/policy')
+  ).policy,
+  savePolicy: async (policy: ResignationPolicy) => (
+    await request<{ policy: ResignationPolicy }>('/resignations/policy', {
+      method: 'PUT',
+      body: JSON.stringify(policy),
+    })
+  ).policy,
+  listPolicyHistory: async () => (
+    await request<{ history: ResignationPolicyChange[] }>('/resignations/policy/history')
+  ).history,
   list: async () => (
     await request<{ resignations: ResignationApplication[] }>('/resignations')
   ).resignations,
+  reviewers: async () => (
+    await request<{ reviewers: ResignationReviewer[] }>('/resignations/reviewers')
+  ).reviewers,
   apply: (input: {
     proposedLastDay: string;
     reason: ResignationReason;
@@ -84,10 +103,23 @@ export const resignationsApi = {
     method: 'POST',
     body: JSON.stringify(input),
   }),
-  review: (id: string, status: ResignationStatus, note: string) => (
+  review: (id: string, status: ResignationStatus, note: string, approvedLastDay?: string) => (
     request<{ resignation: ResignationApplication }>(`/resignations/${encodeURIComponent(id)}/review`, {
       method: 'PATCH',
-      body: JSON.stringify({ status, note }),
+      body: JSON.stringify({ status, note, approvedLastDay }),
     })
+  ),
+  assign: (id: string, assignedToUserId: string | null) => request<{ success: true }>(
+    `/resignations/${encodeURIComponent(id)}/assignment`,
+    { method: 'PATCH', body: JSON.stringify({ assignedToUserId }) },
+  ),
+  updateChecklistItem: (id: string, itemId: string, input: {
+    status?: ResignationChecklistItem['status'];
+    responsibleParty?: string;
+    dueDate?: string | null;
+    note?: string;
+  }) => request<{ item: ResignationChecklistItem }>(
+    `/resignations/${encodeURIComponent(id)}/checklist/${encodeURIComponent(itemId)}`,
+    { method: 'PATCH', body: JSON.stringify(input) },
   ),
 };
