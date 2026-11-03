@@ -306,6 +306,7 @@ export const EmployeeDashboardView: React.FC = () => {
           )}
         </section>
 
+        {(dashboardLoading || Boolean(dashboardError) || pendingLeaveCount > 0 || Boolean(upcomingLeave)) && (
         <section className="card employee-dashboard-card">
           <div className="employee-dashboard-card-header">
             <h3>My Leave</h3>
@@ -340,7 +341,9 @@ export const EmployeeDashboardView: React.FC = () => {
             <span>View Leave Calendar</span>
           </button>
         </section>
+        )}
 
+        {(dashboardLoading || Boolean(dashboardError) || Boolean(latestPayslip)) && (
         <section className="card employee-dashboard-card">
           <div className="employee-dashboard-card-header">
             <h3>Latest Payslip</h3>
@@ -369,11 +372,15 @@ export const EmployeeDashboardView: React.FC = () => {
             <div className="employee-dashboard-empty">No payslip has been recorded yet.</div>
           )}
         </section>
+        )}
 
+        {(dashboardLoading || Boolean(dashboardError) || myProjects.length > 0) && (
         <section className="card employee-dashboard-card">
           <div className="employee-dashboard-card-header">
             <h3>My Active Projects</h3>
-            <button type="button" className="employee-dashboard-text-link" onClick={() => setCurrentView('projects')}>All projects <ArrowRight size={14} /></button>
+            {myProjects.length > 0 && (
+              <button type="button" className="employee-dashboard-text-link" onClick={() => setCurrentView('projects')}>All projects <ArrowRight size={14} /></button>
+            )}
           </div>
           {dashboardLoading ? (
             <SectionSkeleton rows={3} />
@@ -407,6 +414,7 @@ export const EmployeeDashboardView: React.FC = () => {
             </div>
           )}
         </section>
+        )}
       </div>
     </div>
   );

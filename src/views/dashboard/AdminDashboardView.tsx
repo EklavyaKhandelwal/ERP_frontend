@@ -211,15 +211,18 @@ export const AdminDashboardView: React.FC = () => {
         </section>
       ) : (
         <div className="admin-dashboard-work-queues">
+          {(summaryLoading || summaryError || pendingLeaves.length > 0) && (
           <section className="card admin-dashboard-queue">
             <div className="admin-dashboard-section-heading">
               <div>
                 <h3>Leave Applications to Review</h3>
                 <p>Review requests and provide a decision note where needed.</p>
               </div>
-              <button type="button" className="admin-dashboard-text-link" onClick={() => setCurrentView('leaves')}>
-                View all ({summaryLoading ? '…' : summaryError ? '—' : summary?.leaves.pendingCount ?? 0}) <ArrowRight size={14} />
-              </button>
+              {pendingLeaves.length > 0 && (
+                <button type="button" className="admin-dashboard-text-link" onClick={() => setCurrentView('leaves')}>
+                  View all ({summary?.leaves.pendingCount ?? pendingLeaves.length}) <ArrowRight size={14} />
+                </button>
+              )}
             </div>
             {summaryError ? (
               <div role="alert" className="admin-dashboard-error">Unable to load dashboard data: {summaryError}</div>
@@ -245,16 +248,20 @@ export const AdminDashboardView: React.FC = () => {
               </div>
             )}
           </section>
+          )}
 
+          {(summaryLoading || summaryError || pendingTimesheets.length > 0) && (
           <section className="card admin-dashboard-queue">
             <div className="admin-dashboard-section-heading">
               <div>
                 <h3>Timesheets to Review</h3>
                 <p>Submitted weekly work reports waiting for HR review.</p>
               </div>
-              <button type="button" className="admin-dashboard-text-link" onClick={() => setCurrentView('timesheets')}>
-                View all ({summaryLoading ? '…' : summaryError ? '—' : summary?.timesheets.pendingCount ?? 0}) <ArrowRight size={14} />
-              </button>
+              {pendingTimesheets.length > 0 && (
+                <button type="button" className="admin-dashboard-text-link" onClick={() => setCurrentView('timesheets')}>
+                  View all ({summary?.timesheets.pendingCount ?? pendingTimesheets.length}) <ArrowRight size={14} />
+                </button>
+              )}
             </div>
             {summaryError ? (
               <div role="alert" className="admin-dashboard-error">Unable to load dashboard data: {summaryError}</div>
@@ -280,7 +287,9 @@ export const AdminDashboardView: React.FC = () => {
               </div>
             )}
           </section>
+          )}
 
+          {(summaryLoading || summaryError || upcomingLeaves.length > 0) && (
           <section className="card admin-dashboard-queue">
             <div className="admin-dashboard-section-heading">
               <div>
@@ -312,7 +321,9 @@ export const AdminDashboardView: React.FC = () => {
               </div>
             )}
           </section>
+          )}
 
+          {(summaryLoading || summaryError || departmentHeadcounts.length > 0) && (
           <section className="card admin-dashboard-queue">
             <div className="admin-dashboard-section-heading">
               <div>
@@ -347,6 +358,7 @@ export const AdminDashboardView: React.FC = () => {
               </div>
             )}
           </section>
+          )}
         </div>
       )}
 

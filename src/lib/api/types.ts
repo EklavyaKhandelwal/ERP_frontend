@@ -33,6 +33,9 @@ export type ProfileInput = {
   name: string;
   phone?: string;
   dateOfBirth?: string;
+  department?: string;
+  designation?: string;
+  location?: string;
 };
 
 export type EmployeeProjectSummary = Pick<Project, 'id' | 'name' | 'code' | 'status' | 'progress' | 'deadline'> & {

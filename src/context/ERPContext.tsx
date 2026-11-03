@@ -440,6 +440,9 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           lastName: lastNameParts.join(' '),
           ...(profile.phone !== undefined ? { phone: profile.phone } : {}),
           ...(profile.dateOfBirth !== undefined ? { dateOfBirth: profile.dateOfBirth } : {}),
+          ...(profile.department !== undefined ? { department: profile.department } : {}),
+          ...(profile.designation !== undefined ? { designation: profile.designation } : {}),
+          ...(profile.location !== undefined ? { location: profile.location } : {}),
         }
         : employee
     )));
