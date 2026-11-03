@@ -189,6 +189,14 @@ export type ResignationReason =
   | 'Health reasons'
   | 'Other';
 export type ResignationStatus = 'Pending' | 'Approved' | 'Rejected';
+export type ResignationPolicy = {
+  noticeDays: number;
+  reviewReminderDays: number;
+};
+export type ResignationPolicyChange = ResignationPolicy & {
+  changedBy: string | null;
+  changedAt: string;
+};
 export type ResignationApplication = {
   id: string;
   employeeId: string;
@@ -198,13 +206,15 @@ export type ResignationApplication = {
   employeeCode: string;
   department: string;
   designation: string;
-  manager: string;
   resignationDate: string;
   noticeDays: number;
+  approvedNoticeDays: number | null;
   proposedLastDay: string;
   reason: ResignationReason;
   remarks: string;
   status: ResignationStatus;
+  assignedToUserId: string | null;
+  assignedTo: string | null;
   reviewedBy: string | null;
   reviewerEmail: string | null;
   reviewedAt: string | null;
@@ -212,6 +222,30 @@ export type ResignationApplication = {
   approvedLastDay: string | null;
   escalationNotifiedAt: string | null;
   createdAt: string;
+  events: ResignationEvent[];
+  checklist: ResignationChecklistItem[];
+};
+export type ResignationReviewer = {
+  id: string;
+  name: string;
+  email: string;
+};
+export type ResignationEvent = {
+  id: string;
+  eventType: string;
+  description: string;
+  actorName: string | null;
+  createdAt: string;
+};
+export type ResignationChecklistItem = {
+  id: string;
+  itemKey: string;
+  title: string;
+  status: 'Pending' | 'In progress' | 'Completed';
+  responsibleParty: string;
+  dueDate: string | null;
+  note: string;
+  updatedAt: string;
 };
 
 export interface LeaveResponse {
