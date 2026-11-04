@@ -62,7 +62,8 @@ const EmployeeFormModal: React.FC<Props> = ({ onClose, employee }) => {
     try {
       const input = formData;
       if (employee) {
-        await updateEmployee(employee.id, input);
+        const { avatar: _avatar, ...updates } = input;
+        await updateEmployee(employee.id, updates);
       } else {
         await addEmployee(input);
       }
