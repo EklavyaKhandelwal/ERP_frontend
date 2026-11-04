@@ -17,6 +17,7 @@ import type {
   EmployeeInput,
   LeaveBalance,
   LeaveInput,
+  PayrollRecordUpdate,
   PayrollRunRecordInput,
   ProfileInput,
   ProjectInput,
@@ -73,6 +74,8 @@ export interface ERPContextType {
   payrollError: string | null;
   createPayrollRun: (payPeriod: string, records: PayrollRunRecordInput[]) => Promise<PayrollRecord[]>;
   updatePayrollStatus: (id: string, status: PayrollRecord['status']) => Promise<PayrollRecord>;
+  updatePayrollRecord: (id: string, updates: PayrollRecordUpdate, correctionNote?: string) => Promise<PayrollRecord>;
+  publishPayrollRecord: (id: string) => Promise<PayrollRecord>;
   projects: Project[];
   projectsLoading: boolean;
   projectsError: string | null;

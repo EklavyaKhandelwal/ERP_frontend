@@ -1,191 +1,142 @@
 import React from 'react';
-import { X, Printer } from 'lucide-react';
-import { PayrollRecord } from '../../types/erp';
+import { Download, Pencil, X } from 'lucide-react';
+import type { PayrollRecord } from '../../types/erp';
+import { amountInWords, maskBankAccountNumber } from '../../lib/payrollPdf';
 import { formatINR } from '../../lib/formatCurrency';
 
 interface Props {
   record: PayrollRecord | null;
+  isAdmin: boolean;
   onClose: () => void;
+  onEdit: () => void;
+  onDownload: () => void;
 }
 
-export const PayslipDetailModal: React.FC<Props> = ({ record, onClose }) => {
+export const PayslipDetailModal: React.FC<Props> = ({ record, isAdmin, onClose, onEdit, onDownload }) => {
   if (!record) return null;
+  const masterEarnings = record.basicSalaryMaster + record.hraMaster + record.specialAllowanceMaster + record.bonusMaster;
+  const earnings = [
+    { label: 'Basic salary', master: record.basicSalaryMaster, actual: record.basicSalary },
+    { label: 'HRA', master: record.hraMaster, actual: record.hra },
+    { label: 'Special allowance', master: record.specialAllowanceMaster, actual: record.specialAllowance },
+    { label: 'Bonus', master: record.bonusMaster, actual: record.bonus },
+  ];
+  const deductions = [
+    { label: 'Provident Fund', actual: record.providentFund },
+    { label: 'Professional Tax', actual: record.professionalTax },
+    { label: 'Income Tax', actual: record.incomeTax },
+  ];
+  const employeeDetails = [
+    { label: 'Name', value: record.employeeName },
+    { label: 'Employee no.', value: record.employeeCode },
+    { label: 'Designation', value: record.designation },
+    { label: 'Department', value: record.department },
+    { label: 'Joining date', value: record.joiningDate },
+    { label: 'Location', value: record.location },
+    { label: 'Work days', value: String(record.effectiveWorkDays) },
+    { label: 'Loss of pay', value: String(record.lossOfPayDays) },
+    { label: 'Bank', value: [record.bankName, maskBankAccountNumber(record.bankAccountNumber)].filter(Boolean).join(' · ') || '—' },
+    { label: 'PAN', value: record.panNumber || '—' },
+    { label: 'PF no.', value: record.providentFundNumber || '—' },
+    { label: 'PF UAN', value: record.providentFundUan || '—' },
+    ...(record.otherDetails ? [{ label: 'Other', value: record.otherDetails }] : []),
+  ];
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content" style={{ maxWidth: '750px', padding: 0, overflow: 'hidden' }}>
-        {/* Top Actions */}
-        <div style={{
-          padding: '16px 24px',
-          borderBottom: '1px solid var(--border-light)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          backgroundColor: '#F8F9FA'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <span className="badge badge-primary">Confidential Payslip</span>
-            <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-main)' }}>
-              Period: {record.month} {record.year}
-            </span>
+      <section className="modal-content payslip-modal">
+        <header className="payslip-modal-toolbar">
+          <div className="payslip-modal-heading">
+            <strong>{record.payslipStatus} payslip</strong>
+            <span>{record.month} {record.year} · Revision {record.revision}</span>
           </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <button 
-              onClick={() => window.print()}
-              className="btn btn-secondary btn-sm"
-            >
-              <Printer size={14} />
-              <span>Print</span>
-            </button>
-            <button 
-              onClick={onClose}
-              style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', marginLeft: '6px' }}
-            >
-              <X size={20} />
-            </button>
+          <div className="payslip-modal-actions">
+            {isAdmin && (
+              <button type="button" className="btn btn-secondary btn-sm" onClick={onEdit}><Pencil size={14} /> {record.payslipStatus === 'Draft' ? 'Edit draft' : 'Correct'}</button>
+            )}
+            {record.payslipStatus === 'Published' && (
+              <button type="button" className="btn btn-primary btn-sm" onClick={onDownload}><Download size={14} /> Download PDF</button>
+            )}
+            <button type="button" aria-label="Close payslip" className="btn btn-ghost btn-sm payslip-modal-close" onClick={onClose}><X size={18} /></button>
           </div>
-        </div>
+        </header>
 
-        {/* Printable Paystub Body */}
-        <div style={{ padding: '32px', backgroundColor: '#FFFFFF' }}>
-          {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #0A0B0D', paddingBottom: '20px', marginBottom: '24px' }}>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <div style={{ width: '28px', height: '28px', backgroundColor: '#0052FF', borderRadius: '6px', color: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '15px' }}>
-                  A
-                </div>
-                <div style={{ fontSize: '18px', fontWeight: '800', color: '#0A0B0D' }}>AAVIL Inc.</div>
-              </div>
-              <div style={{ fontSize: '12px', color: '#5B616E', marginTop: '6px' }}>
-                Payroll record for informational purposes
+        <article className="payslip-document">
+          <header className="payslip-document-title">
+            <div className="payslip-brand">
+              <span className="payslip-brand-mark">A</span>
+              <div className="payslip-brand-copy">
+                <strong>AAV INNOVATION LABS</strong>
+                <span className="payslip-brand-caption">PEOPLE & PAYROLL</span>
               </div>
             </div>
-
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: '20px', fontWeight: '800', color: '#0052FF' }}>SALARY PAYSLIP</div>
-              <div style={{ fontSize: '12px', color: '#5B616E', marginTop: '2px' }}>
-                Slip Ref: <strong>AAV-PAY-{record.id.toUpperCase()}</strong>
-              </div>
-              <div style={{ fontSize: '12px', color: '#5B616E' }}>
-                Payment status date: <strong>{record.paymentDate || 'Not recorded'}</strong>
-              </div>
+            <div className="payslip-title-meta">
+              <strong>PAYSLIP</strong>
+              <span>{record.month} {record.year} · Revision {record.revision}</span>
+              <span className={`payslip-status-badge ${record.status.toLowerCase()}`}>{record.status}</span>
             </div>
-          </div>
+          </header>
 
-          {/* Employee Info Grid */}
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: '12px',
-            padding: '16px',
-            backgroundColor: '#F8F9FB',
-            borderRadius: '8px',
-            marginBottom: '24px',
-            fontSize: '12.5px'
-          }}>
+          <section className="payslip-summary" aria-label="Payroll totals">
             <div>
-              <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>Employee Name</span>
-              <div style={{ fontWeight: '700', color: '#0A0B0D' }}>{record.employeeName}</div>
+              <span>Gross earnings</span>
+              <strong>{formatINR(record.totalEarnings)}</strong>
             </div>
             <div>
-              <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>Employee ID</span>
-              <div style={{ fontWeight: '700', color: '#0A0B0D' }}>{record.employeeCode}</div>
+              <span>Total deductions</span>
+              <strong>{formatINR(record.totalDeductions)}</strong>
             </div>
-            <div>
-              <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>Department</span>
-              <div style={{ fontWeight: '700', color: '#0A0B0D' }}>{record.department}</div>
+            <div className="payslip-summary-net">
+              <span>Net pay</span>
+              <strong>{formatINR(record.netPay)}</strong>
+              <small>{amountInWords(record.netPay)}</small>
             </div>
-            <div>
-              <span style={{ color: 'var(--text-muted)', fontSize: '11px' }}>Designation</span>
-              <div style={{ fontWeight: '700', color: '#0A0B0D' }}>{record.designation}</div>
+          </section>
+
+          <section className="payslip-employee-card">
+            <h3 className="payslip-section-heading">Employee & payment details</h3>
+            <div className="payslip-employee-details">
+              {employeeDetails.map(item => (
+                <div className="payslip-detail-item" key={item.label}>
+                  <span>{item.label}</span><strong>{item.value}</strong>
+                </div>
+              ))}
             </div>
+          </section>
+
+          <div className="payslip-financial-grid">
+            <section className="payslip-financial-table">
+              <h3>Earnings</h3>
+              <div className="payslip-table-heading"><span>Component</span><span>Master</span><span>Actual</span></div>
+              {earnings.map(item => (
+                <div className="payslip-table-row" key={item.label}>
+                  <span>{item.label}</span><span>{formatINR(item.master)}</span><strong>{formatINR(item.actual)}</strong>
+                </div>
+              ))}
+              <div className="payslip-table-row payslip-total-row">
+                <strong>Total Earnings</strong><strong>{formatINR(masterEarnings)}</strong><strong>{formatINR(record.totalEarnings)}</strong>
+              </div>
+            </section>
+            <section className="payslip-financial-table">
+              <h3>Deductions</h3>
+              <div className="payslip-table-heading"><span>Component</span><span /><span>Actual</span></div>
+              {deductions.map(item => (
+                <div className="payslip-table-row" key={item.label}>
+                  <span>{item.label}</span><span /><strong>{formatINR(item.actual)}</strong>
+                </div>
+              ))}
+              <div className="payslip-table-row payslip-total-row">
+                <strong>Total Deductions</strong><span /><strong>{formatINR(record.totalDeductions)}</strong>
+              </div>
+            </section>
           </div>
 
-          {/* Earnings & Deductions Tables */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '24px' }}>
-            {/* Earnings */}
-            <div style={{ border: '1px solid var(--border-light)', borderRadius: '8px', overflow: 'hidden' }}>
-              <div style={{ padding: '10px 14px', backgroundColor: '#F0FDF4', color: '#166534', fontWeight: '700', fontSize: '13px', borderBottom: '1px solid var(--border-light)' }}>
-                Earnings / Allowances
-              </div>
-              <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Basic Salary</span>
-                  <span style={{ fontWeight: '600' }}>{formatINR(record.basicSalary)}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>House Rent Allowance (HRA)</span>
-                  <span style={{ fontWeight: '600' }}>{formatINR(record.hra)}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Special Allowance</span>
-                  <span style={{ fontWeight: '600' }}>{formatINR(record.specialAllowance)}</span>
-                </div>
-                {record.bonus > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <span style={{ color: 'var(--text-secondary)' }}>Performance Bonus</span>
-                    <span style={{ fontWeight: '600', color: '#05B169' }}>+{formatINR(record.bonus)}</span>
-                  </div>
-                )}
-                <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '8px', marginTop: '4px', display: 'flex', justifyContent: 'space-between', fontWeight: '700' }}>
-                  <span>Gross Earnings</span>
-                  <span style={{ color: '#05B169' }}>{formatINR(record.totalEarnings)}</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Deductions */}
-            <div style={{ border: '1px solid var(--border-light)', borderRadius: '8px', overflow: 'hidden' }}>
-              <div style={{ padding: '10px 14px', backgroundColor: '#FEF2F2', color: '#991B1B', fontWeight: '700', fontSize: '13px', borderBottom: '1px solid var(--border-light)' }}>
-                Statutory Deductions & Taxes
-              </div>
-              <div style={{ padding: '12px 14px', display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '13px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Provident Fund (PF)</span>
-                  <span style={{ fontWeight: '600' }}>{formatINR(record.providentFund)}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Income Tax (TDS)</span>
-                  <span style={{ fontWeight: '600' }}>{formatINR(record.incomeTax)}</span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ color: 'var(--text-secondary)' }}>Professional Tax</span>
-                  <span style={{ fontWeight: '600' }}>{formatINR(record.professionalTax)}</span>
-                </div>
-                <div style={{ borderTop: '1px solid var(--border-light)', paddingTop: '8px', marginTop: '28px', display: 'flex', justifyContent: 'space-between', fontWeight: '700' }}>
-                  <span>Total Deductions</span>
-                  <span style={{ color: '#CF202F' }}>−{formatINR(record.totalDeductions)}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Net Salary Highlight Box */}
-          <div style={{
-            padding: '20px 24px',
-            backgroundColor: '#0A0B0D',
-            color: '#FFFFFF',
-            borderRadius: '10px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between'
-          }}>
-            <div>
-              <div style={{ fontSize: '12px', color: '#8A8F98', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Net Take-Home Pay
-              </div>
-              <div style={{ fontSize: '13px', color: '#DDE2E8', marginTop: '4px' }}>
-                Status: {record.status}. No payment transfer is initiated by this application.
-              </div>
-            </div>
-            <div style={{ fontSize: '32px', fontWeight: '800', color: '#FFFFFF', letterSpacing: '-0.02em' }}>
-              {formatINR(record.netPay)}
-            </div>
-          </div>
-        </div>
-      </div>
+          <footer className="payslip-footer">
+            <span>Confidential. System-generated pay slip, no signature required.</span>
+            <span>AAV Innovation Labs · Payslip {record.month} {record.year} · Rev {record.revision}</span>
+          </footer>
+        </article>
+      </section>
     </div>
   );
 };

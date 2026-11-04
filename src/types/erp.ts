@@ -30,6 +30,8 @@ export interface Employee {
   joinDate: string;
   status: 'Active' | 'On Leave' | 'Probation' | 'Inactive';
   salary?: number;
+  bankName?: string;
+  bankAccountNumber?: string;
   location: string;
   manager: string;
   skills: string[];
@@ -153,8 +155,14 @@ export interface PayrollRecord {
   employeeCode: string;
   department: string;
   designation: string;
+  joiningDate: string;
+  location: string;
   month: string;
   year: number;
+  basicSalaryMaster: number;
+  hraMaster: number;
+  specialAllowanceMaster: number;
+  bonusMaster: number;
   basicSalary: number;
   hra: number;
   specialAllowance: number;
@@ -165,6 +173,17 @@ export interface PayrollRecord {
   totalEarnings: number;
   totalDeductions: number;
   netPay: number;
+  effectiveWorkDays: number;
+  lossOfPayDays: number;
+  bankName: string;
+  bankAccountNumber: string;
+  panNumber: string;
+  providentFundNumber: string;
+  providentFundUan: string;
+  otherDetails: string;
+  payslipStatus: 'Draft' | 'Published';
+  revision: number;
+  publishedAt?: string;
   status: 'Paid' | 'Processing' | 'Pending';
   paymentDate?: string;
 }

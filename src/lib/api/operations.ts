@@ -6,6 +6,7 @@ import type {
   AppNotification,
   EmployeeDashboardSummary,
   NotificationPreferences,
+  PayrollRecordUpdate,
   PayrollRunRecordInput,
   ResignationApplication,
   ResignationChecklistItem,
@@ -50,6 +51,18 @@ export const payrollApi = {
     request<{ payroll: PayrollRecord }>(`/payroll/${encodeURIComponent(id)}/status`, {
       method: 'PATCH',
       body: JSON.stringify({ status }),
+    })
+  ),
+  updateRecord: (id: string, record: PayrollRecordUpdate, correctionNote?: string) => (
+    request<{ payroll: PayrollRecord }>(`/payroll/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ ...record, ...(correctionNote ? { correctionNote } : {}) }),
+    })
+  ),
+  publish: (id: string) => (
+    request<{ payroll: PayrollRecord }>(`/payroll/${encodeURIComponent(id)}/publish`, {
+      method: 'PATCH',
+      body: JSON.stringify({}),
     })
   ),
 };
