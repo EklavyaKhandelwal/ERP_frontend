@@ -22,12 +22,16 @@ export type EmployeeInput = Pick<
   | 'joinDate'
   | 'status'
   | 'salary'
+  | 'bankName'
+  | 'bankAccountNumber'
   | 'location'
   | 'manager'
   | 'skills'
 > & {
   phone: string;
   salary: number;
+  bankName?: string;
+  bankAccountNumber?: string;
 };
 export type ProfileInput = {
   name: string;
@@ -78,6 +82,10 @@ export interface TimesheetInput {
 export type PayrollRunRecordInput = Pick<
   PayrollRecord,
   | 'employeeId'
+  | 'basicSalaryMaster'
+  | 'hraMaster'
+  | 'specialAllowanceMaster'
+  | 'bonusMaster'
   | 'basicSalary'
   | 'hra'
   | 'specialAllowance'
@@ -85,6 +93,28 @@ export type PayrollRunRecordInput = Pick<
   | 'providentFund'
   | 'professionalTax'
   | 'incomeTax'
+>;
+export type PayrollRecordUpdate = Pick<
+  PayrollRecord,
+  | 'basicSalaryMaster'
+  | 'hraMaster'
+  | 'specialAllowanceMaster'
+  | 'bonusMaster'
+  | 'basicSalary'
+  | 'hra'
+  | 'specialAllowance'
+  | 'bonus'
+  | 'providentFund'
+  | 'professionalTax'
+  | 'incomeTax'
+  | 'effectiveWorkDays'
+  | 'lossOfPayDays'
+  | 'bankName'
+  | 'bankAccountNumber'
+  | 'panNumber'
+  | 'providentFundNumber'
+  | 'providentFundUan'
+  | 'otherDetails'
 >;
 export type SelfAssessmentInput = {
   reflection: string;

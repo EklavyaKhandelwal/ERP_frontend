@@ -38,7 +38,11 @@ export async function request<T>(path: string, init?: RequestInit): Promise<T> {
     if (feedback) {
       dispatchMutationFeedback({ id: requestId, phase: 'finished', title: '' });
     }
-    throw new ApiError('Cannot connect to the API. Start the backend and try again.', 0);
+    const apiAddress = `${window.location.origin}/api${path}`;
+    throw new ApiError(
+      `Cannot reach ${apiAddress}. For local development, open the Vite frontend and run "corepack pnpm dev:all" so its /api proxy can reach the backend on port 3001.`,
+      0,
+    );
   }
 
   if (!response.ok) {

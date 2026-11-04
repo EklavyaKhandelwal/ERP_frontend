@@ -32,6 +32,7 @@ import {
   type ProjectTaskInput,
   type ProjectTaskUpdate,
   type PayrollRunRecordInput,
+  type PayrollRecordUpdate,
   type TimesheetEntryInput,
   type AdminReviewInput,
   type SelfAssessmentInput,
@@ -129,6 +130,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       || currentView === 'my-profile'
       || currentView === 'admin-access'
       || currentView === 'reports'
+      || currentView === 'payroll'
       || currentView === 'timesheets'
       || (currentView === 'project-detail' && role === 'admin');
     const key = 'employees';
@@ -545,6 +547,20 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return result.payroll;
   };
 
+  const updatePayrollRecord = async (id: string, updates: PayrollRecordUpdate, correctionNote?: string) => {
+    const result = await payrollApi.updateRecord(id, updates, correctionNote);
+    setPayroll(prev => prev.map(record => record.id === id ? result.payroll : record));
+    setPayrollError(null);
+    return result.payroll;
+  };
+
+  const publishPayrollRecord = async (id: string) => {
+    const result = await payrollApi.publish(id);
+    setPayroll(prev => prev.map(record => record.id === id ? result.payroll : record));
+    setPayrollError(null);
+    return result.payroll;
+  };
+
   // Project Methods
   const addProject = async (project: ProjectInput) => {
     const { project: createdProject } = await projectsApi.create(project);
@@ -707,6 +723,8 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       payrollError,
       createPayrollRun,
       updatePayrollStatus,
+      updatePayrollRecord,
+      publishPayrollRecord,
       projects,
       projectsLoading,
       projectsError,

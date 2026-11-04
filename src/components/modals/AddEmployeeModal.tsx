@@ -30,6 +30,8 @@ const EmployeeFormModal: React.FC<Props> = ({ onClose, employee }) => {
       designation: employee.designation,
       joinDate: employee.joinDate,
       salary: employee.salary ?? 0,
+      bankName: employee.bankName ?? '',
+      bankAccountNumber: employee.bankAccountNumber ?? '',
       location: employee.location,
       status: employee.status,
       manager: employee.manager,
@@ -45,6 +47,8 @@ const EmployeeFormModal: React.FC<Props> = ({ onClose, employee }) => {
       designation: '',
       joinDate: '',
       salary: 110000,
+      bankName: '',
+      bankAccountNumber: '',
       location: 'San Francisco, CA',
       status: 'Active',
       manager: '',
@@ -207,7 +211,11 @@ const EmployeeFormModal: React.FC<Props> = ({ onClose, employee }) => {
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+          <h4 style={{ margin: '20px 0 12px', color: 'var(--text-main)', fontSize: '14px' }}>Payroll & bank details</h4>
+          <p style={{ margin: '-6px 0 14px', color: 'var(--text-secondary)', fontSize: '12px' }}>
+            Saved securely on the employee profile and copied into each new payslip.
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
             <div className="form-group">
               <label className="form-label">Monthly Base Salary (₹)</label>
               <input 
@@ -215,6 +223,31 @@ const EmployeeFormModal: React.FC<Props> = ({ onClose, employee }) => {
                 className="form-control"
                 value={formData.salary}
                 onChange={e => setFormData({ ...formData, salary: Number(e.target.value) })}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Bank Name</label>
+              <input
+                type="text"
+                maxLength={120}
+                className="form-control"
+                placeholder="e.g. HDFC Bank"
+                value={formData.bankName ?? ''}
+                onChange={e => setFormData({ ...formData, bankName: e.target.value })}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Bank Account Number</label>
+              <input
+                type="text"
+                maxLength={64}
+                autoComplete="off"
+                className="form-control"
+                placeholder="Enter account number"
+                value={formData.bankAccountNumber ?? ''}
+                onChange={e => setFormData({ ...formData, bankAccountNumber: e.target.value })}
               />
             </div>
 

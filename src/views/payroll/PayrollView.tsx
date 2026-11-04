@@ -1,11 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import { CheckCircle2, ChevronRight, FileText, Send } from 'lucide-react';
+import { CheckCircle2, ChevronRight, Download, FileText, Send } from 'lucide-react';
 import { useERP } from '../../context/ERPContext';
 import type { PayrollRecord } from '../../types/erp';
 import { CreatePayrollRunModal } from '../../components/modals/CreatePayrollRunModal';
 import { PayslipDetailModal } from '../../components/modals/PayslipDetailModal';
+import { PayslipEditorModal } from '../../components/modals/PayslipEditorModal';
 import { TableSkeletonRows } from '../../components/feedback/LoadingSkeleton';
 import { formatINR } from '../../lib/formatCurrency';
+import { downloadPayslipPdf } from '../../lib/payrollPdf';
 
 export const PayrollView: React.FC = () => {
   const {
@@ -16,12 +18,15 @@ export const PayrollView: React.FC = () => {
     currentUser,
     employees,
     updatePayrollStatus,
+    publishPayrollRecord,
   } = useERP();
   const [selectedRecord, setSelectedRecord] = useState<PayrollRecord | null>(null);
+  const [editingRecord, setEditingRecord] = useState<PayrollRecord | null>(null);
   const [filterPeriod, setFilterPeriod] = useState('all');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isMarkingPaid, setIsMarkingPaid] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [isPublishing, setIsPublishing] = useState<string | null>(null);
   const ownEmployee = employees.find(employee => employee.email === currentUser.email);
 
   const periods = useMemo(() => [...new Set(payroll.map(record => `${record.year}-${String(new Date(`${record.month} 1, ${record.year}`).getMonth() + 1).padStart(2, '0')}`))].sort().reverse(), [payroll]);
@@ -46,6 +51,27 @@ export const PayrollView: React.FC = () => {
       setActionError(error instanceof Error ? error.message : 'Unable to update payroll status.');
     } finally {
       setIsMarkingPaid(null);
+    }
+  };
+
+  const publishPayslip = async (record: PayrollRecord) => {
+    setActionError(null);
+    setIsPublishing(record.id);
+    try {
+      const updated = await publishPayrollRecord(record.id);
+      if (selectedRecord?.id === updated.id) setSelectedRecord(updated);
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Unable to publish payslip.');
+    } finally {
+      setIsPublishing(null);
+    }
+  };
+
+  const downloadPayslip = (record: PayrollRecord) => {
+    try {
+      downloadPayslipPdf(record);
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Unable to create the payslip PDF.');
     }
   };
 
@@ -127,15 +153,16 @@ export const PayrollView: React.FC = () => {
               <th>Gross Earnings</th>
               <th>Deductions</th>
               <th>Net Pay</th>
-              <th>Status</th>
+              <th>Payslip</th>
+              <th>Payment</th>
               <th style={{ textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
             {payrollLoading ? (
-              <TableSkeletonRows columns={8} rows={5} />
+              <TableSkeletonRows columns={9} rows={5} />
             ) : displayedPayroll.length === 0 ? (
-              <tr><td colSpan={8} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>No payroll records for this period.</td></tr>
+              <tr><td colSpan={9} style={{ textAlign: 'center', padding: '40px', color: 'var(--text-muted)' }}>No payroll records for this period.</td></tr>
             ) : displayedPayroll.map(record => (
               <tr key={record.id} className="arrow-lift-row" onClick={() => setSelectedRecord(record)} style={{ cursor: 'pointer' }}>
                 <td>
@@ -147,12 +174,47 @@ export const PayrollView: React.FC = () => {
                 <td><span style={{ fontWeight: '600', color: '#05B169' }}>+{formatINR(record.totalEarnings)}</span></td>
                 <td><span style={{ fontWeight: '600', color: '#CF202F' }}>−{formatINR(record.totalDeductions)}</span></td>
                 <td><strong style={{ fontSize: '15px', color: '#0052FF' }}>{formatINR(record.netPay)}</strong></td>
+                <td><span className={`badge ${record.payslipStatus === 'Published' ? 'badge-success' : 'badge-neutral'}`}><span className="badge-dot" />{record.payslipStatus}</span></td>
                 <td><span className={`badge ${record.status === 'Paid' ? 'badge-success' : 'badge-warning'}`}><span className="badge-dot" />{record.status}</span></td>
                 <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                   <button onClick={event => { event.stopPropagation(); setSelectedRecord(record); }} className="btn btn-sm btn-ghost">
                     <FileText size={14} color="#0052FF" /> View
                     <ChevronRight className="arrow-lift-trigger" size={14} />
                   </button>
+                  {role === 'admin' && (
+                    <>
+                      <button
+                        onClick={event => { event.stopPropagation(); setEditingRecord(record); }}
+                        className="btn btn-sm btn-secondary"
+                      >
+                        {record.payslipStatus === 'Draft' ? 'Edit draft' : 'Correct'}
+                      </button>
+                      {record.payslipStatus === 'Draft' ? (
+                        <button
+                          disabled={isPublishing === record.id}
+                          onClick={event => { event.stopPropagation(); void publishPayslip(record); }}
+                          className="btn btn-sm btn-primary"
+                        >
+                          {isPublishing === record.id ? 'Publishing…' : 'Publish'}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={event => { event.stopPropagation(); downloadPayslip(record); }}
+                          className="btn btn-sm btn-secondary"
+                        >
+                          <Download size={14} /> PDF
+                        </button>
+                      )}
+                    </>
+                  )}
+                  {role !== 'admin' && record.payslipStatus === 'Published' && (
+                    <button
+                      onClick={event => { event.stopPropagation(); downloadPayslip(record); }}
+                      className="btn btn-sm btn-secondary"
+                    >
+                      <Download size={14} /> PDF
+                    </button>
+                  )}
                   {role === 'admin' && record.status !== 'Paid' && (
                     <button
                       disabled={isMarkingPaid === record.id}
@@ -171,7 +233,26 @@ export const PayrollView: React.FC = () => {
       </div>
 
       <CreatePayrollRunModal isOpen={isCreateModalOpen} onClose={() => setIsCreateModalOpen(false)} />
-      <PayslipDetailModal record={selectedRecord} onClose={() => setSelectedRecord(null)} />
+      <PayslipDetailModal
+        record={selectedRecord}
+        isAdmin={role === 'admin'}
+        onClose={() => setSelectedRecord(null)}
+        onEdit={() => {
+          setEditingRecord(selectedRecord);
+          setSelectedRecord(null);
+        }}
+        onDownload={() => selectedRecord && downloadPayslip(selectedRecord)}
+      />
+      {editingRecord && (
+        <PayslipEditorModal
+          key={editingRecord.id}
+          record={editingRecord}
+          onClose={() => setEditingRecord(null)}
+          onSaved={record => {
+            if (selectedRecord?.id === record.id) setSelectedRecord(record);
+          }}
+        />
+      )}
     </div>
   );
 };
