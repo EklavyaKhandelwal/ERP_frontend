@@ -2,14 +2,13 @@ import { Employee, LeaveRequest, Timesheet, Project, User } from '../types/erp';
 
 export const ADMIN_USER: User = {
   id: 'usr-admin-1',
-  name: 'Alexander Wright',
+  name: 'HR',
   email: 'alexander.wright@aavil.inc',
   role: 'admin',
-  isOwner: true,
   onboardingComplete: true,
   avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80',
-  designation: 'VP of People & Operations',
-  department: 'Executive'
+  designation: 'Human Resources',
+  department: 'Human Resources'
 };
 
 export const EMPLOYEE_USER: User = {

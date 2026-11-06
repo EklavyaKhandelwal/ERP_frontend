@@ -127,6 +127,11 @@ export const ApplyLeaveModal: React.FC<Props> = ({ isOpen, onClose }) => {
           <div className="form-group">
             <label className="form-label">Chargeable weekdays (excluding weekends and company holidays)</label>
             <div className="form-control" aria-live="polite">{days}</div>
+            {startDate && endDate && days < 1 && (
+              <p role="status" style={{ margin: '6px 0 0', color: 'var(--text-secondary)', fontSize: '12px' }}>
+                Choose a date range that includes at least one weekday that is not a company holiday.
+              </p>
+            )}
           </div>
 
           <div className="form-group">

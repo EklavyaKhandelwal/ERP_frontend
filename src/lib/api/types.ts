@@ -6,7 +6,6 @@ import type {
   Project,
   ProjectTaskStatus,
   Timesheet,
-  User,
 } from '../../types/erp';
 
 export type EmployeeInput = Pick<
@@ -133,6 +132,8 @@ export type AccessLinkResult = {
   purpose: 'setup' | 'reset';
   accessPath: string;
   expiresAt: string;
+  email: string;
+  emailSent: boolean;
 };
 export type EmployeeDocumentType = 'offer_letter' | 'education_certificate' | 'government_id';
 export type EmployeeOnboardingDocument = {
@@ -147,14 +148,6 @@ export type EmployeeDocument = {
   fileName: string;
   contentType: string;
   uploadedAt: string;
-};
-export type AdminAccount = Pick<
-  User,
-  'id' | 'name' | 'email' | 'department' | 'designation' | 'isOwner'
-> & {
-  isActive: boolean;
-  hasCompletedSetup: boolean;
-  createdAt: string;
 };
 export type AppNotification = {
   id: string;
@@ -246,8 +239,6 @@ export type ResignationApplication = {
   reason: ResignationReason;
   remarks: string;
   status: ResignationStatus;
-  assignedToUserId: string | null;
-  assignedTo: string | null;
   reviewedBy: string | null;
   reviewerEmail: string | null;
   reviewedAt: string | null;
@@ -257,11 +248,6 @@ export type ResignationApplication = {
   createdAt: string;
   events: ResignationEvent[];
   checklist: ResignationChecklistItem[];
-};
-export type ResignationReviewer = {
-  id: string;
-  name: string;
-  email: string;
 };
 export type ResignationEvent = {
   id: string;

@@ -48,6 +48,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
   const [authError, setAuthError] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<AppView>('dashboard');
+  const [isAddEmployeeModalOpen, setIsAddEmployeeModalOpen] = useState(false);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>('proj-001');
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -128,7 +129,6 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const shouldLoad = currentView === 'employees'
       || currentView === 'employee-profile'
       || currentView === 'my-profile'
-      || currentView === 'admin-access'
       || currentView === 'reports'
       || currentView === 'payroll'
       || currentView === 'timesheets'
@@ -686,6 +686,8 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       authError,
       currentView,
       setCurrentView,
+      isAddEmployeeModalOpen,
+      setIsAddEmployeeModalOpen,
       selectedEmployeeId,
       setSelectedEmployeeId,
       selectedProjectId,

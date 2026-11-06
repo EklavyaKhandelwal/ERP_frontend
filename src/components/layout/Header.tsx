@@ -162,16 +162,12 @@ export const Header: React.FC = () => {
       subtitle: 'View your account and employment information'
     },
     'dashboard': {
-      title: role === 'admin' ? 'Executive Admin Dashboard' : 'My Workspace',
+      title: role === 'admin' ? 'HR Dashboard' : 'My Workspace',
       subtitle: role === 'admin' ? 'Company health, workforce metrics, and pending actions' : 'Your day, leave balance, active projects, and timesheet'
     },
     'employees': {
       title: 'Employee Directory',
       subtitle: 'Manage organizational staff, roles, departments, and records'
-    },
-    'admin-access': {
-      title: 'HR Admin Access',
-      subtitle: 'Invite and manage individual HR administrator accounts'
     },
     'leaves': {
       title: role === 'admin' ? 'Leaves & Attendance Management' : 'My Leave Balances & Time Off',
@@ -507,7 +503,7 @@ export const Header: React.FC = () => {
           }}
         >
           <div className="header-account-avatar" aria-hidden="true">
-            <span>{currentUser.name.split(/\s+/).map(part => part[0]).slice(0, 2).join('').toUpperCase()}</span>
+            <span>{currentUser.role === 'admin' ? 'HR' : currentUser.name.split(/\s+/).map(part => part[0]).slice(0, 2).join('').toUpperCase()}</span>
             <img
               src={currentUser.avatar}
               alt=""
@@ -516,7 +512,7 @@ export const Header: React.FC = () => {
               }}
             />
           </div>
-          <span className="header-account-name">{currentUser.name}</span>
+          <span className="header-account-name">{currentUser.role === 'admin' ? 'HR' : currentUser.name}</span>
         </button>
       </div>
     </header>

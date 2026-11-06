@@ -6,7 +6,6 @@ import {
   type ResignationApplication,
   type ResignationChecklistItem,
   type ResignationReason,
-  type ResignationReviewer,
   type ResignationStatus,
 } from '../../lib/api';
 import { CardGridSkeleton, SectionSkeleton } from '../../components/feedback/LoadingSkeleton';
@@ -143,9 +142,6 @@ export const ResignationView: React.FC = () => {
   const [overdueOnly, setOverdueOnly] = useState(false);
   const [checklistDrafts, setChecklistDrafts] = useState<Record<string, Partial<ResignationChecklistItem>>>({});
   const [savingChecklist, setSavingChecklist] = useState<Record<string, boolean>>({});
-  const [reviewers, setReviewers] = useState<ResignationReviewer[]>([]);
-  const [assignmentDrafts, setAssignmentDrafts] = useState<Record<string, string>>({});
-  const [reviewerFilter, setReviewerFilter] = useState('All');
   const employee = employees.find(record => record.email.toLowerCase() === currentUser.email.toLowerCase());
   const sortedApplications = useMemo(
     () => [...applications].sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt)),
@@ -170,12 +166,10 @@ export const ResignationView: React.FC = () => {
     return matchesSearch
       && (statusFilter === 'All' || application.status === statusFilter)
       && (departmentFilter === 'All' || application.department === departmentFilter)
-      && (reviewerFilter === 'All'
-        || (reviewerFilter === '' ? !application.assignedToUserId : application.assignedToUserId === reviewerFilter))
       && (!submittedAfter || submittedOn >= submittedAfter)
       && (!submittedBefore || submittedOn <= submittedBefore)
       && (!overdueOnly || isOverdue(application, reviewReminderDays));
-  }), [sortedApplications, search, statusFilter, departmentFilter, reviewerFilter, submittedAfter, submittedBefore, overdueOnly, reviewReminderDays]);
+  }), [sortedApplications, search, statusFilter, departmentFilter, submittedAfter, submittedBefore, overdueOnly, reviewReminderDays]);
 
   useEffect(() => {
     let active = true;
@@ -191,19 +185,6 @@ export const ResignationView: React.FC = () => {
       });
     return () => { active = false; };
   }, [currentUser.id]);
-
-  useEffect(() => {
-    if (role !== 'admin') return;
-    let active = true;
-    void resignationsApi.reviewers()
-      .then(records => {
-        if (active) setReviewers(records);
-      })
-      .catch(loadError => {
-        if (active) setError(loadError instanceof Error ? loadError.message : 'Unable to load active HR reviewers.');
-      });
-    return () => { active = false; };
-  }, [role, currentUser.id]);
 
   useEffect(() => {
     let active = true;
@@ -299,27 +280,6 @@ export const ResignationView: React.FC = () => {
     }
   };
 
-  const assignReviewer = async (application: ResignationApplication) => {
-    const selectedReviewer = assignmentDrafts[application.id] ?? application.assignedToUserId;
-    const assignedToUserId = selectedReviewer || null;
-    setError(null);
-    try {
-      await resignationsApi.assign(application.id, assignedToUserId);
-      try {
-        setApplications(await resignationsApi.list());
-      } catch (refreshError) {
-        setError(`Reviewer assigned, but activity could not be refreshed: ${refreshError instanceof Error ? refreshError.message : 'Unknown error.'}`);
-      }
-      setAssignmentDrafts(previous => {
-        const next = { ...previous };
-        delete next[application.id];
-        return next;
-      });
-    } catch (assignmentError) {
-      setError(assignmentError instanceof Error ? assignmentError.message : 'Unable to assign this resignation request.');
-    }
-  };
-
   const profile = employee ? (
     <div className="interactive-lift-card" style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: '14px', marginBottom: '18px' }}>
       <img
@@ -344,7 +304,7 @@ export const ResignationView: React.FC = () => {
         </h2>
         <p style={{ color: 'var(--text-secondary)', margin: '4px 0 0' }}>
           {role === 'admin'
-            ? `Review and track employee exits. Pending applications are escalated to active administrators after ${reviewReminderDays} days.`
+            ? `Review and track employee exits. Pending applications are escalated to HR after ${reviewReminderDays} days.`
             : 'Submit your resignation request and track the review and notice period.'}
         </p>
       </div>
@@ -372,9 +332,9 @@ export const ResignationView: React.FC = () => {
                   ? 'Your request was approved. Coordinate your handover and clearance with HR.'
                   : isOverdue(activeApplication, reviewReminderDays)
                     ? activeApplication.escalationNotifiedAt
-                      ? `Your application has been waiting for ${reviewReminderDays} days. Administrators have been notified to follow up. It is not automatically approved.`
-                      : `Your application has reached the ${reviewReminderDays}-day follow-up threshold. Administrators will be notified by the next hourly check. It is not automatically approved.`
-                    : 'Your application has been sent to HR for review. It remains pending until an administrator makes a decision.'}
+                      ? `Your application has been waiting for ${reviewReminderDays} days. HR has been notified to follow up. It is not automatically approved.`
+                      : `Your application has reached the ${reviewReminderDays}-day follow-up threshold. HR will be notified by the next hourly check. It is not automatically approved.`
+                    : 'Your application has been sent to HR for review. It remains pending until HR makes a decision.'}
               </p>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: '14px', borderTop: '1px solid var(--border-light)', paddingTop: '16px' }}>
                 <div><p style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Submitted</p><strong>{formatDate(activeApplication.resignationDate)}</strong></div>
@@ -386,9 +346,6 @@ export const ResignationView: React.FC = () => {
                 )}
                 <div><p style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{activeApplication.status === 'Approved' ? 'Confirmed last day' : 'Proposed last day'}</p><strong>{formatDate(activeApplication.approvedLastDay ?? activeApplication.proposedLastDay)}</strong></div>
                 <div><p style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Reason</p><strong>{activeApplication.reason}</strong></div>
-                {activeApplication.status === 'Pending' && (
-                  <div><p style={{ color: 'var(--text-muted)', fontSize: '12px' }}>HR reviewer</p><strong>{activeApplication.assignedTo ?? 'Awaiting assignment'}</strong></div>
-                )}
               </div>
               {activeApplication.reviewNote && (
                 <div style={{ marginTop: '16px', padding: '12px', borderRadius: '8px', background: 'var(--bg-subtle)' }}>
@@ -418,7 +375,7 @@ export const ResignationView: React.FC = () => {
               <p style={{ color: 'var(--text-muted)', fontSize: '12px', margin: '14px 0 0' }}>
                 {activeApplication.reviewedBy
                   ? `Reviewed by ${activeApplication.reviewedBy}${activeApplication.reviewedAt ? ` on ${formatDate(activeApplication.reviewedAt)}` : ''}.`
-                  : `If no decision is recorded within ${reviewReminderDays} days, active administrators are notified. Silence never counts as approval.`}
+                  : `If no decision is recorded within ${reviewReminderDays} days, HR is notified. Silence never counts as approval.`}
               </p>
             </section>
           ) : (
@@ -477,7 +434,7 @@ export const ResignationView: React.FC = () => {
             {[
               ['Submit your application', 'Provide your proposed last working day, reason, and remarks.'],
               ['HR reviews your request', 'HR receives a notification and confirms or responds to the proposed date.'],
-              [`Overdue follow-up after ${reviewReminderDays} days`, 'Active administrators are notified. Your request remains pending until reviewed.'],
+              [`Overdue follow-up after ${reviewReminderDays} days`, 'HR is notified. Your request remains pending until reviewed.'],
               ['Complete your handover', 'After approval, use the offboarding checklist to track handover and clearance with HR.'],
             ].map(([title, detail], index) => (
               <div key={title} style={{ display: 'flex', gap: '12px', marginTop: index === 0 ? 0 : '14px' }}>
@@ -535,14 +492,6 @@ export const ResignationView: React.FC = () => {
                 </select>
               </label>
               <label style={{ display: 'grid', gap: '5px', fontSize: '12px', fontWeight: 600 }}>
-                Assigned reviewer
-                <select className="form-control" value={reviewerFilter} onChange={event => setReviewerFilter(event.target.value)}>
-                  <option value="All">All reviewers</option>
-                  <option value="">Unassigned</option>
-                  {reviewers.map(reviewer => <option key={reviewer.id} value={reviewer.id}>{reviewer.name}</option>)}
-                </select>
-              </label>
-              <label style={{ display: 'grid', gap: '5px', fontSize: '12px', fontWeight: 600 }}>
                 Submitted from
                 <input type="date" className="form-control" value={submittedAfter} onChange={event => setSubmittedAfter(event.target.value)} />
               </label>
@@ -593,38 +542,14 @@ export const ResignationView: React.FC = () => {
                     )}
                     <div><p style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Reason</p><strong>{application.reason}</strong></div>
                   </div>
-                  <p style={{ color: 'var(--text-secondary)', margin: '10px 0 0', fontSize: '12px' }}>
-                    Assigned HR/admin reviewer: <strong>{application.assignedTo ?? 'Unassigned'}</strong>
-                  </p>
                   <p style={{ margin: '14px 0 0', whiteSpace: 'pre-wrap' }}>{application.remarks}</p>
                   {isOverdue(application, reviewReminderDays) && (
                     <p style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--danger)', margin: '12px 0 0', fontSize: '13px' }}>
-                      <AlertCircle size={15} /> No decision after {reviewReminderDays} days. {application.escalationNotifiedAt ? 'Administrator escalation notification sent.' : 'Administrator notification is due on the next hourly check.'}
+                      <AlertCircle size={15} /> No decision after {reviewReminderDays} days. {application.escalationNotifiedAt ? 'HR follow-up notification sent.' : 'HR notification is due on the next hourly check.'}
                     </p>
                   )}
                   {application.status === 'Pending' ? (
                     <>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', marginTop: '16px' }}>
-                      <label style={{ display: 'grid', gap: '5px', color: 'var(--text-secondary)', fontSize: '12px' }}>
-                        Assign HR/admin reviewer
-                        <select
-                          className="form-control"
-                          value={assignmentDrafts[application.id] ?? application.assignedToUserId ?? ''}
-                          onChange={event => setAssignmentDrafts(previous => ({ ...previous, [application.id]: event.target.value }))}
-                        >
-                          <option value="">Unassigned</option>
-                          {reviewers.map(reviewer => <option key={reviewer.id} value={reviewer.id}>{reviewer.name} · {reviewer.email}</option>)}
-                        </select>
-                      </label>
-                      <button
-                        type="button"
-                        className="btn btn-secondary"
-                        disabled={(assignmentDrafts[application.id] ?? application.assignedToUserId ?? '') === (application.assignedToUserId ?? '')}
-                        onClick={() => void assignReviewer(application)}
-                      >
-                        Save assignment
-                      </button>
-                    </div>
                     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '10px', marginTop: '10px' }}>
                       <label style={{ display: 'grid', gap: '5px', color: 'var(--text-secondary)', fontSize: '12px' }}>
                         Confirmed last working day
@@ -655,7 +580,7 @@ export const ResignationView: React.FC = () => {
                   ) : (
                     <p style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--text-secondary)', margin: '12px 0 0', fontSize: '12px' }}>
                       {application.status === 'Approved' ? <ShieldCheck size={14} /> : <Clock3 size={14} />}
-                      {application.status} by {application.reviewedBy ?? 'administrator'}
+                      {application.status} by {application.reviewedBy ?? 'HR'}
                       {application.reviewNote ? ` · ${application.reviewNote}` : ''}
                     </p>
                   )}

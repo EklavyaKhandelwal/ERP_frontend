@@ -13,7 +13,6 @@ import type {
   ResignationPolicy,
   ResignationPolicyChange,
   ResignationReason,
-  ResignationReviewer,
   ResignationStatus,
   SelfAssessmentInput,
 } from './types';
@@ -105,9 +104,6 @@ export const resignationsApi = {
   list: async () => (
     await request<{ resignations: ResignationApplication[] }>('/resignations')
   ).resignations,
-  reviewers: async () => (
-    await request<{ reviewers: ResignationReviewer[] }>('/resignations/reviewers')
-  ).reviewers,
   apply: (input: {
     proposedLastDay: string;
     reason: ResignationReason;
@@ -121,10 +117,6 @@ export const resignationsApi = {
       method: 'PATCH',
       body: JSON.stringify({ status, note, approvedLastDay }),
     })
-  ),
-  assign: (id: string, assignedToUserId: string | null) => request<{ success: true }>(
-    `/resignations/${encodeURIComponent(id)}/assignment`,
-    { method: 'PATCH', body: JSON.stringify({ assignedToUserId }) },
   ),
   updateChecklistItem: (id: string, itemId: string, input: {
     status?: ResignationChecklistItem['status'];

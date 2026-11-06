@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { CheckCircle2, FileText, Lock, ShieldCheck, Upload } from 'lucide-react';
 import { accountApi, type EmployeeDocumentType, type EmployeeOnboardingDocument } from '../../lib/api';
+import { PhoneNumberField } from '../../components/forms/PhoneNumberField';
 
 const documentFields: { type: EmployeeDocumentType; label: string }[] = [
   { type: 'offer_letter', label: 'Offer letter' },
@@ -31,9 +32,8 @@ const encodeFile = async (documentType: EmployeeDocumentType, file: File): Promi
 };
 
 export const AccountSetupView: React.FC<{
-  adminInvite?: boolean;
   employeeOnboarding?: boolean;
-}> = ({ adminInvite = false, employeeOnboarding = false }) => {
+}> = ({ employeeOnboarding = false }) => {
   const [token] = useState(() => new URLSearchParams(window.location.search).get('token') ?? '');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -44,26 +44,24 @@ export const AccountSetupView: React.FC<{
   const [error, setError] = useState<string | null>(null);
   const [complete, setComplete] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const needsEmployeeDetails = !adminInvite;
-
   useEffect(() => {
     if (!employeeOnboarding) {
-      window.history.replaceState({}, document.title, adminInvite ? '/account/admin-setup' : '/account/setup');
+      window.history.replaceState({}, document.title, '/account/setup');
     }
-  }, [adminInvite, employeeOnboarding]);
+  }, [employeeOnboarding]);
 
   const submit = async (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
     if (!employeeOnboarding && !token) {
-      setError('This access link is missing its token. Ask an administrator for a new link.');
+      setError('This access link is missing its token. Ask HR for a new link.');
       return;
     }
-    if (needsEmployeeDetails && (!fullName.trim() || !dateOfBirth || !phone.trim())) {
+    if (!fullName.trim() || !dateOfBirth || !phone.trim()) {
       setError('Complete your name, date of birth, and contact number.');
       return;
     }
-    if (needsEmployeeDetails && documentFields.some(({ type }) => !files[type])) {
+    if (documentFields.some(({ type }) => !files[type])) {
       setError('Upload all three required documents to continue.');
       return;
     }
@@ -73,14 +71,10 @@ export const AccountSetupView: React.FC<{
     }
     setIsSubmitting(true);
     try {
-      if (adminInvite) {
-        await accountApi.completeAdminSetup(token, password);
-      } else {
-        const documents = await Promise.all(documentFields.map(({ type }) => encodeFile(type, files[type]!)));
-        const profile = { fullName, dateOfBirth, phone, documents };
-        if (employeeOnboarding) await accountApi.submitEmployeeOnboarding(profile);
-        else await accountApi.completeSetup(token, password, profile);
-      }
+      const documents = await Promise.all(documentFields.map(({ type }) => encodeFile(type, files[type]!)));
+      const profile = { fullName, dateOfBirth, phone, documents };
+      if (employeeOnboarding) await accountApi.submitEmployeeOnboarding(profile);
+      else await accountApi.completeSetup(token, password, profile);
       setComplete(true);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : 'Unable to save your account details.');
@@ -90,16 +84,14 @@ export const AccountSetupView: React.FC<{
   };
 
   const title = complete
-    ? (adminInvite ? 'Password set' : 'Onboarding complete')
-    : adminInvite
-      ? 'Set up your HR admin account'
-      : employeeOnboarding
-        ? 'Complete your employee profile'
-        : 'Set up your employee account';
+    ? 'Onboarding complete'
+    : employeeOnboarding
+      ? 'Complete your employee profile'
+      : 'Set up your employee account';
 
   return (
     <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', backgroundColor: '#F8F9FA', padding: '24px' }}>
-      <div className="card" style={{ maxWidth: needsEmployeeDetails ? '680px' : '460px', width: '100%', padding: 'clamp(24px, 5vw, 40px)', borderRadius: '16px', boxShadow: 'var(--shadow-md)' }}>
+      <div className="card" style={{ maxWidth: '680px', width: '100%', padding: 'clamp(24px, 5vw, 40px)', borderRadius: '16px', boxShadow: 'var(--shadow-md)' }}>
         <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: '#E5EDFF', display: 'grid', placeItems: 'center', color: '#0052FF', marginBottom: '20px' }}>
           {complete ? <CheckCircle2 size={24} /> : <ShieldCheck size={24} />}
         </div>
@@ -107,9 +99,7 @@ export const AccountSetupView: React.FC<{
         {complete ? (
           <div>
             <p style={{ fontSize: '14px', color: '#5B616E', marginTop: '10px', lineHeight: 1.5 }}>
-              {adminInvite
-                ? 'Your password has been saved. Sign in using your work email and new password.'
-                : 'Your profile and documents are securely saved. Sign in using your work email to continue.'}
+              Your profile and documents are securely saved. Sign in using your work email to continue.
             </p>
             <a href="/" className="btn btn-primary" style={{ display: 'flex', justifyContent: 'center', marginTop: '24px', textDecoration: 'none' }}>
               Continue to sign in
@@ -120,11 +110,10 @@ export const AccountSetupView: React.FC<{
             <p style={{ fontSize: '14px', color: '#5B616E', marginTop: '10px', lineHeight: 1.5 }}>
               {employeeOnboarding
                 ? 'Complete every required field and upload your documents before you can access the AAVIL dashboard.'
-                : `This one-time ${adminInvite ? 'invitation' : 'access'} link expires after 24 hours.`}
+                : 'This one-time employee access link expires after 24 hours.'}
             </p>
             <form onSubmit={submit} style={{ marginTop: '24px' }}>
-              {needsEmployeeDetails && (
-                <>
+              <>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
                     <div className="form-group">
                       <label className="form-label" htmlFor="full-name">Full name *</label>
@@ -135,10 +124,7 @@ export const AccountSetupView: React.FC<{
                       <input id="date-of-birth" type="date" className="form-control" required max={latestDateOfBirth} value={dateOfBirth} onChange={event => setDateOfBirth(event.target.value)} />
                     </div>
                   </div>
-                  <div className="form-group">
-                    <label className="form-label" htmlFor="contact-number">Contact number *</label>
-                    <input id="contact-number" type="tel" className="form-control" autoComplete="tel" required maxLength={30} value={phone} onChange={event => setPhone(event.target.value)} />
-                  </div>
+                  <PhoneNumberField label="Contact number *" value={phone} onChange={setPhone} required />
                   <div style={{ margin: '22px 0 16px' }}>
                     <h2 style={{ fontSize: '16px', fontWeight: '700', margin: '0 0 6px', color: 'var(--text-main)' }}>Required documents</h2>
                     <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>PDF, JPG, or PNG; maximum 5 MB each and 15 MB total.</p>
@@ -166,8 +152,7 @@ export const AccountSetupView: React.FC<{
                       </label>
                     ))}
                   </div>
-                </>
-              )}
+              </>
               {!employeeOnboarding && (
                 <>
                   <div className="form-group">
@@ -188,7 +173,7 @@ export const AccountSetupView: React.FC<{
               )}
               {error && <div role="alert" style={{ padding: '10px 12px', marginBottom: '16px', borderRadius: '8px', color: '#CF202F', backgroundColor: '#FEECEE', fontSize: '13px' }}>{error}</div>}
               <button type="submit" disabled={isSubmitting || (!employeeOnboarding && !token)} className="btn btn-primary" style={{ width: '100%', padding: '12px' }}>
-                {isSubmitting ? 'Saving…' : employeeOnboarding ? 'Save details and continue' : adminInvite ? 'Set password' : 'Save details and set password'}
+                {isSubmitting ? 'Saving…' : employeeOnboarding ? 'Save details and continue' : 'Save details and set password'}
               </button>
             </form>
           </>

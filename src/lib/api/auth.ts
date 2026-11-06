@@ -2,7 +2,6 @@ import type { User } from '../../types/erp';
 import { ApiError, request } from './request';
 import type {
   AccessLinkResult,
-  AdminAccount,
   EmployeeDocument,
   EmployeeOnboardingDocument,
   ProfileInput,
@@ -40,30 +39,6 @@ export const authApi = {
 };
 
 export const accountApi = {
-  listAdmins: async () => (await request<{ admins: AdminAccount[] }>('/accounts/admins')).admins,
-  inviteAdmin: (admin: Pick<AdminAccount, 'name' | 'email' | 'department' | 'designation'>) => (
-    request<{ invitePath: string; expiresAt: string; emailSent: boolean }>('/accounts/admins/invitations', {
-      method: 'POST',
-      body: JSON.stringify(admin),
-    })
-  ),
-  reissueAdminInvite: (adminId: string) => (
-    request<{ invitePath: string; expiresAt: string; emailSent: boolean }>(`/accounts/admins/${encodeURIComponent(adminId)}/invitation`, {
-      method: 'POST',
-    })
-  ),
-  setAdminActive: (adminId: string, isActive: boolean) => (
-    request<{ account: { isActive: boolean } }>(`/accounts/admins/${encodeURIComponent(adminId)}/active`, {
-      method: 'PATCH',
-      body: JSON.stringify({ isActive }),
-    })
-  ),
-  completeAdminSetup: (token: string, password: string) => (
-    request<{ message: string }>('/accounts/complete-admin-setup', {
-      method: 'POST',
-      body: JSON.stringify({ token, password }),
-    })
-  ),
   issueEmployeeAccessLink: (employeeId: string) => (
     request<AccessLinkResult>(`/accounts/employees/${encodeURIComponent(employeeId)}/access-link`, {
       method: 'POST',
