@@ -3,6 +3,10 @@ import { X, UserPlus } from 'lucide-react';
 import { useERP } from '../../context/ERPContext';
 import { Employee } from '../../types/erp';
 import type { EmployeeInput } from '../../lib/api';
+import { CountryStateLocationField } from '../forms/CountryStateLocationField';
+import { getLocationCountryCode } from '../forms/locationCountries';
+import { PhoneNumberField } from '../forms/PhoneNumberField';
+import { EmployeeJoinDateField } from '../forms/EmployeeJoinDateField';
 
 interface Props {
   isOpen: boolean;
@@ -18,6 +22,8 @@ const EmployeeFormModal: React.FC<Props> = ({ onClose, employee }) => {
   const { addEmployee, updateEmployee } = useERP();
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [skillsInput, setSkillsInput] = useState(() => employee?.skills.join(', ') ?? '');
+  const [salaryInput, setSalaryInput] = useState(() => String(employee ? employee.salary ?? 0 : 110000));
 
   const [formData, setFormData] = useState<EmployeeInput>(() => employee ? {
       firstName: employee.firstName,
@@ -49,18 +55,32 @@ const EmployeeFormModal: React.FC<Props> = ({ onClose, employee }) => {
       salary: 110000,
       bankName: '',
       bankAccountNumber: '',
-      location: 'San Francisco, CA',
+      location: '',
       status: 'Active',
       manager: '',
-      skills: ['React', 'TypeScript'],
+      skills: [],
     });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    if (!formData.joinDate) {
+      setError('Select the employee join date.');
+      return;
+    }
+    const salary = salaryInput.trim() === '' ? 0 : Number(salaryInput);
+    if (!Number.isFinite(salary) || salary < 0) {
+      setError('Enter a valid non-negative salary.');
+      return;
+    }
     setIsSubmitting(true);
     try {
-      const input = formData;
+      const input = {
+        ...formData,
+        salary,
+        manager: employee?.manager ?? '',
+        skills: skillsInput.split(/[,\s]+/).map(skill => skill.trim()).filter(Boolean),
+      };
       if (employee) {
         const { avatar: _avatar, ...updates } = input;
         await updateEmployee(employee.id, updates);
@@ -77,234 +97,229 @@ const EmployeeFormModal: React.FC<Props> = ({ onClose, employee }) => {
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content" style={{ maxWidth: '620px' }}>
+      <div className="modal-content employee-form-modal">
         {/* Modal Header */}
-        <div style={{
-          padding: '20px 24px',
-          borderBottom: '1px solid var(--border-light)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between'
-        }}>
+        <div className="employee-form-header">
           <div>
-            <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>
+            <h3 className="employee-form-title">
               {employee ? 'Edit Employee' : 'Add New Employee'}
             </h3>
-            <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '2px 0 0 0' }}>
-              Create an employee profile. You can issue a one-time login setup link after saving.
+            <p className="employee-form-subtitle">
+              Add employee details. You can send their account setup link after saving.
             </p>
           </div>
-          <button 
+          <button
+            type="button"
+            aria-label="Close employee form"
+            className="employee-form-close"
             onClick={onClose}
-            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
           >
             <X size={20} />
           </button>
         </div>
 
         {/* Form Body */}
-        <form onSubmit={handleSubmit} style={{ padding: '24px' }}>
+        <form onSubmit={handleSubmit} className="employee-form-body">
           {error && (
-            <div role="alert" style={{ padding: '10px 12px', marginBottom: '16px', borderRadius: '8px', color: '#CF202F', backgroundColor: '#FEECEE', fontSize: '13px' }}>
+            <div role="alert" className="employee-form-error">
               {error}
             </div>
           )}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <div className="form-group">
-              <label className="form-label">First Name *</label>
-              <input 
-                type="text" 
-                required
-                className="form-control"
-                placeholder="e.g. Liam"
-                value={formData.firstName}
-                onChange={e => setFormData({ ...formData, firstName: e.target.value })}
-              />
+          <section className="employee-form-section">
+            <div className="employee-form-section-heading">
+              <h4>Personal details</h4>
+              <p>Basic contact information for the employee.</p>
+            </div>
+            <div className="employee-form-grid">
+              <div className="form-group">
+                <label className="form-label" htmlFor="employee-first-name">First name *</label>
+                <input
+                  id="employee-first-name"
+                  type="text"
+                  required
+                  className="form-control"
+                  placeholder="e.g. Liam"
+                  value={formData.firstName}
+                  onChange={e => setFormData({ ...formData, firstName: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="employee-last-name">Last name *</label>
+                <input
+                  id="employee-last-name"
+                  type="text"
+                  required
+                  className="form-control"
+                  placeholder="e.g. O'Connor"
+                  value={formData.lastName}
+                  onChange={e => setFormData({ ...formData, lastName: e.target.value })}
+                />
+              </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Last Name *</label>
-              <input 
-                type="text" 
-                required
-                className="form-control"
-                placeholder="e.g. O'Connor"
-                value={formData.lastName}
-                onChange={e => setFormData({ ...formData, lastName: e.target.value })}
-              />
-            </div>
-          </div>
+            <div className="employee-form-grid">
+              <div className="form-group">
+                <label className="form-label" htmlFor="employee-email">Corporate email *</label>
+                <input
+                  id="employee-email"
+                  type="email"
+                  required
+                  className="form-control"
+                  placeholder="name@aavil.inc"
+                  value={formData.email}
+                  onChange={e => setFormData({ ...formData, email: e.target.value })}
+                />
+              </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <div className="form-group">
-              <label className="form-label">Corporate Email</label>
-              <input 
-                type="email" 
-                required
-                className="form-control"
-                placeholder="name@aavil.inc"
-                value={formData.email}
-                onChange={e => setFormData({ ...formData, email: e.target.value })}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Phone Number</label>
-              <input 
-                type="text" 
-                className="form-control"
-                placeholder="+1 (555) 000-0000"
+              <PhoneNumberField
+                label="Phone Number"
                 value={formData.phone}
-                onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                defaultCountryCode={getLocationCountryCode(formData.location)}
+                onChange={phone => setFormData(previous => ({ ...previous, phone }))}
               />
             </div>
-          </div>
+          </section>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <div className="form-group">
-              <label className="form-label">Department *</label>
-              <select
-                className="form-control"
-                value={formData.department}
-                onChange={e => setFormData({ ...formData, department: e.target.value })}
-              >
-                <option value="Engineering">Engineering</option>
-                <option value="Design">Design</option>
-                <option value="Product">Product</option>
-                <option value="Sales">Sales</option>
-                <option value="Marketing">Marketing</option>
-                <option value="Human Resources">Human Resources</option>
-              </select>
+          <section className="employee-form-section">
+            <div className="employee-form-section-heading">
+              <h4>Work details</h4>
+              <p>Set the employee’s role and start date.</p>
+            </div>
+            <div className="employee-form-grid">
+              <div className="form-group">
+                <label className="form-label" htmlFor="employee-department">Department *</label>
+                <select
+                  id="employee-department"
+                  className="form-control"
+                  value={formData.department}
+                  onChange={e => setFormData({ ...formData, department: e.target.value })}
+                >
+                  <option value="Engineering">Engineering</option>
+                  <option value="Design">Design</option>
+                  <option value="Product">Product</option>
+                  <option value="Sales">Sales</option>
+                  <option value="Marketing">Marketing</option>
+                  <option value="Human Resources">Human Resources</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="employee-designation">Designation *</label>
+                <input
+                  id="employee-designation"
+                  type="text"
+                  required
+                  className="form-control"
+                  placeholder="e.g. Senior Cloud Architect"
+                  value={formData.designation}
+                  onChange={e => setFormData({ ...formData, designation: e.target.value })}
+                />
+              </div>
             </div>
 
-            <div className="form-group">
-              <label className="form-label">Designation *</label>
-              <input 
-                type="text" 
-                required
-                className="form-control"
-                placeholder="e.g. Senior Cloud Architect"
-                value={formData.designation}
-                onChange={e => setFormData({ ...formData, designation: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-            <div className="form-group">
-              <label className="form-label">Join Date *</label>
-              <input
-                type="date"
-                required
-                className="form-control"
-                value={formData.joinDate}
-                onChange={e => setFormData({ ...formData, joinDate: e.target.value })}
-              />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Manager</label>
-              <input
-                type="text"
-                className="form-control"
-                value={formData.manager}
-                onChange={e => setFormData({ ...formData, manager: e.target.value })}
-              />
-            </div>
-          </div>
-
-          <h4 style={{ margin: '20px 0 12px', color: 'var(--text-main)', fontSize: '14px' }}>Payroll & bank details</h4>
-          <p style={{ margin: '-6px 0 14px', color: 'var(--text-secondary)', fontSize: '12px' }}>
-            Saved securely on the employee profile and copied into each new payslip.
-          </p>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
-            <div className="form-group">
-              <label className="form-label">Monthly Base Salary (₹)</label>
-              <input 
-                type="number" 
-                className="form-control"
-                value={formData.salary}
-                onChange={e => setFormData({ ...formData, salary: Number(e.target.value) })}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Bank Name</label>
-              <input
-                type="text"
-                maxLength={120}
-                className="form-control"
-                placeholder="e.g. HDFC Bank"
-                value={formData.bankName ?? ''}
-                onChange={e => setFormData({ ...formData, bankName: e.target.value })}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Bank Account Number</label>
-              <input
-                type="text"
-                maxLength={64}
-                autoComplete="off"
-                className="form-control"
-                placeholder="Enter account number"
-                value={formData.bankAccountNumber ?? ''}
-                onChange={e => setFormData({ ...formData, bankAccountNumber: e.target.value })}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Location</label>
-              <input 
-                type="text" 
-                className="form-control"
-                value={formData.location}
-                onChange={e => setFormData({ ...formData, location: e.target.value })}
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Status</label>
-              <select
-                className="form-control"
-                value={formData.status}
-                onChange={e => setFormData({ ...formData, status: e.target.value as Employee['status'] })}
-              >
-                <option value="Active">Active</option>
-                <option value="Probation">Probation</option>
-                <option value="On Leave">On Leave</option>
-                <option value="Inactive">Inactive</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">Skills (comma separated)</label>
-            <input 
-              type="text" 
-              className="form-control"
-              placeholder="React, Node.js, GraphQL, Docker"
-              value={formData.skills.join(', ')}
-              onChange={e => setFormData({ ...formData, skills: e.target.value.split(',').map(skill => skill.trim()).filter(Boolean) })}
+            <EmployeeJoinDateField
+              value={formData.joinDate}
+              onChange={joinDate => setFormData(previous => ({ ...previous, joinDate }))}
             />
-          </div>
+          </section>
 
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            marginTop: '24px',
-            paddingTop: '16px',
-            borderTop: '1px solid var(--border-light)'
-          }}>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button type="button" onClick={onClose} className="btn btn-secondary">
-                Cancel
-              </button>
-              <button type="submit" disabled={isSubmitting} className="btn btn-primary">
-                <UserPlus size={16} />
-                <span>{isSubmitting ? 'Saving…' : employee ? 'Save Changes' : 'Save Employee'}</span>
-              </button>
+          <section className="employee-form-section">
+            <div className="employee-form-section-heading">
+              <h4>Payroll &amp; bank details</h4>
+              <p>Salary and bank details are saved securely and used for payroll.</p>
             </div>
+            <div className="employee-form-grid employee-form-grid-three">
+              <div className="form-group">
+                <label className="form-label" htmlFor="employee-salary">Monthly base salary (₹)</label>
+                <input
+                  id="employee-salary"
+                  type="text"
+                  inputMode="decimal"
+                  className="form-control"
+                  value={salaryInput}
+                  onChange={e => setSalaryInput(e.target.value)}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="employee-bank-name">Bank name</label>
+                <input
+                  id="employee-bank-name"
+                  type="text"
+                  maxLength={120}
+                  className="form-control"
+                  placeholder="e.g. HDFC Bank"
+                  value={formData.bankName ?? ''}
+                  onChange={e => setFormData({ ...formData, bankName: e.target.value })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="employee-bank-account">Bank account number</label>
+                <input
+                  id="employee-bank-account"
+                  type="text"
+                  maxLength={64}
+                  autoComplete="off"
+                  className="form-control"
+                  placeholder="Enter account number"
+                  value={formData.bankAccountNumber ?? ''}
+                  onChange={e => setFormData({ ...formData, bankAccountNumber: e.target.value })}
+                />
+              </div>
+            </div>
+          </section>
+
+          <section className="employee-form-section">
+            <div className="employee-form-section-heading">
+              <h4>Workplace &amp; skills</h4>
+              <p>Add the employee’s location, status, and relevant skills.</p>
+            </div>
+            <div className="employee-form-grid">
+              <CountryStateLocationField
+                value={formData.location}
+                onChange={location => setFormData(previous => ({ ...previous, location }))}
+              />
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="employee-status">Status</label>
+                <select
+                  id="employee-status"
+                  className="form-control"
+                  value={formData.status}
+                  onChange={e => setFormData({ ...formData, status: e.target.value as Employee['status'] })}
+                >
+                  <option value="Active">Active</option>
+                  <option value="Probation">Probation</option>
+                  <option value="On Leave">On Leave</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="form-group">
+              <label className="form-label" htmlFor="employee-skills">Skills</label>
+              <input
+                id="employee-skills"
+                type="text"
+                className="form-control"
+                placeholder="e.g. React, TypeScript, communication"
+                value={skillsInput}
+                onChange={e => setSkillsInput(e.target.value)}
+              />
+              <span className="employee-form-hint">Separate skills with commas or spaces.</span>
+            </div>
+          </section>
+
+          <div className="employee-form-actions">
+            <button type="button" onClick={onClose} className="btn btn-secondary">
+              Cancel
+            </button>
+            <button type="submit" disabled={isSubmitting} className="btn btn-primary">
+              <UserPlus size={16} />
+              <span>{isSubmitting ? 'Saving…' : employee ? 'Save Changes' : 'Save Employee'}</span>
+            </button>
           </div>
         </form>
       </div>

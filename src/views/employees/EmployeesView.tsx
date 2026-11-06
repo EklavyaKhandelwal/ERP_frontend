@@ -8,6 +8,7 @@ import {
   UserCheck,
   UserX,
   Copy,
+  Check,
   X,
 } from 'lucide-react';
 import { useERP } from '../../context/ERPContext';
@@ -19,6 +20,8 @@ export const EmployeesView: React.FC = () => {
     employees, 
     employeesLoading,
     role,
+    isAddEmployeeModalOpen,
+    setIsAddEmployeeModalOpen,
     issueEmployeeAccessLink,
     setEmployeeAccountActive,
     setCurrentView, 
@@ -28,10 +31,17 @@ export const EmployeesView: React.FC = () => {
   const [search, setSearch] = useState('');
   const [selectedDept, setSelectedDept] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [accessLink, setAccessLink] = useState<{ employeeName: string; url: string; purpose: 'setup' | 'reset'; expiresAt: string } | null>(null);
+  const [accessLink, setAccessLink] = useState<{
+    employeeName: string;
+    email: string;
+    emailSent: boolean;
+    url: string;
+    purpose: 'setup' | 'reset';
+    expiresAt: string;
+  } | null>(null);
   const [accountActionError, setAccountActionError] = useState<string | null>(null);
   const [pendingAccountAction, setPendingAccountAction] = useState<string | null>(null);
+  const [accessLinkCopied, setAccessLinkCopied] = useState(false);
 
   const departments = ['All', ...new Set(employees.map(employee => employee.department))];
 
@@ -65,10 +75,13 @@ export const EmployeesView: React.FC = () => {
       const result = await issueEmployeeAccessLink(employeeId);
       setAccessLink({
         employeeName,
+        email: result.email,
+        emailSent: result.emailSent,
         url: new URL(result.accessPath, window.location.origin).toString(),
         purpose: result.purpose,
         expiresAt: result.expiresAt,
       });
+      setAccessLinkCopied(false);
     } catch (error) {
       setAccountActionError(error instanceof Error ? error.message : 'Unable to create an access link.');
     } finally {
@@ -92,7 +105,10 @@ export const EmployeesView: React.FC = () => {
     if (!accessLink) return;
     try {
       await navigator.clipboard.writeText(accessLink.url);
+      setAccessLinkCopied(true);
+      setAccountActionError(null);
     } catch {
+      setAccessLinkCopied(false);
       setAccountActionError('Clipboard access was blocked. Select and copy the access link manually.');
     }
   };
@@ -116,7 +132,7 @@ export const EmployeesView: React.FC = () => {
         <div style={{ display: 'flex', gap: '12px' }}>
           {role === 'admin' && (
             <button
-              onClick={() => setIsAddModalOpen(true)}
+              onClick={() => setIsAddEmployeeModalOpen(true)}
               className="btn btn-primary"
             >
               <UserPlus size={16} />
@@ -318,8 +334,8 @@ export const EmployeesView: React.FC = () => {
       {/* Add Employee Modal */}
       {role === 'admin' && (
         <AddEmployeeModal
-          isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
+          isOpen={isAddEmployeeModalOpen}
+          onClose={() => setIsAddEmployeeModalOpen(false)}
         />
       )}
       {accountActionError && (
@@ -336,7 +352,9 @@ export const EmployeesView: React.FC = () => {
                 <h3 style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>
                   {accessLink.purpose === 'setup' ? 'Employee setup link' : 'Password reset link'}
                 </h3>
-                <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '4px 0 0' }}>{accessLink.employeeName} · expires {new Date(accessLink.expiresAt).toLocaleString()}</p>
+                <p style={{ fontSize: '12.5px', color: 'var(--text-secondary)', margin: '4px 0 0' }}>
+                  {accessLink.employeeName} · {accessLink.email} · expires {new Date(accessLink.expiresAt).toLocaleString()}
+                </p>
               </div>
               <button type="button" aria-label="Close" onClick={() => setAccessLink(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}>
                 <X size={20} />
@@ -344,14 +362,22 @@ export const EmployeesView: React.FC = () => {
             </div>
             <div style={{ padding: '24px' }}>
               <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: 0 }}>
-                Share this one-time link with the employee through a trusted channel. It expires in 24 hours and can only be used once. The app does not send email.
+                {accessLink.emailSent
+                  ? `The one-time link was emailed to ${accessLink.email}. It expires in 24 hours and can only be used once.`
+                  : `The email could not be sent to ${accessLink.email}. Check the backend email configuration, then copy and share this one-time link securely. It expires in 24 hours and can only be used once.`}
               </p>
               <div style={{ display: 'flex', gap: '8px' }}>
                 <input aria-label="One-time access link" readOnly className="form-control" value={accessLink.url} onFocus={event => event.currentTarget.select()} />
                 <button type="button" className="btn btn-secondary" onClick={() => void copyAccessLink()}>
-                  <Copy size={15} /> Copy
+                  {accessLinkCopied ? <Check size={15} /> : <Copy size={15} />}
+                  {accessLinkCopied ? 'Copied' : 'Copy'}
                 </button>
               </div>
+              {accessLinkCopied && (
+                <p role="status" style={{ margin: '10px 0 0', color: 'var(--success)', fontSize: '13px', fontWeight: 600 }}>
+                  Link copied successfully.
+                </p>
+              )}
             </div>
           </div>
         </div>

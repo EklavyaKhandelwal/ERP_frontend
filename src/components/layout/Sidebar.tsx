@@ -10,7 +10,6 @@ import {
   CalendarCheck,
   Award, 
   LogOut,
-  ShieldCheck,
   UserRound,
   FileText,
   SlidersHorizontal,
@@ -96,9 +95,6 @@ export const Sidebar: React.FC = () => {
       icon: <FileText size={18} />
     }
   ];
-  if (currentUser.isOwner) {
-    menuItems.push({ id: 'admin-access', label: 'HR Admin Access', icon: <ShieldCheck size={18} /> });
-  }
   menuItems.push({ id: 'settings', label: 'Settings', icon: <SlidersHorizontal size={18} /> });
   menuItems.push({ id: 'my-profile', label: 'My Profile', icon: <UserRound size={18} /> });
 
@@ -225,10 +221,10 @@ export const Sidebar: React.FC = () => {
           />
           <div style={{ overflow: 'hidden' }}>
             <div style={{ color: '#FFFFFF', fontWeight: '600', fontSize: '13px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-              {currentUser.name}
+              {currentUser.role === 'admin' ? 'HR' : currentUser.name}
             </div>
             <div style={{ color: 'var(--dark-text-muted)', fontSize: '11px', whiteSpace: 'nowrap', textOverflow: 'ellipsis', overflow: 'hidden' }}>
-              {currentUser.designation}
+              {currentUser.role === 'admin' ? 'Human Resources' : currentUser.designation}
             </div>
           </div>
         </div>

@@ -35,6 +35,8 @@ export interface ERPContextType {
   authError: string | null;
   currentView: AppView;
   setCurrentView: (view: AppView) => void;
+  isAddEmployeeModalOpen: boolean;
+  setIsAddEmployeeModalOpen: (isOpen: boolean) => void;
   selectedEmployeeId: string | null;
   setSelectedEmployeeId: (id: string | null) => void;
   selectedProjectId: string | null;

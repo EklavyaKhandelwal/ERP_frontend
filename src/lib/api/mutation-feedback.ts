@@ -119,7 +119,7 @@ export function mutationFeedback(path: string, method: string): MutationFeedback
   }
   if (
     normalizedPath.startsWith('/auth/')
-    || ['/accounts/complete-admin-setup', '/accounts/complete-setup', '/accounts/onboarding', '/notifications/read'].includes(normalizedPath)
+    || ['/accounts/complete-setup', '/accounts/onboarding', '/notifications/read'].includes(normalizedPath)
   ) {
     return null;
   }

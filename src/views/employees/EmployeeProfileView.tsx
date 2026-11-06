@@ -195,10 +195,6 @@ export const EmployeeProfileView: React.FC = () => {
           </div>
 
           <div style={{ display: 'flex', gap: '8px' }}>
-            <a href={`mailto:${employee.email}`} className="btn btn-secondary btn-sm" style={{ textDecoration: 'none' }}>
-              <Mail size={14} />
-              <span>Send Email</span>
-            </a>
             {role === 'admin' && (
               <button onClick={() => setIsEditModalOpen(true)} className="btn btn-primary btn-sm">
                 <span>Edit Record</span>

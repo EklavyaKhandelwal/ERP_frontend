@@ -3,6 +3,9 @@ import { Camera, Check, ChevronRight, Download, Eye, FileText, LoaderCircle, Pen
 import { useERP } from '../../context/ERPContext';
 import { accountApi, type EmployeeDocument, type EmployeeDocumentType } from '../../lib/api';
 import { CardGridSkeleton, SectionSkeleton } from '../../components/feedback/LoadingSkeleton';
+import { CountryStateLocationField } from '../../components/forms/CountryStateLocationField';
+import { getLocationCountryCode } from '../../components/forms/locationCountries';
+import { PhoneNumberField } from '../../components/forms/PhoneNumberField';
 
 const cardStyle: React.CSSProperties = {
   background: '#FFFFFF',
@@ -267,9 +270,11 @@ export const MyProfileView: React.FC = () => {
     setIsPreviewLoading(false);
   };
 
-  const fullName = employee
-    ? `${employee.firstName} ${employee.lastName}`
-    : currentUser.name;
+  const fullName = currentUser.role === 'admin'
+    ? 'HR'
+    : employee
+      ? `${employee.firstName} ${employee.lastName}`
+      : currentUser.name;
   const formatDate = (date: string | null | undefined) => {
     if (!date) return 'Not provided';
     const parsedDate = new Date(`${date}T00:00:00`);
@@ -436,19 +441,13 @@ export const MyProfileView: React.FC = () => {
                   />
                 </label>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-                    <label className="form-group" style={{ margin: 0 }}>
-                      <span className="form-label">Mobile number *</span>
-                      <input
-                        className="form-control"
-                        type="tel"
-                        autoComplete="tel"
-                        required
-                        minLength={7}
-                        maxLength={30}
-                        value={profilePhone}
-                        onChange={event => setProfilePhone(event.target.value)}
-                      />
-                    </label>
+                    <PhoneNumberField
+                      label="Mobile number *"
+                      value={profilePhone}
+                      defaultCountryCode={getLocationCountryCode(profileLocation)}
+                      onChange={setProfilePhone}
+                      required
+                    />
                     <label className="form-group" style={{ margin: 0 }}>
                       <span className="form-label">Date of birth *</span>
                       <input
@@ -482,16 +481,12 @@ export const MyProfileView: React.FC = () => {
                         onChange={event => setProfileDesignation(event.target.value)}
                       />
                     </label>
-                    <label className="form-group" style={{ margin: 0 }}>
-                      <span className="form-label">Work location *</span>
-                      <input
-                        className="form-control"
-                        required
-                        maxLength={150}
-                        value={profileLocation}
-                        onChange={event => setProfileLocation(event.target.value)}
-                      />
-                    </label>
+                    <CountryStateLocationField
+                      label="Work location"
+                      value={profileLocation}
+                      onChange={setProfileLocation}
+                      required
+                    />
                   </div>
                 )}
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
@@ -530,10 +525,7 @@ export const MyProfileView: React.FC = () => {
               gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
               gap: '20px 28px',
             }}>
-              <div><p style={labelStyle}>Account type</p><p style={valueStyle}>{currentUser.role === 'admin' ? 'Administrator' : 'Employee'}</p></div>
-              {currentUser.role === 'admin' && (
-                <div><p style={labelStyle}>Access</p><p style={valueStyle}>{currentUser.isOwner ? 'Company owner' : 'HR administrator'}</p></div>
-              )}
+              <div><p style={labelStyle}>Account type</p><p style={valueStyle}>{currentUser.role === 'admin' ? 'HR' : 'Employee'}</p></div>
               <div><p style={labelStyle}>Onboarding</p><p style={valueStyle}>{currentUser.onboardingComplete ? 'Complete' : 'Pending'}</p></div>
               {!employee && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)' }}>

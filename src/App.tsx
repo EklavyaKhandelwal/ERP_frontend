@@ -21,7 +21,6 @@ const TimesheetsView = lazy(() => import('./views/timesheets/TimesheetsView').th
 const AttendanceView = lazy(() => import('./views/attendance/AttendanceView').then(module => ({ default: module.AttendanceView })));
 const ReportsView = lazy(() => import('./views/reports/ReportsView').then(module => ({ default: module.ReportsView })));
 const AppraisalsView = lazy(() => import('./views/appraisals/AppraisalsView').then(module => ({ default: module.AppraisalsView })));
-const AdminAccessView = lazy(() => import('./views/admin/AdminAccessView').then(module => ({ default: module.AdminAccessView })));
 const MyProfileView = lazy(() => import('./views/profile/MyProfileView').then(module => ({ default: module.MyProfileView })));
 const ResignationView = lazy(() => import('./views/resignation/ResignationView').then(module => ({ default: module.ResignationView })));
 const SettingsView = lazy(() => import('./views/settings/SettingsView').then(module => ({ default: module.SettingsView })));
@@ -69,10 +68,10 @@ const AppContent: React.FC = () => {
     return () => window.clearTimeout(timeoutId);
   }, [successFeedback]);
 
-  if (window.location.pathname === '/account/setup' || window.location.pathname === '/account/admin-setup') {
+  if (window.location.pathname === '/account/setup') {
     return (
       <Suspense fallback={<AppLoadingSkeleton />}>
-        <AccountSetupView adminInvite={window.location.pathname === '/account/admin-setup'} />
+        <AccountSetupView />
       </Suspense>
     );
   }
@@ -111,8 +110,6 @@ const AppContent: React.FC = () => {
         return <SettingsView />;
       case 'resignation':
         return <ResignationView />;
-      case 'admin-access':
-        return currentUser.isOwner ? <AdminAccessView /> : <AdminDashboardView />;
       case 'employee-profile':
         return <EmployeeProfileView />;
       case 'leaves':

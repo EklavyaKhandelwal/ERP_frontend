@@ -33,7 +33,7 @@ function formatDate(date: string): string {
 }
 
 export const AdminDashboardView: React.FC = () => {
-  const { setCurrentView } = useERP();
+  const { setCurrentView, setIsAddEmployeeModalOpen } = useERP();
   const [today, setToday] = useState(() => dateKey(new Date()));
   const [summary, setSummary] = useState<AdminDashboardSummary | null>(null);
   const [summaryLoading, setSummaryLoading] = useState(true);
@@ -205,7 +205,13 @@ export const AdminDashboardView: React.FC = () => {
           </svg>
           <h2>Welcome to AAVIL</h2>
           <p>Get started by adding your first employees and setting up departments.</p>
-          <button onClick={() => setCurrentView('employees')} className="btn btn-primary">
+          <button
+            onClick={() => {
+              setIsAddEmployeeModalOpen(true);
+              setCurrentView('employees');
+            }}
+            className="btn btn-primary"
+          >
             Add First Employee
           </button>
         </section>

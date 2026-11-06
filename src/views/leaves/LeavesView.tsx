@@ -149,7 +149,7 @@ export const LeavesView: React.FC = () => {
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <h2 style={{ fontSize: '20px', fontWeight: '800', color: 'var(--text-main)', margin: 0 }}>
-              {role === 'admin' ? 'Time-Off Administration & Approvals' : 'My Leave Allowances & History'}
+              {role === 'admin' ? 'HR Leave Approvals' : 'My Leave Allowances & History'}
             </h2>
             <span className="badge badge-neutral">{leaves.length} Total Requests</span>
           </div>
@@ -166,13 +166,15 @@ export const LeavesView: React.FC = () => {
               <CalendarPlus size={16} /> <span>Add Holiday</span>
             </button>
           )}
-          <button
-            onClick={() => setIsApplyModalOpen(true)}
-            className="btn btn-primary"
-          >
-            <Plus size={16} />
-            <span>Apply Leave</span>
-          </button>
+          {role === 'employee' && (
+            <button
+              onClick={() => setIsApplyModalOpen(true)}
+              className="btn btn-primary"
+            >
+              <Plus size={16} />
+              <span>Apply Leave</span>
+            </button>
+          )}
         </div>
       </div>
 
@@ -475,10 +477,12 @@ export const LeavesView: React.FC = () => {
       </div>
         </>
       )}
-      <ApplyLeaveModal 
-        isOpen={isApplyModalOpen}
-        onClose={() => setIsApplyModalOpen(false)}
-      />
+      {role === 'employee' && (
+        <ApplyLeaveModal
+          isOpen={isApplyModalOpen}
+          onClose={() => setIsApplyModalOpen(false)}
+        />
+      )}
 
       <LeaveApprovalModal 
         key={selectedReviewLeave?.id ?? 'closed'}

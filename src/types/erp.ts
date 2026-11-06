@@ -8,7 +8,6 @@ export interface User {
   phone?: string;
   dateOfBirth?: string | null;
   location?: string;
-  isOwner?: boolean;
   onboardingComplete: boolean;
   avatar: string;
   designation: string;
@@ -251,7 +250,6 @@ export interface AppraisalReview {
 
 export type AppView = 
   | 'login'
-  | 'admin-access'
   | 'forgot-password'
   | 'two-factor'
   | 'dashboard'
