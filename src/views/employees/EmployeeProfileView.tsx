@@ -314,7 +314,9 @@ export const EmployeeProfileView: React.FC = () => {
                     <FileText size={18} color="#0052FF" />
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: '13px', fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis' }}>{document.fileName}</div>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '12px' }}>{document.documentType.replaceAll('_', ' ')}</div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '12px' }}>
+                        {document.documentType === 'nda' ? 'Non-Disclosure Agreement (NDA)' : document.documentType.replaceAll('_', ' ')}
+                      </div>
                     </div>
                   </div>
                   <button type="button" className="btn btn-secondary btn-sm" disabled={downloadingDocumentId === document.id} onClick={() => void downloadDocument(document)}>
