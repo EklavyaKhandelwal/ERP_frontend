@@ -135,7 +135,12 @@ export type AccessLinkResult = {
   email: string;
   emailSent: boolean;
 };
-export type EmployeeDocumentType = 'offer_letter' | 'education_certificate' | 'government_id';
+export type EmployeeDocumentType =
+  | 'offer_letter'
+  | 'education_certificate'
+  | 'government_id'
+  | 'bond_agreement'
+  | 'nda';
 export type EmployeeOnboardingDocument = {
   documentType: EmployeeDocumentType;
   fileName: string;

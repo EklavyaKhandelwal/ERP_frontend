@@ -3,10 +3,14 @@ import { CheckCircle2, FileText, Lock, ShieldCheck, Upload } from 'lucide-react'
 import { accountApi, type EmployeeDocumentType, type EmployeeOnboardingDocument } from '../../lib/api';
 import { PhoneNumberField } from '../../components/forms/PhoneNumberField';
 
-const documentFields: { type: EmployeeDocumentType; label: string }[] = [
+const requiredDocumentFields: { type: EmployeeDocumentType; label: string }[] = [
   { type: 'offer_letter', label: 'Offer letter' },
   { type: 'education_certificate', label: 'Educational certificates' },
   { type: 'government_id', label: 'Government ID proof' },
+];
+const optionalDocumentFields: { type: EmployeeDocumentType; label: string }[] = [
+  { type: 'bond_agreement', label: 'Bond Agreement' },
+  { type: 'nda', label: 'Non-Disclosure Agreement (NDA)' },
 ];
 const latestDateOfBirth = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
 
@@ -61,8 +65,8 @@ export const AccountSetupView: React.FC<{
       setError('Complete your name, date of birth, and contact number.');
       return;
     }
-    if (documentFields.some(({ type }) => !files[type])) {
-      setError('Upload all three required documents to continue.');
+    if (requiredDocumentFields.some(({ type }) => !files[type])) {
+      setError('Upload the offer letter, educational certificates, and government ID to continue.');
       return;
     }
     if (!employeeOnboarding && password !== confirmPassword) {
@@ -71,7 +75,11 @@ export const AccountSetupView: React.FC<{
     }
     setIsSubmitting(true);
     try {
-      const documents = await Promise.all(documentFields.map(({ type }) => encodeFile(type, files[type]!)));
+      const documents = await Promise.all(
+        [...requiredDocumentFields, ...optionalDocumentFields]
+          .filter(({ type }) => files[type])
+          .map(({ type }) => encodeFile(type, files[type]!)),
+      );
       const profile = { fullName, dateOfBirth, phone, documents };
       if (employeeOnboarding) await accountApi.submitEmployeeOnboarding(profile);
       else await accountApi.completeSetup(token, password, profile);
@@ -109,9 +117,20 @@ export const AccountSetupView: React.FC<{
           <>
             <p style={{ fontSize: '14px', color: '#5B616E', marginTop: '10px', lineHeight: 1.5 }}>
               {employeeOnboarding
-                ? 'Complete every required field and upload your documents before you can access the AAVIL dashboard.'
+                ? 'Complete every required field and upload the required documents before you can access the AAVIL dashboard.'
                 : 'This one-time employee access link expires after 24 hours.'}
             </p>
+            <div role="note" style={{
+              marginTop: '14px',
+              padding: '12px 14px',
+              borderRadius: '8px',
+              color: '#334155',
+              background: '#EFF6FF',
+              fontSize: '13px',
+              lineHeight: 1.5,
+            }}>
+              <strong>Bond Agreement and NDA are optional.</strong> You can skip them now and upload them later from your profile.
+            </div>
             <form onSubmit={submit} style={{ marginTop: '24px' }}>
               <>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
@@ -127,10 +146,10 @@ export const AccountSetupView: React.FC<{
                   <PhoneNumberField label="Contact number *" value={phone} onChange={setPhone} required />
                   <div style={{ margin: '22px 0 16px' }}>
                     <h2 style={{ fontSize: '16px', fontWeight: '700', margin: '0 0 6px', color: 'var(--text-main)' }}>Required documents</h2>
-                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>PDF, JPG, or PNG; maximum 5 MB each and 15 MB total.</p>
+                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>PDF, JPG, or PNG; maximum 5 MB each and 25 MB total.</p>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '20px' }}>
-                    {documentFields.map(({ type, label }) => (
+                    {requiredDocumentFields.map(({ type, label }) => (
                       <label key={type} className="card" style={{ display: 'grid', gap: '8px', padding: '14px', border: '1px solid var(--border-light)', cursor: 'pointer' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: '600' }}>
                           {files[type] ? <FileText size={16} color="#05B169" /> : <Upload size={16} color="#0052FF" />}
@@ -142,6 +161,34 @@ export const AccountSetupView: React.FC<{
                         <input
                           type="file"
                           required
+                          accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+                          style={{ position: 'absolute', width: 1, height: 1, opacity: 0 }}
+                          onChange={event => {
+                            const file = event.target.files?.[0];
+                            if (file) setFiles(previous => ({ ...previous, [type]: file }));
+                          }}
+                        />
+                      </label>
+                    ))}
+                  </div>
+                  <div style={{ margin: '22px 0 16px' }}>
+                    <h2 style={{ fontSize: '16px', fontWeight: '700', margin: '0 0 6px', color: 'var(--text-main)' }}>Optional agreements</h2>
+                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--text-muted)' }}>
+                      You can upload these now or add them later from your profile.
+                    </p>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px', marginBottom: '20px' }}>
+                    {optionalDocumentFields.map(({ type, label }) => (
+                      <label key={type} className="card" style={{ display: 'grid', gap: '8px', padding: '14px', border: '1px solid var(--border-light)', cursor: 'pointer' }}>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: '600' }}>
+                          {files[type] ? <FileText size={16} color="#05B169" /> : <Upload size={16} color="#0052FF" />}
+                          {label} (Optional)
+                        </span>
+                        <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '12px', color: 'var(--text-muted)' }}>
+                          {files[type]?.name ?? 'Choose a file or skip'}
+                        </span>
+                        <input
+                          type="file"
                           accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
                           style={{ position: 'absolute', width: 1, height: 1, opacity: 0 }}
                           onChange={event => {

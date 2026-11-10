@@ -3,6 +3,7 @@ import { ApiError, request } from './request';
 import type {
   AccessLinkResult,
   EmployeeDocument,
+  EmployeeDocumentType,
   EmployeeOnboardingDocument,
   ProfileInput,
 } from './types';
@@ -79,6 +80,9 @@ export const accountApi = {
       method: 'PUT',
       body: JSON.stringify(document),
     },
+  ),
+  removeMyDocument: (documentType: Extract<EmployeeDocumentType, 'bond_agreement' | 'nda'>) => (
+    request<void>(`/accounts/my-documents/${encodeURIComponent(documentType)}`, { method: 'DELETE' })
   ),
   downloadMyDocument: async (document: EmployeeDocument) => {
     let response: Response;

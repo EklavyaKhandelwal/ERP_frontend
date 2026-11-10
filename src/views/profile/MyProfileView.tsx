@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Camera, Check, ChevronRight, Download, Eye, FileText, LoaderCircle, Pencil, RefreshCw, UserRound, X } from 'lucide-react';
+import { Camera, Check, ChevronRight, Download, Eye, FileText, LoaderCircle, Pencil, Plus, RefreshCw, Trash2, UserRound, X } from 'lucide-react';
 import { useERP } from '../../context/ERPContext';
 import { accountApi, type EmployeeDocument, type EmployeeDocumentType } from '../../lib/api';
 import { CardGridSkeleton, SectionSkeleton } from '../../components/feedback/LoadingSkeleton';
@@ -30,7 +30,10 @@ const documentLabels: Record<EmployeeDocumentType, string> = {
   offer_letter: 'Offer letter',
   education_certificate: 'Education certificate',
   government_id: 'Government ID',
+  bond_agreement: 'Bond Agreement',
+  nda: 'Non-Disclosure Agreement (NDA)',
 };
+const profileDocumentTypes = Object.keys(documentLabels) as EmployeeDocumentType[];
 
 const readDocumentFile = (file: File, documentType: EmployeeDocumentType) => new Promise<{
   documentType: EmployeeDocumentType;
@@ -85,6 +88,8 @@ export const MyProfileView: React.FC = () => {
   const previewRequestId = useRef(0);
   const [replaceDocumentType, setReplaceDocumentType] = useState<EmployeeDocumentType | null>(null);
   const [uploadingDocumentType, setUploadingDocumentType] = useState<EmployeeDocumentType | null>(null);
+  const [deletingDocumentType, setDeletingDocumentType] = useState<EmployeeDocumentType | null>(null);
+  const [documentToRemove, setDocumentToRemove] = useState<Extract<EmployeeDocumentType, 'bond_agreement' | 'nda'> | null>(null);
   const employee = employees.find(record => (
     record.email.toLowerCase() === currentUser.email.toLowerCase()
   ));
@@ -227,6 +232,31 @@ export const MyProfileView: React.FC = () => {
     }
   };
 
+  const removeOptionalDocument = async () => {
+    const documentType = documentToRemove;
+    if (!documentType) return;
+    setDocumentsError(null);
+    setDeletingDocumentType(documentType);
+    try {
+      await accountApi.removeMyDocument(documentType);
+      setDocuments(previous => (previous ?? []).filter(document => document.documentType !== documentType));
+      if (previewDocument?.documentType === documentType) closeDocumentPreview();
+      setDocumentToRemove(null);
+    } catch (deleteError) {
+      setDocumentsError(deleteError instanceof Error ? deleteError.message : 'Unable to remove this document.');
+    } finally {
+      setDeletingDocumentType(null);
+    }
+  };
+
+  const chooseDocumentFile = (documentType: EmployeeDocumentType) => {
+    setReplaceDocumentType(documentType);
+    if (documentFileInput.current) {
+      documentFileInput.current.value = '';
+      documentFileInput.current.click();
+    }
+  };
+
   const downloadDocument = async (document: EmployeeDocument) => {
     setDocumentsError(null);
     try {
@@ -319,6 +349,68 @@ export const MyProfileView: React.FC = () => {
               {isSaving ? <LoaderCircle size={15} /> : <Check size={15} />}
               {isSaving ? 'Saving…' : 'Save photo'}
             </button>
+          </div>
+        )}
+        {documentToRemove && (
+          <div
+            role="presentation"
+            onMouseDown={event => {
+              if (event.target === event.currentTarget && !deletingDocumentType) setDocumentToRemove(null);
+            }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 210,
+              display: 'grid',
+              placeItems: 'center',
+              padding: '24px',
+              background: 'rgba(10, 11, 13, 0.56)',
+              backdropFilter: 'blur(3px)',
+            }}
+          >
+            <section
+              role="alertdialog"
+              aria-modal="true"
+              aria-labelledby="remove-document-title"
+              aria-describedby="remove-document-description"
+              style={{
+                width: 'min(420px, 100%)',
+                padding: '24px',
+                borderRadius: '16px',
+                background: '#FFFFFF',
+                boxShadow: 'var(--shadow-modal)',
+              }}
+            >
+              <h3 id="remove-document-title" style={{ margin: 0, fontSize: '17px', color: 'var(--text-main)' }}>
+                Remove {documentLabels[documentToRemove]}?
+              </h3>
+              <p id="remove-document-description" style={{ margin: '10px 0 0', color: 'var(--text-secondary)', fontSize: '14px', lineHeight: 1.5 }}>
+                Are you sure you want to remove this document? You can upload it again later from your profile.
+              </p>
+              {documentsError && (
+                <p role="alert" style={{ margin: '12px 0 0', color: 'var(--danger)', fontSize: '13px' }}>
+                  {documentsError}
+                </p>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '24px' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  disabled={deletingDocumentType !== null}
+                  onClick={() => setDocumentToRemove(null)}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-primary"
+                  disabled={deletingDocumentType !== null}
+                  onClick={() => void removeOptionalDocument()}
+                >
+                  {deletingDocumentType ? 'Removing…' : 'Yes, remove'}
+                </button>
+              </div>
+            </section>
           </div>
         )}
         <input
@@ -548,14 +640,14 @@ export const MyProfileView: React.FC = () => {
                 <div>
                   <h3 style={{ fontSize: '15px', margin: 0, fontWeight: '700' }}>My onboarding documents</h3>
                   <p style={{ color: 'var(--text-secondary)', margin: '5px 0 0', fontSize: '12px' }}>
-                    Your documents are private. You can view, download, or replace each one.
+                    Only you and HR can access these documents. You can view, download, or replace them. Bond Agreement and NDA are optional.
                   </p>
                 </div>
                 <input
                   ref={documentFileInput}
                   type="file"
                   accept="application/pdf,image/jpeg,image/png"
-                  aria-label="Choose a replacement onboarding document"
+                  aria-label="Choose an onboarding document"
                   style={{ display: 'none' }}
                   onChange={event => void uploadReplacementDocument(event.target.files?.[0])}
                 />
@@ -575,55 +667,77 @@ export const MyProfileView: React.FC = () => {
 
               {documents === null ? (
                 <SectionSkeleton rows={3} />
-              ) : documents.length === 0 && !documentsError ? (
-                <p style={{ color: 'var(--text-secondary)' }}>No onboarding documents were found on your account.</p>
-              ) : (
+              ) : documentsError ? null : (
                 <div style={{ display: 'grid', gap: '10px' }}>
-                  {(documents ?? []).map(document => (
-                    <div key={document.id} className="interactive-lift-card" style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                      padding: '12px',
-                      border: '1px solid var(--border-light)',
-                      borderRadius: '10px',
-                      flexWrap: 'wrap',
-                    }}>
-                      <FileText size={20} color="var(--primary)" />
-                      <div style={{ flex: 1, minWidth: '180px' }}>
-                        <p style={{ ...valueStyle, margin: 0 }}>{documentLabels[document.documentType]}</p>
-                        <p style={{ color: 'var(--text-muted)', fontSize: '12px', margin: '3px 0 0', overflowWrap: 'anywhere' }}>
-                          {document.fileName} · Uploaded {formatDate(document.uploadedAt.toString().slice(0, 10))}
-                        </p>
+                  {profileDocumentTypes.map(documentType => {
+                    const document = documents.find(item => item.documentType === documentType);
+                    return (
+                      <div key={documentType} className="interactive-lift-card" style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        padding: '12px',
+                        border: '1px solid var(--border-light)',
+                        borderRadius: '10px',
+                        flexWrap: 'wrap',
+                      }}>
+                        <FileText size={20} color="var(--primary)" />
+                        <div style={{ flex: 1, minWidth: '180px' }}>
+                          <p style={{ ...valueStyle, margin: 0 }}>
+                            {documentLabels[documentType]}
+                            {(documentType === 'bond_agreement' || documentType === 'nda') && (
+                              <span style={{ color: 'var(--text-muted)', fontWeight: '400' }}> (Optional)</span>
+                            )}
+                          </p>
+                          <p style={{ color: 'var(--text-muted)', fontSize: '12px', margin: '3px 0 0', overflowWrap: 'anywhere' }}>
+                            {document
+                              ? `${document.fileName} · Uploaded ${formatDate(document.uploadedAt.toString().slice(0, 10))}`
+                              : 'Not uploaded'}
+                          </p>
+                        </div>
+                        {document ? (
+                          <>
+                            <button type="button" className="btn btn-secondary btn-sm" onClick={() => void openDocumentPreview(document)}>
+                              <Eye size={14} />
+                              View
+                              <ChevronRight className="arrow-lift-trigger" size={14} />
+                            </button>
+                            <button type="button" className="btn btn-secondary btn-sm" onClick={() => void downloadDocument(document)}>
+                              <Download size={14} />
+                              Download
+                            </button>
+                            {(documentType === 'bond_agreement' || documentType === 'nda') && (
+                              <button
+                                type="button"
+                                className="btn btn-secondary btn-sm"
+                                disabled={uploadingDocumentType !== null || deletingDocumentType !== null}
+                                onClick={() => {
+                                  setDocumentsError(null);
+                                  setDocumentToRemove(documentType);
+                                }}
+                              >
+                                <Trash2 size={14} />
+                                Remove
+                              </button>
+                            )}
+                          </>
+                        ) : null}
+                        <button
+                          type="button"
+                          className="btn btn-secondary btn-sm"
+                          disabled={uploadingDocumentType !== null || deletingDocumentType !== null}
+                          onClick={() => chooseDocumentFile(documentType)}
+                        >
+                          {uploadingDocumentType === documentType ? <LoaderCircle size={14} /> : document ? <RefreshCw size={14} /> : <Plus size={14} />}
+                          {document ? 'Replace' : 'Upload'}
+                        </button>
                       </div>
-                      <button className="btn btn-secondary btn-sm" onClick={() => void openDocumentPreview(document)}>
-                        <Eye size={14} />
-                        View
-                        <ChevronRight className="arrow-lift-trigger" size={14} />
-                      </button>
-                      <button className="btn btn-secondary btn-sm" onClick={() => void downloadDocument(document)}>
-                        <Download size={14} />
-                        Download
-                      </button>
-                      <button
-                        className="btn btn-secondary btn-sm"
-                        disabled={uploadingDocumentType !== null}
-                        onClick={() => {
-                          setReplaceDocumentType(document.documentType);
-                          documentFileInput.current?.click();
-                        }}
-                      >
-                        {uploadingDocumentType === document.documentType
-                          ? <LoaderCircle size={14} />
-                          : <RefreshCw size={14} />}
-                        Replace
-                      </button>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               )}
               <p style={{ color: 'var(--text-muted)', fontSize: '12px', margin: '14px 0 0' }}>
-                Accepted files: PDF, JPG, or PNG. Maximum 5 MB per document.
+                Accepted files: PDF, JPG, or PNG. Maximum 5 MB per document and 25 MB total.
               </p>
             </section>
           )}
