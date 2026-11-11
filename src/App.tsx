@@ -24,6 +24,7 @@ const AppraisalsView = lazy(() => import('./views/appraisals/AppraisalsView').th
 const MyProfileView = lazy(() => import('./views/profile/MyProfileView').then(module => ({ default: module.MyProfileView })));
 const ResignationView = lazy(() => import('./views/resignation/ResignationView').then(module => ({ default: module.ResignationView })));
 const SettingsView = lazy(() => import('./views/settings/SettingsView').then(module => ({ default: module.SettingsView })));
+const SalesView = lazy(() => import('./views/sales/SalesView').then(module => ({ default: module.SalesView })));
 
 interface MutationFeedbackEvent {
   id: number;
@@ -128,6 +129,8 @@ const AppContent: React.FC = () => {
         return role === 'admin' ? <ReportsView /> : <EmployeeDashboardView />;
       case 'appraisals':
         return <AppraisalsView />;
+      case 'sales':
+        return role === 'admin' || currentUser.salesAccess ? <SalesView /> : <EmployeeDashboardView />;
       default:
         return role === 'admin' ? <AdminDashboardView /> : <EmployeeDashboardView />;
     }

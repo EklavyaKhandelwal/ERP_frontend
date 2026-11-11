@@ -13,12 +13,20 @@ import {
   UserRound,
   FileText,
   SlidersHorizontal,
+  Handshake,
+  Building2,
+  Cpu,
+  Activity,
+  Target,
+  BriefcaseBusiness,
+  StickyNote,
 } from 'lucide-react';
 import { useERP } from '../../context/ERPContext';
 import { AppView } from '../../types/erp';
 
 export const Sidebar: React.FC = () => {
-  const { currentView, setCurrentView, currentUser, logout } = useERP();
+  const { currentView, setCurrentView, currentUser, logout, salesSection, setSalesSection } = useERP();
+  const [isSalesExpanded, setIsSalesExpanded] = useState(currentView === 'sales');
   const [showLogoutConfirmation, setShowLogoutConfirmation] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const cancelLogoutButton = useRef<HTMLButtonElement>(null);
@@ -93,7 +101,12 @@ export const Sidebar: React.FC = () => {
       id: 'resignation',
       label: 'Resignation',
       icon: <FileText size={18} />
-    }
+    },
+    ...(currentUser.role === 'admin' || currentUser.salesAccess ? [{
+      id: 'sales' as AppView,
+      label: 'Sales',
+      icon: <Handshake size={18} />,
+    }] : []),
   ];
   menuItems.push({ id: 'settings', label: 'Settings', icon: <SlidersHorizontal size={18} /> });
   menuItems.push({ id: 'my-profile', label: 'My Profile', icon: <UserRound size={18} /> });
@@ -149,6 +162,65 @@ export const Sidebar: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
           {menuItems.map(item => {
             const isActive = currentView === item.id;
+            if (item.id === 'sales') {
+              const sections = [
+                { id: 'dashboard' as const, label: 'Dashboard', icon: <LayoutDashboard size={15} /> },
+                { id: 'accounts' as const, label: 'Accounts', icon: <Building2 size={15} /> },
+                { id: 'technology' as const, label: 'Technology', icon: <Cpu size={15} /> },
+                { id: 'contacts' as const, label: 'Contacts', icon: <Users size={15} /> },
+                { id: 'activities' as const, label: 'Activities', icon: <Activity size={15} /> },
+                { id: 'leads' as const, label: 'Leads', icon: <Target size={15} /> },
+                { id: 'opportunities' as const, label: 'Opportunities', icon: <BriefcaseBusiness size={15} /> },
+                { id: 'notes' as const, label: 'Notes', icon: <StickyNote size={15} /> },
+                ...(currentUser.role === 'admin' ? [{ id: 'updates' as const, label: 'Sales Updates', icon: <Activity size={15} /> }] : []),
+              ];
+              return (
+                <div key={item.id}>
+                  <button
+                    onClick={() => {
+                      if (isSalesExpanded) {
+                        setIsSalesExpanded(false);
+                        return;
+                      }
+                      setIsSalesExpanded(true);
+                      if (!isActive) {
+                        setSalesSection('dashboard');
+                        setCurrentView('sales');
+                      }
+                    }}
+                    aria-expanded={isSalesExpanded}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px',
+                      borderRadius: '8px', border: 'none', backgroundColor: isActive ? 'rgba(0, 82, 255, 0.12)' : 'transparent',
+                      color: isActive ? '#FFFFFF' : 'var(--dark-text-muted)', fontWeight: isActive ? '600' : '500',
+                      fontSize: '13.5px', cursor: 'pointer', textAlign: 'left', width: '100%',
+                    }}
+                  >
+                    <span style={{ color: isActive ? 'var(--primary)' : 'inherit' }}>{item.icon}</span>
+                    <span style={{ flex: 1 }}>{item.label}</span>
+                    <span aria-hidden="true" style={{ fontSize: 11, transform: isSalesExpanded ? 'rotate(90deg)' : 'none', transition: 'transform 150ms ease' }}>›</span>
+                  </button>
+                  {isSalesExpanded && <div style={{ margin: '3px 0 8px 18px', paddingLeft: 9, borderLeft: '1px solid var(--dark-border)', display: 'grid', gap: 2 }}>
+                    {sections.map(section => {
+                      const selected = salesSection === section.id
+                        || (section.id === 'accounts' && (salesSection === 'account-profile' || salesSection === 'account-information'));
+                      return <button
+                        key={section.id}
+                        onClick={() => { setSalesSection(section.id); setCurrentView('sales'); setIsSalesExpanded(true); }}
+                        aria-current={selected ? 'page' : undefined}
+                        style={{
+                          display: 'flex', alignItems: 'center', gap: 9, border: 0, borderRadius: 7,
+                          padding: '8px 10px', textAlign: 'left', width: '100%', cursor: 'pointer',
+                          color: selected ? '#FFFFFF' : 'var(--dark-text-muted)',
+                          background: selected ? 'rgba(255,255,255,.09)' : 'transparent',
+                          fontSize: 12.5, fontWeight: selected ? 600 : 500,
+                        }}
+                      ><span style={{ color: selected ? 'var(--primary)' : 'inherit' }}>{section.icon}</span>{section.label}</button>;
+                    })}
+                  </div>}
+                </div>
+              );
+            }
             return (
               <button
                 key={item.id}

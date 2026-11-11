@@ -31,6 +31,7 @@ export const EmployeesView: React.FC = () => {
   const [search, setSearch] = useState('');
   const [selectedDept, setSelectedDept] = useState('All');
   const [selectedStatus, setSelectedStatus] = useState('All');
+  const [selectedSalesAccess, setSelectedSalesAccess] = useState<'All' | 'Enabled' | 'Not enabled'>('All');
   const [accessLink, setAccessLink] = useState<{
     employeeName: string;
     email: string;
@@ -52,7 +53,10 @@ export const EmployeesView: React.FC = () => {
                           emp.employeeCode.toLowerCase().includes(search.toLowerCase());
     const matchesDept = selectedDept === 'All' || emp.department === selectedDept;
     const matchesStatus = selectedStatus === 'All' || emp.status === selectedStatus;
-    return matchesSearch && matchesDept && matchesStatus;
+    const matchesSalesAccess = role !== 'admin'
+      || selectedSalesAccess === 'All'
+      || (selectedSalesAccess === 'Enabled' ? emp.salesAccess === true : emp.salesAccess !== true);
+    return matchesSearch && matchesDept && matchesStatus && matchesSalesAccess;
   });
 
   const getStatusBadge = (status: string) => {
@@ -183,7 +187,7 @@ export const EmployeesView: React.FC = () => {
           </div>
 
           {/* Status Select */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
             <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500' }}>Status:</span>
             <select
               className="form-control"
@@ -202,6 +206,25 @@ export const EmployeesView: React.FC = () => {
               <option value="Probation">Probation</option>
               <option value="Inactive">Inactive</option>
             </select>
+            {role === 'admin' && <>
+              <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '500' }}>Sales access:</span>
+              <select
+                className="form-control"
+                aria-label="Filter by Sales access"
+                value={selectedSalesAccess}
+                onChange={event => setSelectedSalesAccess(event.target.value as typeof selectedSalesAccess)}
+                style={{
+                  width: 'auto',
+                  minWidth: '150px',
+                  padding: '6px 36px 6px 12px',
+                  fontSize: '12.5px',
+                }}
+              >
+                <option value="All">All employees</option>
+                <option value="Enabled">Enabled</option>
+                <option value="Not enabled">Not enabled</option>
+              </select>
+            </>}
           </div>
         </div>
       </div>
@@ -213,6 +236,7 @@ export const EmployeesView: React.FC = () => {
             <tr>
               <th>Employee</th>
               <th>Department</th>
+              {role === 'admin' && <th>Sales access</th>}
               <th>Designation</th>
               <th>Status</th>
               {role === 'admin' && <th>Login Access</th>}
@@ -223,10 +247,10 @@ export const EmployeesView: React.FC = () => {
           </thead>
           <tbody>
             {employeesLoading ? (
-              <TableSkeletonRows columns={role === 'admin' ? 8 : 7} rows={6} />
+              <TableSkeletonRows columns={role === 'admin' ? 9 : 7} rows={6} />
             ) : filteredEmployees.length === 0 ? (
               <tr>
-                <td colSpan={role === 'admin' ? 8 : 7} style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--text-muted)' }}>
+                <td colSpan={role === 'admin' ? 9 : 7} style={{ textAlign: 'center', padding: '48px 24px', color: 'var(--text-muted)' }}>
                   No employees matched your current search filters.
                 </td>
               </tr>
@@ -261,6 +285,13 @@ export const EmployeesView: React.FC = () => {
                   <td>
                     <span style={{ fontWeight: '500', color: 'var(--text-main)' }}>{emp.department}</span>
                   </td>
+                  {role === 'admin' && (
+                    <td>
+                      <span className={`badge ${emp.salesAccess ? 'badge-success' : 'badge-neutral'}`} title={emp.salesAccess ? 'This employee can access the Sales module.' : 'Sales module access is not enabled for this employee.'}>
+                        <span className="badge-dot" />{emp.salesAccess ? 'Enabled' : 'Not enabled'}
+                      </span>
+                    </td>
+                  )}
                   <td>
                     <span style={{ color: 'var(--text-secondary)' }}>{emp.designation}</span>
                   </td>

@@ -9,6 +9,7 @@ import type {
   Timesheet,
   User,
   UserRole,
+  SalesSection,
 } from '../types/erp';
 import type {
   AccessLinkResult,
@@ -35,6 +36,8 @@ export interface ERPContextType {
   authError: string | null;
   currentView: AppView;
   setCurrentView: (view: AppView) => void;
+  salesSection: SalesSection;
+  setSalesSection: (section: SalesSection) => void;
   isAddEmployeeModalOpen: boolean;
   setIsAddEmployeeModalOpen: (isOpen: boolean) => void;
   selectedEmployeeId: string | null;
