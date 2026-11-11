@@ -6,3 +6,4 @@ export * from './api/people';
 export * from './api/request';
 export * from './api/types';
 export * from './api/workforce';
+export * from './api/sales';

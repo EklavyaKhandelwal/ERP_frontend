@@ -32,6 +32,112 @@ export type EmployeeInput = Pick<
   bankName?: string;
   bankAccountNumber?: string;
 };
+
+export type SalesAccountStatus = 'Prospect' | 'Active';
+export type SalesAccount = {
+  id: string;
+  companyName: string;
+  industry: string;
+  website: string;
+  linkedinUrl: string;
+  location: string;
+  ownerEmployeeId: string;
+  ownerName: string;
+  status: SalesAccountStatus;
+  createdAt: string;
+  updatedAt: string;
+};
+export type SalesContact = {
+  id: string;
+  accountId: string;
+  name: string;
+  designation: string;
+  email: string;
+  phone: string;
+  linkedinUrl: string;
+  status: 'Active' | 'Inactive';
+};
+export type SalesContactListItem = SalesContact & {
+  accountName: string;
+  lastActivityDate: string | null;
+  lastActivityType: SalesActivity['type'] | null;
+  lastActivityRemarks: string | null;
+};
+export type SalesActivity = {
+  id: string;
+  accountId: string;
+  contactId: string | null;
+  type: 'Call' | 'Email' | 'Meeting' | 'LinkedIn outreach' | 'Follow-up';
+  activityDate: string;
+  remarks: string;
+  nextFollowUpDate: string | null;
+};
+export type SalesLead = {
+  id: string;
+  accountId: string;
+  contactId: string | null;
+  name: string;
+  serviceInterest: string;
+  source: string;
+  status: 'New' | 'Contacted' | 'Qualified' | 'Disqualified' | 'Converted';
+  assignedEmployeeId: string;
+};
+export type SalesOpportunity = {
+  id: string;
+  accountId: string;
+  contactId: string | null;
+  name: string;
+  serviceRequired: string;
+  stage: 'Prospecting' | 'Qualification' | 'Proposal' | 'Negotiation' | 'Won' | 'Lost';
+  expectedClosingDate: string | null;
+  notes: string;
+};
+export type SalesNote = {
+  id: string;
+  accountId: string;
+  content: string;
+  createdAt: string;
+};
+export type SalesAccountProfile = {
+  account: SalesAccount;
+  technologies: Array<{ id: string; accountId: string; name: string }>;
+  contacts: SalesContact[];
+  activities: SalesActivity[];
+  leads: SalesLead[];
+  opportunities: SalesOpportunity[];
+  notes: SalesNote[];
+};
+export type SalesAccountInput = Pick<SalesAccount,
+  'companyName' | 'industry' | 'website' | 'linkedinUrl' | 'location' | 'status'
+> & { ownerEmployeeId?: string };
+export type SalesEmployeeAccess = {
+  employeeId: string;
+  name: string;
+  email: string;
+  department: string;
+  isActive: boolean;
+  salesAccess: boolean;
+};
+export type SalesDashboardFollowUp = {
+  id: string;
+  accountId: string;
+  companyName: string;
+  ownerEmployeeId: string;
+  ownerName: string;
+  contactId: string | null;
+  contactName: string | null;
+  type: SalesActivity['type'];
+  remarks: string;
+  activityDate: string;
+  nextFollowUpDate: string;
+};
+export type SalesTeamUpdate = SalesActivity & {
+  accountName: string;
+  ownerEmployeeId: string;
+  ownerName: string;
+  contactName: string | null;
+  loggedByName: string;
+};
 export type ProfileInput = {
   name: string;
   phone?: string;

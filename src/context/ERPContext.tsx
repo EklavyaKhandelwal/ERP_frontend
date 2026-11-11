@@ -9,7 +9,8 @@ import {
   PayrollRecord, 
   Project, 
   AppraisalReview, 
-  AppView 
+  AppView,
+  SalesSection,
 } from '../types/erp';
 import { ADMIN_USER } from '../data/mockData';
 import type { ERPContextType } from './ERPContext.types';
@@ -48,6 +49,7 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isAuthLoading, setIsAuthLoading] = useState<boolean>(true);
   const [authError, setAuthError] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<AppView>('dashboard');
+  const [salesSection, setSalesSection] = useState<SalesSection>('dashboard');
   const [isAddEmployeeModalOpen, setIsAddEmployeeModalOpen] = useState(false);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>('proj-001');
@@ -686,6 +688,8 @@ export const ERPProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       authError,
       currentView,
       setCurrentView,
+      salesSection,
+      setSalesSection,
       isAddEmployeeModalOpen,
       setIsAddEmployeeModalOpen,
       selectedEmployeeId,

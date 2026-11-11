@@ -1,4 +1,5 @@
 export type UserRole = 'admin' | 'employee';
+export type SalesSection = 'dashboard' | 'accounts' | 'account-profile' | 'account-information' | 'technology' | 'contacts' | 'activities' | 'leads' | 'opportunities' | 'notes' | 'updates' | 'access';
 
 export interface User {
   id: string;
@@ -12,6 +13,7 @@ export interface User {
   avatar: string;
   designation: string;
   department: string;
+  salesAccess: boolean;
 }
 
 export interface Employee {
@@ -34,6 +36,7 @@ export interface Employee {
   location: string;
   manager: string;
   skills: string[];
+  salesAccess?: boolean;
   accountStatus?: 'Not set up' | 'Invitation pending' | 'Active' | 'Deactivated' | 'Admin account';
   leaveBalance?: {
     year?: number;
@@ -265,4 +268,5 @@ export type AppView =
   | 'attendance'
   | 'reports'
   | 'appraisals'
-  | 'resignation';
+  | 'resignation'
+  | 'sales';
