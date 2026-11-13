@@ -2,11 +2,11 @@
 
 :root {
   /* Brand Tokens (from Figma Specs) */
-  --primary: #0052FF;
-  --primary-hover: #0045D8;
-  --primary-active: #0039B3;
-  --primary-light: #E5EDFF;
-  --primary-focus: rgba(0, 82, 255, 0.2);
+  --primary: #2864E8;
+  --primary-hover: #1F53C6;
+  --primary-active: #1946A9;
+  --primary-light: #EAF1FF;
+  --primary-focus: rgba(40, 100, 232, 0.18);
 
   /* Neutrals */
   --dark-sidebar: #0A0B0D;
@@ -15,41 +15,41 @@
   --dark-text: #FFFFFF;
   --dark-text-muted: #8A8F98;
 
-  --bg-canvas: #F8F9FA;
+  --bg-canvas: #F6F8FC;
   --bg-card: #FFFFFF;
-  --bg-subtle: #F1F3F5;
-  --bg-hover: #F8F9FB;
+  --bg-subtle: #F3F6FB;
+  --bg-hover: #F2F6FF;
 
-  --border-light: #EEF0F3;
-  --border-default: #E2E5EA;
-  --border-strong: #CDD2DA;
+  --border-light: #E8EDF5;
+  --border-default: #DDE5F0;
+  --border-strong: #C8D3E2;
 
-  --text-main: #0A0B0D;
-  --text-secondary: #5B616E;
-  --text-muted: #8A8F98;
+  --text-main: #172033;
+  --text-secondary: #52617A;
+  --text-muted: #7A879B;
   --text-inverted: #FFFFFF;
 
   /* Semantic Status Colors */
-  --success: #05B169;
-  --success-bg: #E3F6EC;
-  --success-border: #A3E6C5;
+  --success: #039855;
+  --success-bg: #E8F8EF;
+  --success-border: #A6E5C0;
 
-  --warning: #F4B000;
-  --warning-bg: #FEF6E0;
-  --warning-border: #FCE199;
+  --warning: #DC8500;
+  --warning-bg: #FFF4DB;
+  --warning-border: #F5D48D;
 
-  --danger: #CF202F;
-  --danger-bg: #FEECEE;
-  --danger-border: #F7BAC0;
+  --danger: #D92D20;
+  --danger-bg: #FEECEB;
+  --danger-border: #F5B7B1;
 
-  --info: #0052FF;
-  --info-bg: #E5EDFF;
+  --info: #2864E8;
+  --info-bg: #EAF1FF;
 
   /* Shadows */
-  --shadow-xs: 0 1px 2px rgba(10, 11, 13, 0.04);
-  --shadow-sm: 0 1px 3px rgba(10, 11, 13, 0.08), 0 1px 2px rgba(10, 11, 13, 0.04);
-  --shadow-md: 0 4px 6px -1px rgba(10, 11, 13, 0.08), 0 2px 4px -1px rgba(10, 11, 13, 0.04);
-  --shadow-lg: 0 10px 15px -3px rgba(10, 11, 13, 0.08), 0 4px 6px -2px rgba(10, 11, 13, 0.04);
+  --shadow-xs: 0 1px 2px rgba(23, 32, 51, 0.04);
+  --shadow-sm: 0 1px 3px rgba(23, 32, 51, 0.07), 0 1px 2px rgba(23, 32, 51, 0.035);
+  --shadow-md: 0 4px 8px -1px rgba(23, 32, 51, 0.08), 0 2px 4px -1px rgba(23, 32, 51, 0.04);
+  --shadow-lg: 0 10px 20px -4px rgba(23, 32, 51, 0.1), 0 4px 8px -3px rgba(23, 32, 51, 0.05);
   --shadow-modal: 0 20px 25px -5px rgba(0, 0, 0, 0.25), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
 
   /* Radius */
@@ -123,7 +123,7 @@ button, input, select, textarea {
 }
 .btn-primary:hover {
   background: var(--primary-hover);
-  box-shadow: 0 2px 8px rgba(0, 82, 255, 0.35);
+  box-shadow: 0 4px 12px rgba(40, 100, 232, 0.24);
 }
 .btn-primary:active {
   background: var(--primary-active);
@@ -161,8 +161,13 @@ button, input, select, textarea {
   color: var(--text-secondary);
 }
 .btn-ghost:hover {
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--bg-hover);
   color: var(--text-main);
+}
+
+.btn:focus-visible {
+  outline: 3px solid var(--primary-focus);
+  outline-offset: 2px;
 }
 
 .btn-sm {
@@ -244,8 +249,8 @@ button, input, select, textarea {
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
 }
 .card:hover {
-  box-shadow: 0 8px 20px rgba(10, 11, 13, 0.1), 0 0 0 1px rgba(0, 82, 255, 0.12);
-  border-color: #C8D6F5;
+  box-shadow: 0 10px 24px rgba(31, 48, 86, 0.1), 0 0 0 1px rgba(40, 100, 232, 0.1);
+  border-color: #C8D7F5;
 }
 
 @media (hover: hover) and (prefers-reduced-motion: no-preference) {
@@ -261,7 +266,7 @@ button, input, select, textarea {
 }
 
 .project-card.project-card-arrow-hover {
-  box-shadow: 0 12px 28px rgba(10, 11, 13, 0.14), 0 0 0 1px rgba(0, 82, 255, 0.18);
+  box-shadow: 0 12px 28px rgba(31, 48, 86, 0.13), 0 0 0 1px rgba(40, 100, 232, 0.14);
   border-color: #AFC4F5;
 }
 
@@ -299,7 +304,7 @@ button, input, select, textarea {
 
   .interactive-lift-card:hover {
     transform: translateY(-4px);
-    box-shadow: 0 12px 28px rgba(10, 11, 13, 0.14), 0 0 0 1px rgba(0, 82, 255, 0.16);
+    box-shadow: 0 12px 28px rgba(31, 48, 86, 0.12), 0 0 0 1px rgba(40, 100, 232, 0.12);
     border-color: #AFC4F5;
   }
 
@@ -810,6 +815,7 @@ button, input, select, textarea {
   background: #FFFFFF;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-xs);
 }
 
 .erp-table {
@@ -820,7 +826,7 @@ button, input, select, textarea {
 
 .erp-table th {
   padding: 12px 16px;
-  background: #F9FAFB;
+  background: linear-gradient(180deg, #F5F8FF, #F0F4FB);
   font-size: 12px;
   font-weight: 600;
   text-transform: uppercase;
@@ -842,7 +848,7 @@ button, input, select, textarea {
 }
 
 .erp-table tr:hover td {
-  background-color: #FAFCFF;
+  background-color: #F4F7FF;
 }
 
 /* Modal Backdrops */
@@ -862,6 +868,8 @@ button, input, select, textarea {
 .modal-content {
   background: #FFFFFF;
   border-radius: var(--radius-xl);
+  border: 1px solid #E1E9F5;
+  border-top: 3px solid var(--primary);
   box-shadow: var(--shadow-modal);
   width: 100%;
   max-width: 600px;
@@ -1116,7 +1124,7 @@ button, input, select, textarea {
 
 .settings-tab.active {
   color: var(--primary);
-  background: rgba(0, 82, 255, 0.09);
+  background: var(--primary-light);
   font-weight: 600;
 }
 
@@ -4989,7 +4997,227 @@ button, input, select, textarea {
   .employee-dashboard-welcome-actions {
     width: 100%;
   }
+}
 
+.admin-dashboard-page,
+.employee-dashboard-page {
+  background: linear-gradient(180deg, #F2F5FF 0, #F8FAFC 360px, transparent 100%);
+}
+
+.admin-dashboard-page .admin-dashboard-heading h2 {
+  color: #173B85;
+  letter-spacing: -0.02em;
+}
+
+.admin-dashboard-page .admin-dashboard-metric {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #E3EAF6;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(31, 48, 86, 0.06);
+}
+
+.admin-dashboard-page .admin-dashboard-metric::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: #3478F6;
+  content: '';
+}
+
+.admin-dashboard-page .admin-dashboard-metric:nth-child(2)::before {
+  background: #12B76A;
+}
+
+.admin-dashboard-page .admin-dashboard-metric:nth-child(3)::before,
+.admin-dashboard-page .admin-dashboard-metric:nth-child(4)::before {
+  background: #F79009;
+}
+
+.admin-dashboard-page .admin-dashboard-metric:nth-child(5)::before {
+  background: #7956D8;
+}
+
+.admin-dashboard-page .admin-dashboard-metric:hover,
+.admin-dashboard-page .admin-dashboard-metric:focus-visible {
+  transform: translateY(-2px);
+  border-color: #AFC4F5;
+  box-shadow: 0 10px 24px rgba(40, 100, 232, 0.12);
+}
+
+.admin-dashboard-page .admin-dashboard-queue {
+  border: 1px solid #E3EAF6;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(31, 48, 86, 0.05);
+}
+
+.admin-dashboard-page .admin-dashboard-queue:nth-child(4n + 1) .admin-dashboard-section-heading h3 {
+  color: #175CD3;
+}
+
+.admin-dashboard-page .admin-dashboard-queue:nth-child(4n + 2) .admin-dashboard-section-heading h3 {
+  color: #6941C6;
+}
+
+.admin-dashboard-page .admin-dashboard-list-item {
+  border-color: #E8EDF5;
+  background: #F8FAFF;
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+
+.admin-dashboard-page .admin-dashboard-list-item:hover {
+  border-color: #C8D7F5;
+  background: #F1F5FF;
+}
+
+.admin-dashboard-page .admin-dashboard-department-track {
+  background: #EDF1F8;
+}
+
+.admin-dashboard-page .admin-dashboard-department-bar {
+  background: linear-gradient(90deg, #3478F6, #7956D8);
+}
+
+.employee-dashboard-page .employee-dashboard-card,
+.employee-dashboard-page .employee-leave-balance-grid > .card {
+  border: 1px solid #E3EAF6;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(31, 48, 86, 0.055);
+}
+
+.employee-dashboard-page .employee-dashboard-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.employee-dashboard-page .employee-dashboard-card::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: #3478F6;
+  content: '';
+}
+
+.employee-dashboard-page .employee-dashboard-card:nth-child(2)::before {
+  background: #12B76A;
+}
+
+.employee-dashboard-page .employee-dashboard-card:nth-child(3)::before {
+  background: #F79009;
+}
+
+.employee-dashboard-page .employee-dashboard-card:nth-child(4)::before {
+  background: #7956D8;
+}
+
+.employee-dashboard-page .employee-dashboard-card-header h3 {
+  color: #173B85;
+}
+
+.employee-dashboard-page .employee-dashboard-period {
+  border-color: #DCE7FA;
+  background: linear-gradient(120deg, #EFF4FF, #F8FAFF);
+}
+
+.employee-dashboard-page .employee-dashboard-highlight {
+  border-color: #D8E9FC;
+  background: linear-gradient(120deg, #EFF8FF, #F5FAFF);
+}
+
+.employee-dashboard-page .employee-dashboard-payslip {
+  border-color: #D5EFE0;
+  background: linear-gradient(120deg, #ECFDF3, #F7FEF9);
+}
+
+.employee-dashboard-page .employee-project-item {
+  border-color: #E3EAF6;
+  background: #F8FAFF;
+}
+
+.employee-dashboard-page .employee-project-item:hover,
+.employee-dashboard-page .employee-project-item:focus-visible {
+  border-color: #AFC4F5;
+  background: #F1F5FF;
+}
+
+.employee-dashboard-page .employee-dashboard-text-link {
+  color: #2864E8;
+}
+
+.employee-dashboard-page .employee-dashboard-action {
+  border-color: #C8D7F5;
+  color: #2457B8;
+  background: #F8FAFF;
+}
+
+.employee-dashboard-page .employee-dashboard-action:hover {
+  color: #fff;
+  border-color: #2864E8;
+  background: #2864E8;
+}
+
+.leaves-page,
+.settings-page,
+.timesheet-page,
+.reports-page {
+  background: linear-gradient(180deg, #F2F5FF 0, #F8FAFC 360px, transparent 100%);
+}
+
+.settings-tabs {
+  box-shadow: var(--shadow-xs);
+}
+
+.settings-tab.active {
+  color: #1F53C6;
+}
+
+.leaves-summary-card,
+.reports-metrics .card,
+.timesheet-summary-card {
+  position: relative;
+  overflow: hidden;
+  border-color: #E3EAF6;
+  box-shadow: 0 2px 8px rgba(31, 48, 86, 0.055);
+}
+
+.leaves-summary-card::before,
+.reports-metrics .card::before,
+.timesheet-summary-card::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: #3478F6;
+  content: '';
+}
+
+.leaves-summary-card:nth-child(2)::before,
+.reports-metrics .card:nth-child(2)::before {
+  background: #12B76A;
+}
+
+.leaves-summary-card:nth-child(3)::before,
+.reports-metrics .card:nth-child(3)::before {
+  background: #7956D8;
+}
+
+.leaves-summary-card:nth-child(4)::before {
+  background: #F79009;
+}
+
+.timesheet-summary-card::before {
+  background: #12B76A;
+}
+
+.reports-tabs {
+  background: #EAF0FA;
+}
+
+.reports-tab.active {
+  color: #173B85;
+  box-shadow: 0 2px 5px rgba(31, 48, 86, 0.12);
+}
+
+@media (max-width: 600px) {
   .employee-dashboard-welcome-actions .btn {
     flex: 1 1 140px;
     justify-content: center;

@@ -100,7 +100,7 @@ export const EmployeeDashboardView: React.FC = () => {
     <div className="employee-dashboard-page" style={{ padding: '32px' }}>
       {/* Welcome Banner */}
       <div className="employee-dashboard-welcome" style={{
-        background: 'linear-gradient(135deg, #0A0B0D 0%, #16181C 100%)',
+        background: 'radial-gradient(circle at 88% 12%, rgba(119, 142, 255, .36), transparent 34%), linear-gradient(120deg, #173B85 0%, #2864E8 56%, #6246C7 100%)',
         color: '#FFFFFF',
         borderRadius: '16px',
         padding: '32px',
@@ -113,13 +113,13 @@ export const EmployeeDashboardView: React.FC = () => {
         overflow: 'hidden'
       }}>
         <div style={{ zIndex: 2 }}>
-          <div style={{ fontSize: '13px', color: '#8A8F98', fontWeight: '500' }}>
+          <div style={{ fontSize: '13px', color: '#DCE7FF', fontWeight: '600' }}>
             {todayLabel}
           </div>
           <h2 style={{ fontSize: '28px', fontWeight: '800', marginTop: '6px', letterSpacing: '-0.02em' }}>
             {greeting}, {currentUser.name.split(' ')[0]} 👋
           </h2>
-          <p style={{ fontSize: '14px', color: '#B5BAC2', marginTop: '6px', maxWidth: '520px' }}>
+          <p style={{ fontSize: '14px', color: '#E1E9FF', marginTop: '6px', maxWidth: '520px' }}>
             {dashboardLoading
               ? <SkeletonLine width="260px" />
               : <>You are assigned to <strong>{dashboard?.projects.activeCount ?? 0} active {(dashboard?.projects.activeCount ?? 0) === 1 ? 'project' : 'projects'}</strong>.</>}
@@ -170,9 +170,9 @@ export const EmployeeDashboardView: React.FC = () => {
           <h3 style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-main)', margin: 0 }}>
             Time-Off Allowances & Quota
           </h3>
-          <button 
+          <button className="employee-dashboard-text-link"
             onClick={() => setCurrentView('leaves')} 
-            style={{ fontSize: '12.5px', color: '#0052FF', background: 'none', border: 'none', fontWeight: '600', cursor: 'pointer' }}
+            style={{ fontSize: '12.5px', color: '#2864E8', background: 'none', border: 'none', fontWeight: '600', cursor: 'pointer' }}
           >
             Leave History & Rules →
           </button>
@@ -185,14 +185,14 @@ export const EmployeeDashboardView: React.FC = () => {
               width: '60px',
               height: '60px',
               borderRadius: '50%',
-              border: '4px solid #E5EDFF',
-              borderTopColor: '#0052FF',
+              border: '4px solid #E5EEFF',
+              borderTopColor: '#2864E8',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: '800',
               fontSize: '18px',
-              color: '#0052FF',
+              color: '#2864E8',
               flexShrink: 0
             }}>
               {dashboardLoading ? <SkeletonLine width="24px" height={18} /> : leaveBalance?.annual ?? '—'}
@@ -211,14 +211,14 @@ export const EmployeeDashboardView: React.FC = () => {
               width: '60px',
               height: '60px',
               borderRadius: '50%',
-              border: '4px solid #E3F6EC',
-              borderTopColor: '#05B169',
+              border: '4px solid #DDF7EA',
+              borderTopColor: '#039855',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: '800',
               fontSize: '18px',
-              color: '#05B169',
+              color: '#039855',
               flexShrink: 0
             }}>
               {dashboardLoading ? <SkeletonLine width="24px" height={18} /> : leaveBalance?.sick ?? '—'}
@@ -237,14 +237,14 @@ export const EmployeeDashboardView: React.FC = () => {
               width: '60px',
               height: '60px',
               borderRadius: '50%',
-              border: '4px solid #FEF6E0',
-              borderTopColor: '#F4B000',
+              border: '4px solid #F0EAFE',
+              borderTopColor: '#7956D8',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: '800',
               fontSize: '18px',
-              color: '#B45309',
+              color: '#6941C6',
               flexShrink: 0
             }}>
               {dashboardLoading ? <SkeletonLine width="24px" height={18} /> : leaveBalance?.casual ?? '—'}
