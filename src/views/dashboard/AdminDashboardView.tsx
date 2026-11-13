@@ -189,18 +189,18 @@ export const AdminDashboardView: React.FC = () => {
             role="img"
             aria-label="Add your first employee"
           >
-            <circle cx="80" cy="72" r="58" fill="#F1F3F6" />
-            <rect x="39" y="24" width="82" height="66" rx="13" fill="#FFFFFF" stroke="#E3E7ED" strokeWidth="2" />
-            <rect x="31" y="35" width="82" height="66" rx="13" fill="#FFFFFF" stroke="#E3E7ED" strokeWidth="2" />
-            <rect x="23" y="47" width="92" height="68" rx="14" fill="#FFFFFF" stroke="#DCE2EA" strokeWidth="2" />
-            <circle cx="51" cy="76" r="13" fill="#E5EDFF" />
-            <circle cx="51" cy="73" r="5" fill="#0757FF" />
-            <path d="M41 84c2-6 6-8 10-8s8 2 10 8" fill="#0757FF" />
-            <rect x="74" y="64" width="39" height="7" rx="3.5" fill="#22252B" />
-            <rect x="74" y="77" width="29" height="6" rx="3" fill="#8A8F98" />
-            <rect x="74" y="91" width="28" height="10" rx="5" fill="#E3F6EC" />
-            <rect x="81" y="95" width="14" height="3" rx="1.5" fill="#05B169" />
-            <circle cx="120" cy="43" r="17" fill="#0757FF" />
+            <circle cx="80" cy="72" r="58" fill="var(--bg-subtle)" />
+            <rect x="39" y="24" width="82" height="66" rx="13" fill="var(--bg-card)" stroke="var(--border-light)" strokeWidth="2" />
+            <rect x="31" y="35" width="82" height="66" rx="13" fill="var(--bg-card)" stroke="var(--border-light)" strokeWidth="2" />
+            <rect x="23" y="47" width="92" height="68" rx="14" fill="var(--bg-card)" stroke="var(--border-default)" strokeWidth="2" />
+            <circle cx="51" cy="76" r="13" fill="var(--primary-light)" />
+            <circle cx="51" cy="73" r="5" fill="var(--primary)" />
+            <path d="M41 84c2-6 6-8 10-8s8 2 10 8" fill="var(--primary)" />
+            <rect x="74" y="64" width="39" height="7" rx="3.5" fill="var(--text-main)" />
+            <rect x="74" y="77" width="29" height="6" rx="3" fill="var(--text-muted)" />
+            <rect x="74" y="91" width="28" height="10" rx="5" fill="var(--success-bg)" />
+            <rect x="81" y="95" width="14" height="3" rx="1.5" fill="var(--success)" />
+            <circle cx="120" cy="43" r="17" fill="var(--primary)" />
             <path d="M120 35v16M112 43h16" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" />
           </svg>
           <h2>Welcome to AAVIL</h2>

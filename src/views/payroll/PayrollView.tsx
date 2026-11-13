@@ -101,30 +101,30 @@ export const PayrollView: React.FC = () => {
       </div>
 
       {(payrollError || actionError) && (
-        <div role="alert" style={{ padding: '12px 16px', marginBottom: '16px', borderRadius: '8px', color: '#CF202F', backgroundColor: '#FEECEE' }}>
+        <div role="alert" style={{ padding: '12px 16px', marginBottom: '16px', borderRadius: '8px', color: 'var(--danger)', backgroundColor: 'var(--danger-bg)' }}>
           {actionError ?? payrollError}
         </div>
       )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '28px' }}>
-        <div className="card" style={{ padding: '20px' }}>
+        <div className="card color-accent-card color-accent-blue" style={{ padding: '20px' }}>
           <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>NET PAY IN VIEW</span>
-          <div style={{ fontSize: '26px', fontWeight: '800', color: '#0052FF', marginTop: '4px' }}>{formatINR(totalNetPay)}</div>
+          <div style={{ fontSize: '26px', fontWeight: '800', color: 'var(--primary)', marginTop: '4px' }}>{formatINR(totalNetPay)}</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>{displayedPayroll.length} payroll records</div>
         </div>
-        <div className="card" style={{ padding: '20px' }}>
+        <div className="card color-accent-card color-accent-green" style={{ padding: '20px' }}>
           <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>TOTAL EARNINGS</span>
-          <div style={{ fontSize: '26px', fontWeight: '800', color: '#05B169', marginTop: '4px' }}>{formatINR(totalEarnings)}</div>
+          <div style={{ fontSize: '26px', fontWeight: '800', color: 'var(--success)', marginTop: '4px' }}>{formatINR(totalEarnings)}</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Admin-entered amounts</div>
         </div>
-        <div className="card" style={{ padding: '20px' }}>
+        <div className="card color-accent-card color-accent-red" style={{ padding: '20px' }}>
           <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>TOTAL DEDUCTIONS</span>
-          <div style={{ fontSize: '26px', fontWeight: '800', color: '#CF202F', marginTop: '4px' }}>{formatINR(totalDeductions)}</div>
+          <div style={{ fontSize: '26px', fontWeight: '800', color: 'var(--danger)', marginTop: '4px' }}>{formatINR(totalDeductions)}</div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>No tax rules are applied</div>
         </div>
-        <div className="card" style={{ padding: '20px' }}>
+        <div className="card color-accent-card color-accent-amber" style={{ padding: '20px' }}>
           <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>PENDING STATUS</span>
-          <div style={{ fontSize: '26px', fontWeight: '800', color: '#B45309', marginTop: '4px' }}>
+          <div style={{ fontSize: '26px', fontWeight: '800', color: 'var(--warning-text)', marginTop: '4px' }}>
             {displayedPayroll.filter(record => record.status !== 'Paid').length}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>Payment status records only</div>
@@ -171,14 +171,14 @@ export const PayrollView: React.FC = () => {
                 </td>
                 <td><span style={{ color: 'var(--text-secondary)' }}>{record.department}</span></td>
                 <td>{formatINR(record.basicSalary)}</td>
-                <td><span style={{ fontWeight: '600', color: '#05B169' }}>+{formatINR(record.totalEarnings)}</span></td>
-                <td><span style={{ fontWeight: '600', color: '#CF202F' }}>−{formatINR(record.totalDeductions)}</span></td>
-                <td><strong style={{ fontSize: '15px', color: '#0052FF' }}>{formatINR(record.netPay)}</strong></td>
+                <td><span style={{ fontWeight: '600', color: 'var(--success)' }}>+{formatINR(record.totalEarnings)}</span></td>
+                <td><span style={{ fontWeight: '600', color: 'var(--danger)' }}>−{formatINR(record.totalDeductions)}</span></td>
+                <td><strong style={{ fontSize: '15px', color: 'var(--primary)' }}>{formatINR(record.netPay)}</strong></td>
                 <td><span className={`badge ${record.payslipStatus === 'Published' ? 'badge-success' : 'badge-neutral'}`}><span className="badge-dot" />{record.payslipStatus}</span></td>
                 <td><span className={`badge ${record.status === 'Paid' ? 'badge-success' : 'badge-warning'}`}><span className="badge-dot" />{record.status}</span></td>
                 <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
                   <button onClick={event => { event.stopPropagation(); setSelectedRecord(record); }} className="btn btn-sm btn-ghost">
-                    <FileText size={14} color="#0052FF" /> View
+                    <FileText size={14} color="var(--primary)" /> View
                     <ChevronRight className="arrow-lift-trigger" size={14} />
                   </button>
                   {role === 'admin' && (

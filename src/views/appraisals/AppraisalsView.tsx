@@ -27,17 +27,17 @@ export const AppraisalsView: React.FC = () => {
     : '—';
   const summaryCards = role === 'admin'
     ? [
-      { title: 'TOTAL REVIEWS', value: appraisals.length, description: 'Across all employees', color: '#0A0B0D' },
-      { title: 'TO COMPLETE', value: awaitingSelfReview, description: 'Awaiting employee self-review', color: '#0052FF' },
-      { title: 'AWAITING ADMIN REVIEW', value: awaitingAdminReview, description: 'Self-reviews submitted', color: '#B45309' },
-      { title: 'COMPLETED REVIEWS', value: completed.length, description: 'Finalized appraisals', color: '#05B169' },
-      { title: 'AVERAGE ADMIN RATING', value: averageRating, description: 'Across completed rated reviews', color: '#05B169' },
+      { title: 'TOTAL REVIEWS', value: appraisals.length, description: 'Across all employees', color: 'var(--text-main)', accent: 'blue' },
+      { title: 'TO COMPLETE', value: awaitingSelfReview, description: 'Awaiting employee self-review', color: 'var(--primary)', accent: 'blue' },
+      { title: 'AWAITING ADMIN REVIEW', value: awaitingAdminReview, description: 'Self-reviews submitted', color: 'var(--warning-text)', accent: 'amber' },
+      { title: 'COMPLETED REVIEWS', value: completed.length, description: 'Finalized appraisals', color: 'var(--success)', accent: 'green' },
+      { title: 'AVERAGE ADMIN RATING', value: averageRating, description: 'Across completed rated reviews', color: 'var(--success)', accent: 'purple' },
     ]
     : [
-      { title: 'TOTAL REVIEWS', value: appraisals.length, description: 'In your appraisal history', color: '#0A0B0D' },
-      { title: 'TO COMPLETE', value: awaitingSelfReview, description: 'Self-reviews waiting for you', color: '#0052FF' },
-      { title: 'AWAITING ADMIN REVIEW', value: awaitingAdminReview, description: 'Submitted and awaiting review', color: '#B45309' },
-      { title: 'COMPLETED REVIEWS', value: completed.length, description: 'Finalized appraisals', color: '#05B169' },
+      { title: 'TOTAL REVIEWS', value: appraisals.length, description: 'In your appraisal history', color: 'var(--text-main)', accent: 'blue' },
+      { title: 'TO COMPLETE', value: awaitingSelfReview, description: 'Self-reviews waiting for you', color: 'var(--primary)', accent: 'blue' },
+      { title: 'AWAITING ADMIN REVIEW', value: awaitingAdminReview, description: 'Submitted and awaiting review', color: 'var(--warning-text)', accent: 'amber' },
+      { title: 'COMPLETED REVIEWS', value: completed.length, description: 'Finalized appraisals', color: 'var(--success)', accent: 'green' },
       {
         title: 'LATEST ADMIN RATING',
         value: latestCompletedReview?.overallRating ?? latestCompletedReview?.legacyAdminRating ?? '—',
@@ -46,7 +46,8 @@ export const AppraisalsView: React.FC = () => {
           : latestCompletedReview?.overallRating !== undefined
             ? `${latestCompletedReview.cycle} · out of 5`
             : 'No completed rating yet',
-        color: '#05B169',
+        color: 'var(--success)',
+        accent: 'purple',
       },
     ];
 
@@ -88,14 +89,14 @@ export const AppraisalsView: React.FC = () => {
       </div>
 
       {appraisalsError && (
-        <div role="alert" style={{ padding: '12px 16px', marginBottom: '16px', borderRadius: '8px', color: '#CF202F', backgroundColor: '#FEECEE' }}>
+        <div role="alert" style={{ padding: '12px 16px', marginBottom: '16px', borderRadius: '8px', color: 'var(--danger)', backgroundColor: 'var(--danger-bg)' }}>
           {appraisalsError}
         </div>
       )}
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', marginBottom: '28px' }}>
         {summaryCards.map(card => (
-          <div className="card interactive-lift-card" style={{ padding: '20px' }} key={card.title}>
+          <div className={`card interactive-lift-card color-accent-card color-accent-${card.accent}`} style={{ padding: '20px' }} key={card.title}>
             <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>{card.title}</span>
             <div style={{ fontSize: '26px', fontWeight: '800', color: card.color, marginTop: '4px' }}>
               {appraisalsLoading ? '—' : card.value}
@@ -150,7 +151,7 @@ export const AppraisalsView: React.FC = () => {
                 <td><span style={{ color: 'var(--text-secondary)', fontSize: '12.5px' }}>{review.cycle}</span></td>
                 <td>
                   {review.overallRating ? (
-                    <strong style={{ fontSize: '14.5px', color: '#05B169' }}>★ {review.overallRating} / 5.0</strong>
+                    <strong style={{ fontSize: '14.5px', color: 'var(--success)' }}>★ {review.overallRating} / 5.0</strong>
                   ) : review.legacyAdminRating !== undefined ? (
                     <span title="Single rating from a previous appraisal format" style={{ fontWeight: '600', color: 'var(--text-secondary)' }}>
                       {review.legacyAdminRating} / 5 · previous

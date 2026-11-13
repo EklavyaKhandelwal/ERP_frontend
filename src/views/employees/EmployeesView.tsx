@@ -370,7 +370,7 @@ export const EmployeesView: React.FC = () => {
         />
       )}
       {accountActionError && (
-        <div role="alert" style={{ position: 'fixed', right: '24px', bottom: '24px', zIndex: 1300, maxWidth: '420px', padding: '12px 16px', borderRadius: '8px', color: '#CF202F', backgroundColor: '#FEECEE', boxShadow: 'var(--shadow-md)' }}>
+        <div role="alert" style={{ position: 'fixed', right: '24px', bottom: '24px', zIndex: 1300, maxWidth: '420px', padding: '12px 16px', borderRadius: '8px', color: 'var(--danger)', backgroundColor: 'var(--danger-bg)', boxShadow: 'var(--shadow-md)' }}>
           {accountActionError}
           <button type="button" aria-label="Dismiss" onClick={() => setAccountActionError(null)} style={{ marginLeft: '12px', border: 0, background: 'none', cursor: 'pointer' }}>×</button>
         </div>

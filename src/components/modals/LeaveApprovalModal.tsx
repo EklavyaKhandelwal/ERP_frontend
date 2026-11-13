@@ -63,8 +63,8 @@ export const LeaveApprovalModal: React.FC<Props> = ({ leave, onClose, onReviewed
               width: '56px',
               height: '56px',
               borderRadius: '50%',
-              backgroundColor: resultState === 'approved' ? '#E3F6EC' : '#FEECEE',
-              color: resultState === 'approved' ? '#05B169' : '#CF202F',
+              backgroundColor: resultState === 'approved' ? 'var(--success-bg)' : 'var(--danger-bg)',
+              color: resultState === 'approved' ? 'var(--success)' : 'var(--danger)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -72,7 +72,7 @@ export const LeaveApprovalModal: React.FC<Props> = ({ leave, onClose, onReviewed
             }}>
               {resultState === 'approved' ? <CheckCircle2 size={32} /> : <X size={32} />}
             </div>
-            <h4 style={{ fontSize: '18px', fontWeight: '800', color: '#0A0B0D' }}>
+            <h4 style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-main)' }}>
               {resultState === 'approved' ? 'Leave Application Approved' : 'Leave Application Rejected'}
             </h4>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '6px' }}>
@@ -92,7 +92,7 @@ export const LeaveApprovalModal: React.FC<Props> = ({ leave, onClose, onReviewed
               alignItems: 'center',
               gap: '12px',
               padding: '16px',
-              backgroundColor: '#F8F9FA',
+              backgroundColor: 'var(--bg-subtle)',
               borderRadius: '10px',
               border: '1px solid var(--border-light)',
               marginBottom: '20px'
@@ -114,11 +114,11 @@ export const LeaveApprovalModal: React.FC<Props> = ({ leave, onClose, onReviewed
 
             {/* Leave Details Grid */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginBottom: '20px', fontSize: '13px' }}>
-              <div style={{ padding: '12px', backgroundColor: '#FAFCFF', borderRadius: '8px', border: '1px solid #E5EDFF' }}>
+              <div style={{ padding: '12px', backgroundColor: '#F8FAFF', borderRadius: '8px', border: '1px solid #DCE7FA' }}>
                 <span style={{ color: 'var(--text-muted)', fontSize: '11px', textTransform: 'uppercase', fontWeight: '600' }}>Leave Type</span>
-                <div style={{ fontWeight: '700', color: '#0052FF', marginTop: '2px' }}>{leave.leaveType}</div>
+                <div style={{ fontWeight: '700', color: 'var(--primary)', marginTop: '2px' }}>{leave.leaveType}</div>
               </div>
-              <div style={{ padding: '12px', backgroundColor: '#FAFCFF', borderRadius: '8px', border: '1px solid #E5EDFF' }}>
+              <div style={{ padding: '12px', backgroundColor: '#F8FAFF', borderRadius: '8px', border: '1px solid #DCE7FA' }}>
                 <span style={{ color: 'var(--text-muted)', fontSize: '11px', textTransform: 'uppercase', fontWeight: '600' }}>Duration</span>
                 <div style={{ fontWeight: '700', color: 'var(--text-main)', marginTop: '2px' }}>
                   {leave.days} Business Days ({leave.startDate} to {leave.endDate})
@@ -128,7 +128,7 @@ export const LeaveApprovalModal: React.FC<Props> = ({ leave, onClose, onReviewed
 
             <div style={{ marginBottom: '20px' }}>
               <span style={{ color: 'var(--text-muted)', fontSize: '12px', fontWeight: '600' }}>Employee Justification</span>
-              <div style={{ marginTop: '4px', padding: '12px', backgroundColor: '#F8F9FA', borderRadius: '8px', fontSize: '13px', color: 'var(--text-main)', fontStyle: 'italic' }}>
+              <div style={{ marginTop: '4px', padding: '12px', backgroundColor: 'var(--bg-subtle)', borderRadius: '8px', fontSize: '13px', color: 'var(--text-main)', fontStyle: 'italic' }}>
                 "{leave.reason}"
               </div>
             </div>
@@ -147,14 +147,14 @@ export const LeaveApprovalModal: React.FC<Props> = ({ leave, onClose, onReviewed
             ) : leave.reviewNote ? (
               <div style={{ marginBottom: '20px' }}>
                 <span style={{ color: 'var(--text-muted)', fontSize: '12px', fontWeight: '600' }}>Reviewer Notes</span>
-                <div style={{ marginTop: '4px', padding: '12px', backgroundColor: '#F8F9FA', borderRadius: '8px', fontSize: '13px', color: 'var(--text-main)' }}>
+                <div style={{ marginTop: '4px', padding: '12px', backgroundColor: 'var(--bg-subtle)', borderRadius: '8px', fontSize: '13px', color: 'var(--text-main)' }}>
                   {leave.reviewNote}
                 </div>
               </div>
             ) : null}
 
             {error && (
-              <div role="alert" style={{ padding: '10px 12px', marginTop: '12px', borderRadius: '8px', color: '#CF202F', backgroundColor: '#FEECEE', fontSize: '13px' }}>
+              <div role="alert" style={{ padding: '10px 12px', marginTop: '12px', borderRadius: '8px', color: 'var(--danger)', backgroundColor: 'var(--danger-bg)', fontSize: '13px' }}>
                 {error}
               </div>
             )}
@@ -174,7 +174,7 @@ export const LeaveApprovalModal: React.FC<Props> = ({ leave, onClose, onReviewed
                   disabled={isSubmitting}
                   onClick={() => handleAction('Rejected')}
                   className="btn btn-sm"
-                  style={{ backgroundColor: '#FEECEE', color: '#CF202F', border: '1px solid #F7BAC0' }}
+                  style={{ backgroundColor: 'var(--danger-bg)', color: 'var(--danger)', border: '1px solid var(--danger-border)' }}
                 >
                   <X size={14} />
                   <span>Reject</span>
@@ -184,7 +184,7 @@ export const LeaveApprovalModal: React.FC<Props> = ({ leave, onClose, onReviewed
                   disabled={isSubmitting}
                   onClick={() => handleAction('Approved')}
                   className="btn btn-sm btn-primary"
-                  style={{ backgroundColor: '#05B169', borderColor: '#05B169' }}
+                  style={{ backgroundColor: 'var(--success)', borderColor: 'var(--success)' }}
                 >
                   <Check size={14} />
                   <span>Approve Leave</span>

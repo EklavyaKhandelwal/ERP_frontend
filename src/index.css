@@ -9,11 +9,11 @@
   --primary-focus: rgba(40, 100, 232, 0.18);
 
   /* Neutrals */
-  --dark-sidebar: #0A0B0D;
-  --dark-surface: #16181C;
-  --dark-border: #22262E;
+  --dark-sidebar: #14233F;
+  --dark-surface: #1B2F52;
+  --dark-border: #29416A;
   --dark-text: #FFFFFF;
-  --dark-text-muted: #8A8F98;
+  --dark-text-muted: #B5C3DA;
 
   --bg-canvas: #F6F8FC;
   --bg-card: #FFFFFF;
@@ -35,6 +35,7 @@
   --success-border: #A6E5C0;
 
   --warning: #DC8500;
+  --warning-text: #B54708;
   --warning-bg: #FFF4DB;
   --warning-border: #F5D48D;
 
@@ -210,7 +211,7 @@ button, input, select, textarea {
 
 .badge-warning {
   background: var(--warning-bg);
-  color: #B45309;
+  color: var(--warning-text);
 }
 .badge-warning .badge-dot {
   background: var(--warning);
@@ -248,6 +249,59 @@ button, input, select, textarea {
   box-shadow: var(--shadow-xs);
   transition: transform var(--transition-fast), box-shadow var(--transition-fast), border-color var(--transition-fast);
 }
+
+.color-accent-card {
+  position: relative;
+  background: linear-gradient(135deg, var(--card-accent-bg), var(--bg-card) 78%);
+  border-color: var(--card-accent-border);
+}
+
+.color-accent-card::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: var(--card-accent);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  pointer-events: none;
+  content: '';
+}
+
+.color-accent-blue {
+  --card-accent: var(--primary);
+  --card-accent-bg: var(--primary-light);
+  --card-accent-border: #C8D7F5;
+}
+
+.color-accent-green {
+  --card-accent: var(--success);
+  --card-accent-bg: var(--success-bg);
+  --card-accent-border: var(--success-border);
+}
+
+.color-accent-purple {
+  --card-accent: #6941C6;
+  --card-accent-bg: #F1EBFF;
+  --card-accent-border: #D8CCFA;
+}
+
+.color-accent-amber {
+  --card-accent: var(--warning-text);
+  --card-accent-bg: var(--warning-bg);
+  --card-accent-border: var(--warning-border);
+}
+
+.color-accent-red {
+  --card-accent: var(--danger);
+  --card-accent-bg: var(--danger-bg);
+  --card-accent-border: var(--danger-border);
+}
+
+.color-accent-neutral {
+  --card-accent: var(--text-muted);
+  --card-accent-bg: var(--bg-subtle);
+  --card-accent-border: var(--border-light);
+}
+
 .card:hover {
   box-shadow: 0 10px 24px rgba(31, 48, 86, 0.1), 0 0 0 1px rgba(40, 100, 232, 0.1);
   border-color: #C8D7F5;
@@ -507,6 +561,13 @@ button, input, select, textarea {
 
 .app-loading-sidebar .loading-skeleton {
   background: #22262E;
+}
+
+.app-sidebar {
+  --dark-sidebar: #0A0B0D;
+  --dark-surface: #16181C;
+  --dark-border: #22262E;
+  --dark-text-muted: #8A8F98;
 }
 
 .app-loading-nav {
@@ -2157,7 +2218,7 @@ button, input, select, textarea {
   align-items: center;
   justify-content: center;
   color: #fff;
-  background: var(--primary, #0052ff);
+  background: var(--primary);
   border-radius: 50%;
 }
 
@@ -2187,13 +2248,13 @@ button, input, select, textarea {
 }
 
 .leaves-calendar-event.approved {
-  color: #087443;
-  background: #e3f6ec;
+  color: #067647;
+  background: var(--success-bg);
 }
 
 .leaves-calendar-event.pending {
-  color: #925b00;
-  background: #fff3d4;
+  color: var(--warning-text);
+  background: var(--warning-bg);
 }
 
 .leaves-calendar-event.holiday {
@@ -2237,7 +2298,7 @@ button, input, select, textarea {
 }
 
 .leaves-calendar-legend i.approved {
-  background: #05b169;
+  background: var(--success);
 }
 
 .leaves-calendar-legend i.pending {
@@ -2651,18 +2712,18 @@ button, input, select, textarea {
 }
 
 .admin-dashboard-metric-icon.blue {
-  color: #0052ff;
-  background: #e5edff;
+  color: var(--primary);
+  background: var(--primary-light);
 }
 
 .admin-dashboard-metric-icon.green {
-  color: #05b169;
-  background: #e3f6ec;
+  color: var(--success);
+  background: var(--success-bg);
 }
 
 .admin-dashboard-metric-icon.amber {
-  color: #b45309;
-  background: #fef6e0;
+  color: var(--warning-text);
+  background: var(--warning-bg);
 }
 
 .admin-dashboard-metric-value {
@@ -3495,7 +3556,7 @@ button, input, select, textarea {
   --sales-blue-soft: #EAF1FF;
   --sales-purple: #6941C6;
   --sales-green: #039855;
-  --sales-amber: #B54708;
+  --sales-amber: var(--warning-text);
   background: linear-gradient(180deg, #F2F5FF 0, #F8FAFC 340px, transparent 100%);
 }
 
@@ -3908,8 +3969,8 @@ button, input, select, textarea {
 }
 
 .sales-profile-metric-icon.technology {
-  color: #B54708;
-  background: #FFF1CC;
+  color: var(--warning-text);
+  background: var(--warning-bg);
 }
 
 .sales-profile-metric > strong {
@@ -4085,8 +4146,8 @@ button, input, select, textarea {
 }
 
 .sales-profile-tech-chip.tone-1 {
-  color: #B54708;
-  background: #FFF1CC;
+  color: var(--warning-text);
+  background: var(--warning-bg);
 }
 
 .sales-profile-tech-chip.tone-2 {
@@ -4286,8 +4347,8 @@ button, input, select, textarea {
 }
 
 .sales-follow-up-date.due-today {
-  color: #B54708;
-  background: #FFFAEB;
+  color: var(--warning-text);
+  background: var(--warning-bg);
 }
 
 .sales-follow-up-owner {
@@ -4997,6 +5058,14 @@ button, input, select, textarea {
   .employee-dashboard-welcome-actions {
     width: 100%;
   }
+}
+
+.employee-dashboard-page {
+  --primary: #0f141f;
+  --primary-hover: #202736;
+  --primary-active: #0e1117;
+  --primary-light: #191d25;
+  --primary-focus: rgba(0, 82, 255, 0.18);
 }
 
 .admin-dashboard-page,

@@ -98,15 +98,15 @@ export const AccountSetupView: React.FC<{
       : 'Set up your employee account';
 
   return (
-    <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', backgroundColor: '#F8F9FA', padding: '24px' }}>
+    <div style={{ minHeight: '100vh', display: 'grid', placeItems: 'center', background: 'linear-gradient(180deg, #F2F5FF, var(--bg-canvas) 52%)', padding: '24px' }}>
       <div className="card" style={{ maxWidth: '680px', width: '100%', padding: 'clamp(24px, 5vw, 40px)', borderRadius: '16px', boxShadow: 'var(--shadow-md)' }}>
-        <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: '#E5EDFF', display: 'grid', placeItems: 'center', color: '#0052FF', marginBottom: '20px' }}>
+        <div style={{ width: '48px', height: '48px', borderRadius: '12px', backgroundColor: 'var(--primary-light)', display: 'grid', placeItems: 'center', color: 'var(--primary)', marginBottom: '20px' }}>
           {complete ? <CheckCircle2 size={24} /> : <ShieldCheck size={24} />}
         </div>
-        <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#0A0B0D', margin: 0 }}>{title}</h1>
+        <h1 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-main)', margin: 0 }}>{title}</h1>
         {complete ? (
           <div>
-            <p style={{ fontSize: '14px', color: '#5B616E', marginTop: '10px', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '10px', lineHeight: 1.5 }}>
               Your profile and documents are securely saved. Sign in using your work email to continue.
             </p>
             <a href="/" className="btn btn-primary" style={{ display: 'flex', justifyContent: 'center', marginTop: '24px', textDecoration: 'none' }}>
@@ -115,7 +115,7 @@ export const AccountSetupView: React.FC<{
           </div>
         ) : (
           <>
-            <p style={{ fontSize: '14px', color: '#5B616E', marginTop: '10px', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '14px', color: 'var(--text-secondary)', marginTop: '10px', lineHeight: 1.5 }}>
               {employeeOnboarding
                 ? 'Complete every required field and upload the required documents before you can access the AAVIL dashboard.'
                 : 'This one-time employee access link expires after 24 hours.'}
@@ -124,8 +124,8 @@ export const AccountSetupView: React.FC<{
               marginTop: '14px',
               padding: '12px 14px',
               borderRadius: '8px',
-              color: '#334155',
-              background: '#EFF6FF',
+              color: '#173B85',
+              background: 'var(--primary-light)',
               fontSize: '13px',
               lineHeight: 1.5,
             }}>
@@ -152,7 +152,7 @@ export const AccountSetupView: React.FC<{
                     {requiredDocumentFields.map(({ type, label }) => (
                       <label key={type} className="card" style={{ display: 'grid', gap: '8px', padding: '14px', border: '1px solid var(--border-light)', cursor: 'pointer' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: '600' }}>
-                          {files[type] ? <FileText size={16} color="#05B169" /> : <Upload size={16} color="#0052FF" />}
+                          {files[type] ? <FileText size={16} color="var(--success)" /> : <Upload size={16} color="var(--primary)" />}
                           {label} *
                         </span>
                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '12px', color: 'var(--text-muted)' }}>
@@ -181,7 +181,7 @@ export const AccountSetupView: React.FC<{
                     {optionalDocumentFields.map(({ type, label }) => (
                       <label key={type} className="card" style={{ display: 'grid', gap: '8px', padding: '14px', border: '1px solid var(--border-light)', cursor: 'pointer' }}>
                         <span style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: '600' }}>
-                          {files[type] ? <FileText size={16} color="#05B169" /> : <Upload size={16} color="#0052FF" />}
+                          {files[type] ? <FileText size={16} color="var(--success)" /> : <Upload size={16} color="var(--primary)" />}
                           {label} (Optional)
                         </span>
                         <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '12px', color: 'var(--text-muted)' }}>
@@ -218,7 +218,7 @@ export const AccountSetupView: React.FC<{
                   </div>
                 </>
               )}
-              {error && <div role="alert" style={{ padding: '10px 12px', marginBottom: '16px', borderRadius: '8px', color: '#CF202F', backgroundColor: '#FEECEE', fontSize: '13px' }}>{error}</div>}
+              {error && <div role="alert" style={{ padding: '10px 12px', marginBottom: '16px', borderRadius: '8px', color: 'var(--danger)', backgroundColor: 'var(--danger-bg)', fontSize: '13px' }}>{error}</div>}
               <button type="submit" disabled={isSubmitting || (!employeeOnboarding && !token)} className="btn btn-primary" style={{ width: '100%', padding: '12px' }}>
                 {isSubmitting ? 'Saving…' : employeeOnboarding ? 'Save details and continue' : 'Save details and set password'}
               </button>

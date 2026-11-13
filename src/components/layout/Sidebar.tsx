@@ -112,7 +112,7 @@ export const Sidebar: React.FC = () => {
   menuItems.push({ id: 'my-profile', label: 'My Profile', icon: <UserRound size={18} /> });
 
   return (
-    <aside style={{
+    <aside className="app-sidebar" style={{
       width: '260px',
       height: '100dvh',
       backgroundColor: 'var(--dark-sidebar)',

@@ -422,7 +422,7 @@ export const TimesheetsView: React.FC = () => {
       </div>
 
       {(error || timesheetsError) && (
-        <div role="alert" style={{ padding: '12px 16px', marginBottom: '16px', borderRadius: '8px', color: '#CF202F', backgroundColor: '#FEECEE' }}>
+        <div role="alert" style={{ padding: '12px 16px', marginBottom: '16px', borderRadius: '8px', color: 'var(--danger)', backgroundColor: 'var(--danger-bg)' }}>
           {error ?? timesheetsError}
         </div>
       )}
@@ -539,10 +539,10 @@ export const TimesheetsView: React.FC = () => {
                         <span className={`badge ${sheet.status === 'Approved' ? 'badge-success' : sheet.status === 'Rejected' ? 'badge-danger' : 'badge-warning'}`}>{sheet.status}</span>
                         {sheet.status === 'Submitted' && (
                           <>
-                            <button type="button" disabled={reviewingSheetId === sheet.id} onClick={() => void handleReview(sheet, 'Approved')} className="btn btn-sm" style={{ backgroundColor: '#E3F6EC', color: '#05B169', border: '1px solid #A3E6C5' }}>
+                            <button type="button" disabled={reviewingSheetId === sheet.id} onClick={() => void handleReview(sheet, 'Approved')} className="btn btn-sm" style={{ backgroundColor: 'var(--success-bg)', color: 'var(--success)', border: '1px solid var(--success-border)' }}>
                               <Check size={14} /> Approve
                             </button>
-                            <button type="button" disabled={reviewingSheetId === sheet.id} onClick={() => void handleReview(sheet, 'Rejected')} className="btn btn-sm" style={{ backgroundColor: '#FEECEE', color: '#CF202F', border: '1px solid #F7BAC0' }}>
+                            <button type="button" disabled={reviewingSheetId === sheet.id} onClick={() => void handleReview(sheet, 'Rejected')} className="btn btn-sm" style={{ backgroundColor: 'var(--danger-bg)', color: 'var(--danger)', border: '1px solid var(--danger-border)' }}>
                               <X size={14} /> Return
                             </button>
                           </>
@@ -709,7 +709,7 @@ export const TimesheetsView: React.FC = () => {
                         </label>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', paddingBottom: '4px' }}>
                           <span style={{ color: 'var(--text-secondary)', fontSize: '13px' }}>Task total</span>
-                          <strong style={{ fontSize: '16px', color: '#0052FF' }}>{rowHours.toFixed(1)}h</strong>
+                          <strong style={{ fontSize: '16px', color: 'var(--primary)' }}>{rowHours.toFixed(1)}h</strong>
                           {canEdit && (
                             <button className="btn btn-secondary btn-sm" aria-label="Remove entry" onClick={() => updateRows(current => current.filter(item => item.key !== row.key))}>
                               <X size={14} />
@@ -763,9 +763,9 @@ export const TimesheetsView: React.FC = () => {
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px 20px' }}>
                     {dayHeaders.map(day => {
                       const total = rows.reduce((sum, row) => sum + row.hours[day.key], 0);
-                      return <span key={day.key} style={{ fontSize: '12px', color: total > 24 ? '#CF202F' : 'var(--text-secondary)' }}>{day.label}: <strong>{total.toFixed(1)}h</strong></span>;
+                      return <span key={day.key} style={{ fontSize: '12px', color: total > 24 ? 'var(--danger)' : 'var(--text-secondary)' }}>{day.label}: <strong>{total.toFixed(1)}h</strong></span>;
                     })}
-                    <span style={{ color: '#0052FF' }}>Week: <strong>{totalHours.toFixed(1)}h</strong></span>
+                    <span style={{ color: 'var(--primary)' }}>Week: <strong>{totalHours.toFixed(1)}h</strong></span>
                   </div>
                 </div>
               </div>

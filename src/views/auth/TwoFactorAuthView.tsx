@@ -55,7 +55,7 @@ export const TwoFactorAuthView: React.FC = () => {
     <div style={{
       display: 'flex',
       minHeight: '100vh',
-      backgroundColor: '#F8F9FA',
+      background: 'linear-gradient(180deg, #F2F5FF, var(--bg-canvas) 52%)',
       alignItems: 'center',
       justifyContent: 'center',
       padding: '24px'
@@ -67,7 +67,7 @@ export const TwoFactorAuthView: React.FC = () => {
             display: 'inline-flex',
             alignItems: 'center',
             gap: '6px',
-            color: '#5B616E',
+            color: 'var(--text-secondary)',
             background: 'none',
             border: 'none',
             fontSize: '13px',
@@ -84,20 +84,20 @@ export const TwoFactorAuthView: React.FC = () => {
           width: '52px',
           height: '52px',
           borderRadius: '12px',
-          backgroundColor: '#E5EDFF',
+          backgroundColor: 'var(--primary-light)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#0052FF',
+          color: 'var(--primary)',
           marginBottom: '20px'
         }}>
           <KeyRound size={26} />
         </div>
 
-        <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0A0B0D', letterSpacing: '-0.02em', margin: 0 }}>
+        <h2 style={{ fontSize: '24px', fontWeight: '800', color: 'var(--text-main)', letterSpacing: '-0.02em', margin: 0 }}>
           Two-Factor Authentication
         </h2>
-        <p style={{ fontSize: '13.5px', color: '#5B616E', marginTop: '8px', lineHeight: '1.5' }}>
+        <p style={{ fontSize: '13.5px', color: 'var(--text-secondary)', marginTop: '8px', lineHeight: '1.5' }}>
           An authentication code has been sent to your registered authenticator or corporate email ({currentUser.email}).
         </p>
 
@@ -107,10 +107,10 @@ export const TwoFactorAuthView: React.FC = () => {
             alignItems: 'center',
             gap: '8px',
             padding: '10px 14px',
-            backgroundColor: '#FEECEE',
-            border: '1px solid #F7BAC0',
+            backgroundColor: 'var(--danger-bg)',
+            border: '1px solid var(--danger-border)',
             borderRadius: '8px',
-            color: '#CF202F',
+            color: 'var(--danger)',
             fontSize: '12.5px',
             marginTop: '20px'
           }}>
@@ -140,25 +140,25 @@ export const TwoFactorAuthView: React.FC = () => {
                   fontWeight: '700',
                   textAlign: 'center',
                   borderRadius: '10px',
-                  border: error ? '2px solid #CF202F' : '1px solid var(--border-default)',
+                  border: error ? '2px solid var(--danger)' : '1px solid var(--border-default)',
                   backgroundColor: '#FFFFFF',
                   outline: 'none',
-                  color: '#0A0B0D',
+                  color: 'var(--text-main)',
                   transition: 'all 0.15s ease'
                 }}
                 onFocus={e => {
-                  e.currentTarget.style.borderColor = '#0052FF';
-                  e.currentTarget.style.boxShadow = '0 0 0 3px rgba(0, 82, 255, 0.15)';
+                  e.currentTarget.style.borderColor = 'var(--primary)';
+                  e.currentTarget.style.boxShadow = '0 0 0 3px var(--primary-focus)';
                 }}
                 onBlur={e => {
-                  e.currentTarget.style.borderColor = error ? '#CF202F' : 'var(--border-default)';
+                  e.currentTarget.style.borderColor = error ? 'var(--danger)' : 'var(--border-default)';
                   e.currentTarget.style.boxShadow = 'none';
                 }}
               />
             ))}
           </div>
 
-          <div style={{ marginBottom: '24px', fontSize: '13px', color: '#8A8F98' }}>
+          <div style={{ marginBottom: '24px', fontSize: '13px', color: 'var(--text-muted)' }}>
             Two-factor verification is not available yet.
           </div>
 

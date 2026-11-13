@@ -87,7 +87,7 @@ export const AppraisalDetailModal: React.FC<Props> = ({ appraisal, onClose }) =>
   const section = (label: string, content: string | undefined) => (
     <div style={{ marginBottom: '18px' }}>
       <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-muted)' }}>{label}</span>
-      <p style={{ fontSize: '13.5px', color: 'var(--text-main)', marginTop: '4px', backgroundColor: '#F8F9FA', padding: '12px', borderRadius: '8px', whiteSpace: 'pre-wrap' }}>
+      <p style={{ fontSize: '13.5px', color: 'var(--text-main)', marginTop: '4px', backgroundColor: 'var(--bg-subtle)', padding: '12px', borderRadius: '8px', whiteSpace: 'pre-wrap' }}>
         {content || 'Not provided.'}
       </p>
     </div>
@@ -96,7 +96,7 @@ export const AppraisalDetailModal: React.FC<Props> = ({ appraisal, onClose }) =>
   const ratingSummary = () => (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(190px, 1fr))', gap: '10px', marginBottom: '20px' }}>
       {ratingAreas.map(area => (
-        <div key={area.key} style={{ padding: '12px', background: '#F8F9FA', borderRadius: '8px' }}>
+        <div key={area.key} style={{ padding: '12px', background: 'var(--bg-subtle)', borderRadius: '8px' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{area.label}</div>
           <strong style={{ display: 'block', marginTop: '4px', color: 'var(--text-main)' }}>
             {appraisal[area.key]}/5 · {ratingLabels[appraisal[area.key] ?? 0]}
@@ -115,7 +115,7 @@ export const AppraisalDetailModal: React.FC<Props> = ({ appraisal, onClose }) =>
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          backgroundColor: '#F8F9FA',
+          backgroundColor: 'var(--bg-subtle)',
         }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -138,28 +138,28 @@ export const AppraisalDetailModal: React.FC<Props> = ({ appraisal, onClose }) =>
             <div>
               <div style={{
                 padding: '20px',
-                backgroundColor: '#E3F6EC',
+                backgroundColor: 'var(--success-bg)',
                 borderRadius: '12px',
-                border: '1px solid #A3E6C5',
+                border: '1px solid var(--success-border)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 marginBottom: '24px',
               }}>
                 <div>
-                  <div style={{ fontSize: '12px', fontWeight: '700', color: '#166534', textTransform: 'uppercase' }}>
+                  <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--success)', textTransform: 'uppercase' }}>
                     Admin performance assessment
                   </div>
-                  <div style={{ fontSize: '14px', color: '#14532D', marginTop: '2px' }}>
+                  <div style={{ fontSize: '14px', color: 'var(--success)', marginTop: '2px' }}>
                     Completed on {appraisal.completedDate}
                   </div>
                 </div>
                 {hasStructuredRatings ? (
-                  <div style={{ fontSize: '30px', fontWeight: '800', color: '#05B169' }}>
-                    {appraisal.overallRating} <span style={{ fontSize: '14px', fontWeight: '600', color: '#166534' }}>/ 5.0 average</span>
+                  <div style={{ fontSize: '30px', fontWeight: '800', color: 'var(--success)' }}>
+                    {appraisal.overallRating} <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--success)' }}>/ 5.0 average</span>
                   </div>
                 ) : appraisal.legacyAdminRating !== undefined ? (
-                  <div style={{ fontSize: '16px', fontWeight: '700', color: '#166534' }}>
+                  <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--success)' }}>
                     Previous single rating: {appraisal.legacyAdminRating} / 5
                   </div>
                 ) : null}
@@ -228,7 +228,7 @@ export const AppraisalDetailModal: React.FC<Props> = ({ appraisal, onClose }) =>
                   onChange={event => setNextGoals(event.target.value)}
                 />
               </div>
-              {error && <div role="alert" style={{ padding: '10px 12px', marginBottom: '12px', borderRadius: '8px', color: '#CF202F', backgroundColor: '#FEECEE', fontSize: '13px' }}>{error}</div>}
+              {error && <div role="alert" style={{ padding: '10px 12px', marginBottom: '12px', borderRadius: '8px', color: 'var(--danger)', backgroundColor: 'var(--danger-bg)', fontSize: '13px' }}>{error}</div>}
               <button type="submit" disabled={isSubmitting} className="btn btn-primary" style={{ width: '100%', marginTop: '8px' }}>
                 <Award size={16} />
                 <span>{isSubmitting ? 'Submitting…' : 'Submit Self-Review'}</span>
@@ -277,7 +277,7 @@ export const AppraisalDetailModal: React.FC<Props> = ({ appraisal, onClose }) =>
                   onChange={event => setComments(event.target.value)}
                 />
               </div>
-              {error && <div role="alert" style={{ padding: '10px 12px', marginBottom: '12px', borderRadius: '8px', color: '#CF202F', backgroundColor: '#FEECEE', fontSize: '13px' }}>{error}</div>}
+              {error && <div role="alert" style={{ padding: '10px 12px', marginBottom: '12px', borderRadius: '8px', color: 'var(--danger)', backgroundColor: 'var(--danger-bg)', fontSize: '13px' }}>{error}</div>}
               <button type="submit" disabled={isSubmitting} className="btn btn-primary" style={{ width: '100%', marginTop: '8px' }}>
                 <CheckCircle2 size={16} />
                 <span>{isSubmitting ? 'Completing…' : 'Complete Admin Review'}</span>
