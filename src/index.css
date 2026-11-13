@@ -3482,9 +3482,18 @@ button, input, select, textarea {
   border-top: 1px solid #f0f2f5;
 }
 
+.sales-module {
+  --sales-blue: #2864E8;
+  --sales-blue-soft: #EAF1FF;
+  --sales-purple: #6941C6;
+  --sales-green: #039855;
+  --sales-amber: #B54708;
+  background: linear-gradient(180deg, #F2F5FF 0, #F8FAFC 340px, transparent 100%);
+}
+
 .sales-module .sales-lift-card {
-  border: 1px solid var(--border-light);
-  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
+  border: 1px solid #E5EAF2;
+  box-shadow: 0 2px 7px rgba(31, 48, 86, 0.055), 0 1px 2px rgba(16, 24, 40, 0.035);
   transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 
@@ -3615,16 +3624,59 @@ button, input, select, textarea {
 .sales-module .sales-count-card {
   position: relative;
   overflow: hidden;
-  min-height: 142px;
+  min-height: 86px;
+  padding: 14px 16px !important;
+}
+
+.sales-module .sales-count-card strong {
+  margin: 4px 0 2px !important;
+  font-size: 24px !important;
 }
 
 .sales-module .sales-count-card::before {
   content: '';
   position: absolute;
-  inset: 0 auto 0 0;
-  width: 4px;
-  background: linear-gradient(180deg, #155EEF, #84ADFF);
-  opacity: 0.75;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--sales-blue);
+}
+
+.sales-module .sales-count-card:nth-child(2)::before {
+  background: #F79009;
+}
+
+.sales-module .sales-count-card:nth-child(3)::before {
+  background: #12B76A;
+}
+
+.sales-module input:not([type='checkbox']):focus-visible,
+.sales-module textarea:focus-visible {
+  outline: none;
+  border-color: #84ADFF !important;
+  box-shadow: 0 0 0 3px rgba(40, 100, 232, 0.14);
+}
+
+.sales-module table thead {
+  color: #52617A;
+  background: #F4F7FF !important;
+}
+
+.sales-modal-backdrop {
+  backdrop-filter: blur(4px);
+}
+
+.sales-module .sales-modal {
+  border: 1px solid #DDE6F7;
+  border-top: 4px solid #2864E8;
+  box-shadow: 0 24px 60px rgba(36, 55, 102, 0.22) !important;
+}
+
+.sales-module .sales-modal-title {
+  padding: 10px 12px;
+  border-left: 3px solid #2864E8;
+  border-radius: 0 8px 8px 0;
+  color: #173B85;
+  background: linear-gradient(90deg, #EFF4FF, #F8FAFF);
 }
 
 .sales-module .sales-detail-tile {
@@ -3657,6 +3709,393 @@ button, input, select, textarea {
   gap: 12px;
 }
 
+.sales-profile-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 14px;
+}
+
+.sales-profile-hero {
+  overflow: hidden;
+  margin-bottom: 14px;
+  padding: 0;
+  border: 1px solid #E5EAF2;
+  border-radius: 13px;
+  background: #fff;
+}
+
+.sales-profile-banner {
+  height: 50px;
+  background: #DCEAFF;
+}
+
+.sales-profile-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 13px;
+  padding: 0 18px 8px;
+}
+
+.sales-profile-avatar {
+  display: grid;
+  flex: 0 0 48px;
+  width: 48px;
+  height: 48px;
+  margin-top: -19px;
+  place-items: center;
+  border: 3px solid #fff;
+  border-radius: 12px;
+  color: #fff;
+  background: #2864E8;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.sales-profile-identity {
+  min-width: 0;
+  flex: 1;
+  padding-top: 9px;
+}
+
+.sales-profile-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.sales-profile-title-row h2 {
+  margin: 0;
+  color: #101828;
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.sales-profile-status {
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.sales-profile-identity p {
+  margin: 2px 0 1px;
+  color: #667085;
+  font-size: 11px;
+}
+
+.sales-profile-identity small {
+  color: #667085;
+  font-size: 10px;
+}
+
+.sales-profile-actions {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding-top: 10px;
+}
+
+.sales-profile-tabs {
+  display: flex;
+  gap: 20px;
+  overflow-x: auto;
+  padding: 0 18px;
+  border-top: 1px solid #F0F2F5;
+  scrollbar-width: thin;
+}
+
+.sales-profile-tab {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 1px 9px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: #475467;
+  background: transparent;
+  font: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sales-profile-tab.is-active {
+  border-bottom-color: #2864E8;
+  color: #155EEF;
+}
+
+.sales-profile-tab-count {
+  display: inline-grid;
+  min-width: 16px;
+  height: 16px;
+  place-items: center;
+  padding: 0 4px;
+  border-radius: 999px;
+  color: #667085;
+  background: #F2F4F7;
+  font-size: 9px;
+}
+
+.sales-account-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.sales-profile-metrics {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.sales-profile-metric {
+  display: block;
+  min-width: 0;
+  min-height: 78px;
+  padding: 12px 14px;
+  border: 1px solid #E6EAF1;
+  border-radius: 12px;
+  color: #101828;
+  background: #fff;
+  text-align: left;
+}
+
+.sales-profile-metric-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: #475467;
+  font-size: 10px;
+}
+
+.sales-profile-metric-icon {
+  display: grid;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 7px;
+}
+
+.sales-profile-metric-icon.opportunities {
+  color: #2864E8;
+  background: #E5EEFF;
+}
+
+.sales-profile-metric-icon.leads {
+  color: #6941C6;
+  background: #F0EAFE;
+}
+
+.sales-profile-metric-icon.contacts {
+  color: #039855;
+  background: #DDF8E9;
+}
+
+.sales-profile-metric-icon.technology {
+  color: #B54708;
+  background: #FFF1CC;
+}
+
+.sales-profile-metric > strong {
+  display: block;
+  margin-top: 4px;
+  color: #101828;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.sales-profile-dashboard-card {
+  min-width: 0;
+  align-self: start;
+  border: 1px solid #E6EAF1;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.sales-profile-technology-card {
+  grid-column: 2;
+}
+
+.sales-profile-activity {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 9px;
+  border: 1px solid #EEF1F5;
+  border-radius: 9px;
+  background: #FCFCFD;
+}
+
+.sales-profile-activity-icon {
+  display: grid;
+  flex: 0 0 22px;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border-radius: 50%;
+  color: #027A68;
+  background: #D5F5EF;
+}
+
+.sales-profile-activity-body {
+  min-width: 0;
+  flex: 1;
+}
+
+.sales-profile-activity-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.sales-profile-activity-heading strong {
+  color: #101828;
+  font-size: 10px;
+}
+
+.sales-profile-activity-heading > span {
+  padding: 2px 7px;
+  border-radius: 999px;
+  color: #027A68;
+  background: #D5F5EF;
+  font-size: 9px;
+}
+
+.sales-profile-activity-heading time {
+  margin-left: auto;
+  color: #667085;
+  font-size: 9px;
+}
+
+.sales-profile-activity-body p {
+  margin: 4px 0 0;
+  color: #475467;
+  font-size: 10px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.sales-profile-contact {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  padding: 9px;
+  border: 1px solid #EEF1F5;
+  border-radius: 9px;
+  background: #FCFCFD;
+}
+
+.sales-profile-contact-avatar {
+  display: grid;
+  flex: 0 0 27px;
+  width: 27px;
+  height: 27px;
+  place-items: center;
+  border-radius: 50%;
+  color: #6941C6;
+  background: #F0EAFE;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.sales-profile-contact-info {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 2px;
+}
+
+.sales-profile-contact-info strong {
+  overflow: hidden;
+  color: #101828;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sales-profile-contact-info small {
+  color: #667085;
+  font-size: 9px;
+}
+
+.sales-profile-contact-key {
+  flex: 0 0 auto;
+  padding: 3px 6px;
+  border-radius: 999px;
+  color: #475467;
+  background: #F2F4F7;
+  font-size: 8px;
+}
+
+.sales-profile-contact-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.sales-profile-contact-actions a {
+  display: grid;
+  width: 25px;
+  height: 25px;
+  place-items: center;
+  border: 1px solid #E1E5EC;
+  border-radius: 6px;
+  color: #475467;
+  background: #fff;
+}
+
+.sales-profile-contact-actions a:hover {
+  color: #155EEF;
+  border-color: #AFC4F5;
+}
+
+.sales-profile-tech-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.sales-profile-tech-chip {
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.sales-profile-tech-chip.tone-0 {
+  color: #6941C6;
+  background: #F0EAFE;
+}
+
+.sales-profile-tech-chip.tone-1 {
+  color: #B54708;
+  background: #FFF1CC;
+}
+
+.sales-profile-tech-chip.tone-2 {
+  color: #C01048;
+  background: #FFE4E8;
+}
+
+.sales-profile-tech-chip.tone-3 {
+  color: #155EEF;
+  background: #E5EEFF;
+}
+
+.sales-profile-tech-chip.tone-4 {
+  color: #027A68;
+  background: #D5F5EF;
+}
+
 .sales-module .sales-detail-label {
   margin-bottom: 6px;
   color: #667085;
@@ -3687,6 +4126,103 @@ button, input, select, textarea {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
   margin-bottom: 20px;
+}
+
+.sales-pipeline-bar {
+  display: flex;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #F2F4F7;
+}
+
+.sales-pipeline-bar > span {
+  height: 100%;
+}
+
+.sales-pipeline-bar > span:first-child {
+  border-radius: 999px 0 0 999px;
+}
+
+.sales-pipeline-bar > span:last-child {
+  border-radius: 0 999px 999px 0;
+}
+
+.sales-pipeline-prospect {
+  background: #F79009;
+}
+
+.sales-pipeline-active {
+  background: #12B76A;
+}
+
+.sales-pipeline-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 9px;
+  color: #475467;
+  font-size: 11px;
+}
+
+.sales-pipeline-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.sales-pipeline-dot {
+  display: inline-block;
+  flex: 0 0 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.sales-account-status-tabs {
+  display: flex;
+  gap: 18px;
+  margin: -2px 0 12px;
+  border-bottom: 1px solid #EAECF0;
+}
+
+.sales-account-status-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: -1px;
+  padding: 0 2px 9px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: #475467;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.sales-account-status-tab span {
+  min-width: 17px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  color: #667085;
+  background: #F2F4F7;
+  font-size: 10px;
+}
+
+.sales-account-status-tab:hover,
+.sales-account-status-tab.is-active {
+  color: #155EEF;
+}
+
+.sales-account-status-tab.is-active {
+  border-bottom-color: #155EEF;
+  font-weight: 600;
+}
+
+.sales-account-status-tab.is-active span {
+  color: #1849A9;
+  background: #EFF4FF;
 }
 
 .sales-follow-up-row,
@@ -3765,6 +4301,69 @@ button, input, select, textarea {
   font-size: 12px;
 }
 
+.sales-follow-up-empty {
+  align-content: center;
+  gap: 5px;
+  padding: 10px 14px;
+  border: 1px solid #E5EAF1;
+}
+
+.sales-follow-up-empty strong {
+  color: #101828;
+  font-size: 12px;
+}
+
+.sales-dashboard-success-icon {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  margin-bottom: 1px;
+  place-items: center;
+  border-radius: 50%;
+  color: #027A48;
+  background: #E7F6EC;
+}
+
+.sales-account-table thead {
+  background: #F9FAFB;
+}
+
+.sales-account-table th {
+  font-size: 11px;
+}
+
+.sales-account-table-footer {
+  display: flex;
+  align-items: center;
+  min-height: 38px;
+  border-top: 1px solid #F0F1F4;
+  color: #667085;
+  font-size: 11px;
+}
+
+.sales-account-open-icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid #E1E5EC;
+  border-radius: 7px;
+  color: #475467;
+  background: #fff;
+  cursor: pointer;
+}
+
+.sales-account-open-icon:hover {
+  border-color: #AFC4F5;
+  color: #155EEF;
+  background: #F8FAFF;
+}
+
+.sales-account-open-icon:focus-visible {
+  outline: 2px solid #155EEF;
+  outline-offset: 2px;
+}
+
 .sales-text-link {
   padding: 4px 0;
   border: 0;
@@ -3813,6 +4412,42 @@ button, input, select, textarea {
 @media (max-width: 900px) {
   .sales-dashboard-grid {
     grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 800px) {
+  .sales-account-dashboard-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .sales-profile-metrics {
+    grid-column: 1;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .sales-profile-technology-card {
+    grid-column: 1;
+  }
+}
+
+@media (max-width: 600px) {
+  .sales-profile-heading {
+    flex-wrap: wrap;
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .sales-profile-actions {
+    width: calc(100% - 61px);
+    flex-basis: calc(100% - 61px);
+    margin-left: 61px;
+    padding-top: 0;
+  }
+
+  .sales-profile-tabs {
+    gap: 16px;
+    padding-right: 12px;
+    padding-left: 12px;
   }
 }
 
