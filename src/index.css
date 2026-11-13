@@ -3795,36 +3795,36 @@ button, input, select, textarea {
 }
 
 .sales-profile-banner {
-  height: 50px;
+  height: 56px;
   background: #DCEAFF;
 }
 
 .sales-profile-heading {
   display: flex;
   align-items: flex-start;
-  gap: 13px;
-  padding: 0 18px 8px;
+  gap: 15px;
+  padding: 0 22px 12px;
 }
 
 .sales-profile-avatar {
   display: grid;
-  flex: 0 0 48px;
-  width: 48px;
-  height: 48px;
-  margin-top: -19px;
+  flex: 0 0 54px;
+  width: 54px;
+  height: 54px;
+  margin-top: -21px;
   place-items: center;
   border: 3px solid #fff;
   border-radius: 12px;
   color: #fff;
   background: #2864E8;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 700;
 }
 
 .sales-profile-identity {
   min-width: 0;
   flex: 1;
-  padding-top: 9px;
+  padding-top: 11px;
 }
 
 .sales-profile-title-row {
@@ -3837,26 +3837,26 @@ button, input, select, textarea {
 .sales-profile-title-row h2 {
   margin: 0;
   color: #101828;
-  font-size: 16px;
+  font-size: 19px;
   line-height: 1.35;
 }
 
 .sales-profile-status {
   border-radius: 999px;
-  padding: 3px 8px;
-  font-size: 10px;
+  padding: 4px 9px;
+  font-size: 11px;
   font-weight: 600;
 }
 
 .sales-profile-identity p {
   margin: 2px 0 1px;
   color: #667085;
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .sales-profile-identity small {
   color: #667085;
-  font-size: 10px;
+  font-size: 12px;
 }
 
 .sales-profile-actions {
@@ -3869,9 +3869,9 @@ button, input, select, textarea {
 
 .sales-profile-tabs {
   display: flex;
-  gap: 20px;
+  gap: 22px;
   overflow-x: auto;
-  padding: 0 18px;
+  padding: 0 22px;
   border-top: 1px solid #F0F2F5;
   scrollbar-width: thin;
 }
@@ -3881,13 +3881,13 @@ button, input, select, textarea {
   flex: 0 0 auto;
   align-items: center;
   gap: 5px;
-  padding: 10px 1px 9px;
+  padding: 11px 1px 10px;
   border: 0;
   border-bottom: 2px solid transparent;
   color: #475467;
   background: transparent;
   font: inherit;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
@@ -3900,34 +3900,34 @@ button, input, select, textarea {
 
 .sales-profile-tab-count {
   display: inline-grid;
-  min-width: 16px;
-  height: 16px;
+  min-width: 18px;
+  height: 18px;
   place-items: center;
   padding: 0 4px;
   border-radius: 999px;
   color: #667085;
   background: #F2F4F7;
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .sales-account-dashboard-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 18px;
 }
 
 .sales-profile-metrics {
   display: grid;
   grid-column: 1 / -1;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
+  gap: 16px;
 }
 
 .sales-profile-metric {
   display: block;
   min-width: 0;
-  min-height: 78px;
-  padding: 12px 14px;
+  min-height: 110px;
+  padding: 18px 20px;
   border: 1px solid #E6EAF1;
   border-radius: 12px;
   color: #101828;
@@ -3941,14 +3941,14 @@ button, input, select, textarea {
   justify-content: space-between;
   gap: 8px;
   color: #475467;
-  font-size: 10px;
+  font-size: 15px;
 }
 
 .sales-profile-metric-icon {
   display: grid;
-  flex: 0 0 24px;
-  width: 24px;
-  height: 24px;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
   place-items: center;
   border-radius: 7px;
 }
@@ -3977,27 +3977,36 @@ button, input, select, textarea {
   display: block;
   margin-top: 4px;
   color: #101828;
-  font-size: 22px;
+  font-size: 30px;
   line-height: 1.2;
 }
 
 .sales-profile-dashboard-card {
   min-width: 0;
   align-self: start;
+  padding: 24px;
   border: 1px solid #E6EAF1;
   border-radius: 12px;
   background: #fff;
 }
 
-.sales-profile-technology-card {
-  grid-column: 2;
+.sales-profile-dashboard-card .sales-text-link {
+  font-size: 14px;
+}
+
+.sales-profile-right-stack {
+  display: flex;
+  min-width: 0;
+  align-self: start;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .sales-profile-activity {
   display: flex;
   align-items: flex-start;
-  gap: 9px;
-  padding: 9px;
+  gap: 12px;
+  padding: 16px;
   border: 1px solid #EEF1F5;
   border-radius: 9px;
   background: #FCFCFD;
@@ -4005,9 +4014,9 @@ button, input, select, textarea {
 
 .sales-profile-activity-icon {
   display: grid;
-  flex: 0 0 22px;
-  width: 22px;
-  height: 22px;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
   place-items: center;
   border-radius: 50%;
   color: #027A68;
@@ -4028,7 +4037,7 @@ button, input, select, textarea {
 
 .sales-profile-activity-heading strong {
   color: #101828;
-  font-size: 10px;
+  font-size: 14px;
 }
 
 .sales-profile-activity-heading > span {
@@ -4036,20 +4045,20 @@ button, input, select, textarea {
   border-radius: 999px;
   color: #027A68;
   background: #D5F5EF;
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .sales-profile-activity-heading time {
   margin-left: auto;
   color: #667085;
-  font-size: 9px;
+  font-size: 13px;
 }
 
 .sales-profile-activity-body p {
   margin: 4px 0 0;
   color: #475467;
-  font-size: 10px;
-  line-height: 1.55;
+  font-size: 14px;
+  line-height: 1.65;
   overflow-wrap: anywhere;
 }
 
@@ -4057,8 +4066,8 @@ button, input, select, textarea {
   display: flex;
   min-width: 0;
   align-items: center;
-  gap: 8px;
-  padding: 9px;
+  gap: 12px;
+  padding: 14px;
   border: 1px solid #EEF1F5;
   border-radius: 9px;
   background: #FCFCFD;
@@ -4066,14 +4075,14 @@ button, input, select, textarea {
 
 .sales-profile-contact-avatar {
   display: grid;
-  flex: 0 0 27px;
-  width: 27px;
-  height: 27px;
+  flex: 0 0 38px;
+  width: 38px;
+  height: 38px;
   place-items: center;
   border-radius: 50%;
   color: #6941C6;
   background: #F0EAFE;
-  font-size: 10px;
+  font-size: 14px;
   font-weight: 700;
 }
 
@@ -4087,23 +4096,23 @@ button, input, select, textarea {
 .sales-profile-contact-info strong {
   overflow: hidden;
   color: #101828;
-  font-size: 10px;
+  font-size: 14px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .sales-profile-contact-info small {
   color: #667085;
-  font-size: 9px;
+  font-size: 13px;
 }
 
 .sales-profile-contact-key {
   flex: 0 0 auto;
-  padding: 3px 6px;
+  padding: 4px 7px;
   border-radius: 999px;
   color: #475467;
   background: #F2F4F7;
-  font-size: 8px;
+  font-size: 12px;
 }
 
 .sales-profile-contact-actions {
@@ -4113,8 +4122,8 @@ button, input, select, textarea {
 
 .sales-profile-contact-actions a {
   display: grid;
-  width: 25px;
-  height: 25px;
+  width: 32px;
+  height: 32px;
   place-items: center;
   border: 1px solid #E1E5EC;
   border-radius: 6px;
@@ -4130,13 +4139,13 @@ button, input, select, textarea {
 .sales-profile-tech-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
 .sales-profile-tech-chip {
-  padding: 5px 9px;
+  padding: 8px 13px;
   border-radius: 999px;
-  font-size: 9px;
+  font-size: 14px;
   font-weight: 600;
 }
 
@@ -4493,10 +4502,6 @@ button, input, select, textarea {
     grid-column: 1;
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .sales-profile-technology-card {
-    grid-column: 1;
-  }
 }
 
 @media (max-width: 600px) {
@@ -4507,9 +4512,9 @@ button, input, select, textarea {
   }
 
   .sales-profile-actions {
-    width: calc(100% - 61px);
-    flex-basis: calc(100% - 61px);
-    margin-left: 61px;
+    width: calc(100% - 69px);
+    flex-basis: calc(100% - 69px);
+    margin-left: 69px;
     padding-top: 0;
   }
 
