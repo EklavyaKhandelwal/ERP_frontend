@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Activity, ArrowLeft, Building2, CirclePlus, ExternalLink, Eye, Handshake, Pencil, Plus, Search, Trash2, Users, CalendarClock, Target, BriefcaseBusiness, Cpu, Mail, Phone } from 'lucide-react';
+import { Activity, ArrowLeft, Building2, CircleCheck, CirclePlus, ExternalLink, Eye, Pencil, Plus, Search, Trash2, Users, CalendarClock, Target, BriefcaseBusiness, Cpu, Mail, Phone } from 'lucide-react';
 import { useERP } from '../../context/ERPContext';
 import { salesApi } from '../../lib/api';
 import type {
@@ -40,12 +40,12 @@ const selectStyle: React.CSSProperties = {
   paddingRight: 38,
 };
 const primaryButton: React.CSSProperties = {
-  border: 0, borderRadius: 8, padding: '10px 14px', color: '#fff', background: '#155EEF',
-  fontWeight: 600, fontSize: 13, cursor: 'pointer',
+  border: 0, borderRadius: 8, padding: '10px 14px', color: '#fff', background: 'linear-gradient(135deg, #3478F6, #155EEF)',
+  boxShadow: '0 3px 8px rgba(21, 94, 239, 0.18)', fontWeight: 600, fontSize: 13, cursor: 'pointer',
 };
 const quietButton: React.CSSProperties = {
-  border: '1px solid #E1E5EC', borderRadius: 8, padding: '9px 12px', color: '#344054',
-  background: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer',
+  border: '1px solid #DDE5F3', borderRadius: 8, padding: '9px 12px', color: '#344054',
+  background: 'linear-gradient(180deg, #FFFFFF, #F8FAFF)', fontWeight: 600, fontSize: 13, cursor: 'pointer',
 };
 const panelStyle: React.CSSProperties = {
   padding: 20, border: '1px solid #E8EBF0', borderRadius: 12, background: '#fff',
@@ -62,9 +62,23 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 }
 
 function statusColor(status: string) {
-  return status === 'Active' || status === 'Won' || status === 'Qualified'
-    ? { color: '#067647', background: '#ECFDF3' }
-    : { color: '#475467', background: '#F2F4F7' };
+  const tones: Record<string, { color: string; background: string }> = {
+    Prospect: { color: '#B54708', background: '#FFF4DB' },
+    Active: { color: '#067647', background: '#E8F8EF' },
+    Won: { color: '#067647', background: '#E8F8EF' },
+    Qualified: { color: '#067647', background: '#E8F8EF' },
+    Converted: { color: '#067647', background: '#E8F8EF' },
+    New: { color: '#175CD3', background: '#EAF2FF' },
+    Contacted: { color: '#175CD3', background: '#EAF2FF' },
+    Prospecting: { color: '#6941C6', background: '#F1EBFF' },
+    Qualification: { color: '#6941C6', background: '#F1EBFF' },
+    Proposal: { color: '#B54708', background: '#FFF4DB' },
+    Negotiation: { color: '#B54708', background: '#FFF4DB' },
+    Lost: { color: '#B42318', background: '#FEECEB' },
+    Disqualified: { color: '#B42318', background: '#FEECEB' },
+    Inactive: { color: '#667085', background: '#F2F4F7' },
+  };
+  return tones[status] ?? { color: '#475467', background: '#F2F4F7' };
 }
 
 function safeExternalUrl(value: string): string | null {
@@ -536,15 +550,18 @@ export const SalesView: React.FC = () => {
 
   return (
     <section className="sales-module" style={{ padding: '28px clamp(16px, 3vw, 36px)', maxWidth: 1400, margin: '0 auto', color: '#101828' }}>
-      <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, marginBottom: 22 }}>
+      {(!selectedAccountId || salesSection === 'dashboard' || salesSection === 'accounts') && <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 16, flexWrap: 'wrap', marginBottom: 22 }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <span style={{ display: 'grid', placeItems: 'center', width: 38, height: 38, borderRadius: 10, color: '#155EEF', background: '#EFF4FF' }}><Handshake size={20} /></span>
+            <span style={{ display: 'grid', placeItems: 'center', width: 38, height: 38, borderRadius: 10, color: '#2864E8', background: 'linear-gradient(135deg, #E8F0FF, #F1EAFF)' }}><Activity size={20} /></span>
             <div><h1 style={{ fontSize: 24, margin: 0 }}>Sales</h1><p style={{ margin: '4px 0 0', color: '#667085', fontSize: 13 }}>Accounts and customer relationships</p></div>
           </div>
         </div>
-        {(!selectedAccountId || salesSection === 'dashboard' || salesSection === 'accounts' || salesSection === 'access') && isAdmin && <button style={quietButton} onClick={() => setSalesSection(salesSection === 'access' ? 'dashboard' : 'access')}><Users size={15} style={{ verticalAlign: 'middle', marginRight: 6 }} />Manage access</button>}
-      </header>
+        {(!selectedAccountId || salesSection === 'dashboard' || salesSection === 'accounts' || salesSection === 'access') && <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {salesSection === 'dashboard' && <button style={primaryButton} onClick={() => openModal('account')}><CirclePlus size={15} style={{ verticalAlign: 'middle', marginRight: 6 }} />Add account</button>}
+          {isAdmin && <button style={quietButton} onClick={() => setSalesSection(salesSection === 'access' ? 'dashboard' : 'access')}><Users size={15} style={{ verticalAlign: 'middle', marginRight: 6 }} />Manage access</button>}
+        </div>}
+      </header>}
 
       {error && <div role="alert" style={{ background: '#FEF3F2', color: '#B42318', borderRadius: 8, padding: 12, marginBottom: 14, fontSize: 13 }}>{error}</div>}
 
@@ -649,18 +666,26 @@ export const SalesView: React.FC = () => {
           </table>
         </div>}
         <p style={{ color: '#667085', fontSize: 12, margin: '10px 2px 0' }}>Showing {globalContacts.length} contacts</p>
-      </section> : selectedAccountId && !profile && salesSection !== 'dashboard' && salesSection !== 'accounts' ? <section className="sales-lift-card" style={panelStyle} role="status">Loading account profile…</section> : selectedAccountId && profile && salesSection !== 'dashboard' && salesSection !== 'accounts' ? <>
-        <button onClick={() => { setProfile(null); setSelectedAccountId(null); setSalesSection('accounts'); setError(''); }} style={{ ...quietButton, display: 'inline-flex', gap: 7, alignItems: 'center', marginBottom: 16 }}><ArrowLeft size={15} /> Accounts</button>
-        <div className="sales-lift-card interactive-lift-card" style={{ ...panelStyle, paddingBottom: 0, marginBottom: 18 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-            <div>
-              <div style={{ color: '#667085', fontSize: 12 }}>Accounts / {profile.account.companyName}</div>
-              <h2 style={{ margin: '6px 0 4px', fontSize: 21 }}>{profile.account.companyName}</h2>
-              <div style={{ color: '#667085', fontSize: 13 }}>{profile.account.industry || 'Industry not set'} · {profile.account.location || 'Location not set'}</div>
+      </section> : selectedAccountId && !profile && salesSection !== 'dashboard' && salesSection !== 'accounts' ? <>
+        <button className="sales-profile-back" onClick={() => { setProfile(null); setSelectedAccountId(null); setSalesSection('accounts'); setError(''); }} style={quietButton}><ArrowLeft size={14} />Back to accounts</button>
+        <section className="sales-lift-card" style={panelStyle} role="status">Loading account profile…</section>
+      </> : selectedAccountId && profile && salesSection !== 'dashboard' && salesSection !== 'accounts' ? <>
+        <button className="sales-profile-back" onClick={() => { setProfile(null); setSelectedAccountId(null); setSalesSection('accounts'); setError(''); }} style={quietButton}><ArrowLeft size={14} />Back to accounts</button>
+        <div className="sales-lift-card sales-profile-hero">
+          <div className="sales-profile-banner" />
+          <div className="sales-profile-heading">
+            <div className="sales-profile-avatar">{profile.account.companyName.split(/\s+/).slice(0, 2).map(part => part.charAt(0)).join('').toUpperCase()}</div>
+            <div className="sales-profile-identity">
+              <div className="sales-profile-title-row"><h2>{profile.account.companyName}</h2><span className="sales-profile-status" style={statusColor(profile.account.status)}>{profile.account.status}</span></div>
+              <p>{profile.account.industry || 'Industry not set'} · {profile.account.location || 'Location not set'}</p>
+              <small>Account owner: {profile.account.ownerName || ownerName(profile.account.ownerEmployeeId) || 'Not assigned'}</small>
             </div>
-            <button style={{ ...quietButton, display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={() => openModal('account', profile.account)}><Pencil size={14} /> Edit account</button>
+            <div className="sales-profile-actions">
+              <button style={{ ...quietButton, display: 'inline-flex', alignItems: 'center', gap: 6 }} onClick={() => openModal('account', profile.account)}><Pencil size={14} />Edit account</button>
+              <button style={primaryButton} onClick={() => openModal('activities')}><Activity size={14} style={{ verticalAlign: 'middle', marginRight: 6 }} />Log activity</button>
+            </div>
           </div>
-          <nav style={{ display: 'flex', gap: 22, overflowX: 'auto', marginTop: 18 }}>
+          <nav className="sales-profile-tabs">
             {tabs.map(item => <button key={item} onClick={() => {
               setTab(item);
               const sections: Partial<Record<AccountTab, typeof salesSection>> = {
@@ -670,67 +695,70 @@ export const SalesView: React.FC = () => {
                 Leads: 'leads', Opportunities: 'opportunities', Notes: 'notes',
               };
               if (sections[item]) setSalesSection(sections[item]!);
-            }} style={{
-              background: 'none', border: 0, borderBottom: activeTab === item ? '2px solid #155EEF' : '2px solid transparent',
-              color: activeTab === item ? '#155EEF' : '#667085', padding: '0 1px 11px', fontWeight: 600, fontSize: 13, cursor: 'pointer', whiteSpace: 'nowrap',
-            }}>{item}</button>)}
+            }} className={`sales-profile-tab${activeTab === item ? ' is-active' : ''}`}>
+              {item}
+              {item === 'Technology' && profile.technologies.length > 0 && <span className="sales-profile-tab-count">{profile.technologies.length}</span>}
+              {item === 'Contacts' && profile.contacts.length > 0 && <span className="sales-profile-tab-count">{profile.contacts.length}</span>}
+              {item === 'Leads' && profile.leads.length > 0 && <span className="sales-profile-tab-count">{profile.leads.length}</span>}
+              {item === 'Opportunities' && profile.opportunities.length > 0 && <span className="sales-profile-tab-count">{profile.opportunities.length}</span>}
+            </button>)}
           </nav>
         </div>
 
-        <div className="sales-lift-card interactive-lift-card" style={panelStyle}>
-          {activeTab === 'Dashboard' && <div style={{ display: 'grid', gap: 18 }}>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(155px, 1fr))', gap: 12 }}>
+        <div className={activeTab === 'Dashboard' ? 'sales-account-dashboard' : 'sales-lift-card interactive-lift-card'} style={activeTab === 'Dashboard' ? undefined : panelStyle}>
+          {activeTab === 'Dashboard' && <div className="sales-account-dashboard-grid">
+            <div className="sales-profile-metrics">
               {[
-                { label: 'Opportunities', value: profile.opportunities.length, icon: <BriefcaseBusiness size={17} />, target: 'Opportunities' as AccountTab },
-                { label: 'Leads', value: profile.leads.length, icon: <Target size={17} />, target: 'Leads' as AccountTab },
-                { label: 'Active contacts', value: profile.contacts.filter(contact => contact.status === 'Active').length, icon: <Users size={17} />, target: 'Contacts' as AccountTab },
-                { label: 'Technologies', value: profile.technologies.length, icon: <Cpu size={17} />, target: 'Technology' as AccountTab },
-              ].map(metric => <button key={metric.label} className="sales-lift-card interactive-lift-card" onClick={() => {
+                { label: 'Opportunities', value: profile.opportunities.length, icon: <BriefcaseBusiness size={16} />, tone: 'opportunities', target: 'Opportunities' as AccountTab },
+                { label: 'Leads', value: profile.leads.length, icon: <Target size={16} />, tone: 'leads', target: 'Leads' as AccountTab },
+                { label: 'Active contacts', value: profile.contacts.filter(contact => contact.status === 'Active').length, icon: <Users size={16} />, tone: 'contacts', target: 'Contacts' as AccountTab },
+                { label: 'Technologies', value: profile.technologies.length, icon: <Cpu size={16} />, tone: 'technology', target: 'Technology' as AccountTab },
+              ].map(metric => <button key={metric.label} onClick={() => {
                 setTab(metric.target);
                 const section: Partial<Record<AccountTab, typeof salesSection>> = {
                   Opportunities: 'opportunities', Leads: 'leads', Contacts: 'contacts', Technology: 'technology',
                 };
                 setSalesSection(section[metric.target] ?? 'account-profile');
-              }} style={{ ...panelStyle, padding: 16, textAlign: 'left', cursor: 'pointer' }}>
-                <span style={{ display: 'flex', justifyContent: 'space-between', color: '#667085', fontSize: 12 }}>{metric.label}<span style={{ color: '#155EEF' }}>{metric.icon}</span></span>
-                <strong style={{ display: 'block', marginTop: 9, fontSize: 25 }}>{metric.value}</strong>
+              }} className="sales-lift-card interactive-lift-card sales-profile-metric" style={{ textAlign: 'left', cursor: 'pointer' }}>
+                <span className="sales-profile-metric-label">{metric.label}<span className={`sales-profile-metric-icon ${metric.tone}`}>{metric.icon}</span></span>
+                <strong>{metric.value}</strong>
               </button>)}
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16 }}>
-              <section className="sales-lift-card" style={{ ...panelStyle, padding: 17 }}>
+              <section className="sales-lift-card sales-profile-dashboard-card sales-profile-activity-card" style={{ ...panelStyle, padding: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 13 }}>
                   <div><h3 style={{ margin: 0, fontSize: 15 }}>Recent activities</h3><p style={{ margin: '4px 0 0', color: '#667085', fontSize: 12 }}>Latest interactions with this account</p></div>
                   <button className="sales-text-link" onClick={() => { setTab('Activities'); setSalesSection('activities'); }}>View all</button>
                 </div>
                 {recentProfileActivities.length ? <div style={{ display: 'grid', gap: 8 }}>
-                  {recentProfileActivities.map(activity => <div key={activity.id} style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', alignItems: 'center', gap: 10, padding: '10px 11px', borderRadius: 9, background: '#F8FAFC' }}>
-                    <span style={{ color: '#1849A9', background: '#EFF4FF', borderRadius: 20, padding: '4px 8px', fontSize: 11, whiteSpace: 'nowrap' }}>{activity.type}</span>
-                    <span style={{ minWidth: 0 }}><strong style={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: 12 }}>{contactLabel(activity.contactId)}</strong><small style={{ color: '#667085', fontSize: 11 }}>{activity.remarks}</small></span>
-                    <time style={{ color: '#667085', fontSize: 10 }}>{activity.activityDate}</time>
-                  </div>)}
+                  {recentProfileActivities.map(activity => <article key={activity.id} className="sales-profile-activity">
+                    <span className="sales-profile-activity-icon"><Activity size={14} /></span>
+                    <div className="sales-profile-activity-body">
+                      <div className="sales-profile-activity-heading"><strong>{contactLabel(activity.contactId)}</strong><span>{activity.type}</span><time>{new Date(`${activity.activityDate}T12:00:00`).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}</time></div>
+                      <p>{activity.remarks}</p>
+                    </div>
+                  </article>)}
                 </div> : <div className="sales-dashboard-empty">No activities recorded yet.</div>}
               </section>
-              <section className="sales-lift-card" style={{ ...panelStyle, padding: 17 }}>
+              <section className="sales-lift-card sales-profile-dashboard-card sales-profile-contacts-card" style={{ ...panelStyle, padding: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 13 }}>
                   <div><h3 style={{ margin: 0, fontSize: 15 }}>Key contacts</h3><p style={{ margin: '4px 0 0', color: '#667085', fontSize: 12 }}>Active people at this account</p></div>
                   <button className="sales-text-link" onClick={() => { setTab('Contacts'); setSalesSection('contacts'); }}>View all</button>
                 </div>
                 {keyContacts.length ? <div style={{ display: 'grid', gap: 8 }}>
-                  {keyContacts.map((contact, index) => <div key={contact.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 11px', borderRadius: 9, background: '#F8FAFC' }}>
-                    <span style={{ display: 'grid', placeItems: 'center', width: 31, height: 31, borderRadius: '50%', color: '#1849A9', background: '#E8EEFF', fontSize: 12, fontWeight: 700 }}>{contact.name.slice(0, 1).toUpperCase()}</span>
-                    <span style={{ minWidth: 0, flex: 1 }}><strong style={{ display: 'block', fontSize: 12 }}>{contact.name}</strong><small style={{ color: '#667085', fontSize: 11 }}>{contact.designation || 'Contact'}</small></span>
-                    <span style={{ color: '#667085', display: 'flex', gap: 8 }}>{contact.email && <a aria-label={`Email ${contact.name}`} href={`mailto:${contact.email}`}><Mail size={14} /></a>}{contact.phone && <a aria-label={`Call ${contact.name}`} href={`tel:${contact.phone}`}><Phone size={14} /></a>}</span>
-                    <small style={{ color: '#98A2B3' }}>{index === 0 ? 'Key contact' : ''}</small>
+                  {keyContacts.map((contact, index) => <div key={contact.id} className="sales-profile-contact">
+                    <span className="sales-profile-contact-avatar">{contact.name.slice(0, 1).toUpperCase()}</span>
+                    <span className="sales-profile-contact-info"><strong>{contact.name}</strong><small>{contact.designation || 'Contact'}</small></span>
+                    {index === 0 && <span className="sales-profile-contact-key">Key contact</span>}
+                    <span className="sales-profile-contact-actions">{contact.email && <a aria-label={`Email ${contact.name}`} href={`mailto:${contact.email}`}><Mail size={14} /></a>}{contact.phone && <a aria-label={`Call ${contact.name}`} href={`tel:${contact.phone}`}><Phone size={14} /></a>}</span>
                   </div>)}
                 </div> : <div className="sales-dashboard-empty">No active contacts yet.</div>}
               </section>
-            </div>
-            <section className="sales-lift-card" style={{ ...panelStyle, padding: 17 }}>
+            <section className="sales-lift-card sales-profile-dashboard-card sales-profile-technology-card" style={{ ...panelStyle, padding: 14 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 12 }}>
                 <div><h3 style={{ margin: 0, fontSize: 15 }}>Technology stack</h3><p style={{ margin: '4px 0 0', color: '#667085', fontSize: 12 }}>Technologies recorded for this company</p></div>
-                <button className="sales-text-link" onClick={() => { setTab('Technology'); setSalesSection('technology'); }}>Manage technologies</button>
+                <button className="sales-text-link" onClick={() => { setTab('Technology'); setSalesSection('technology'); }}>Manage</button>
               </div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>{profile.technologies.slice(0, 12).map(technology => <span key={technology.id} style={{ padding: '6px 10px', borderRadius: 18, color: '#1849A9', background: '#EFF4FF', fontSize: 12 }}>{technology.name}</span>)}
+              <div className="sales-profile-tech-list">{profile.technologies.slice(0, 12).map((technology, index) => <span className={`sales-profile-tech-chip tone-${index % 5}`} key={technology.id}>{technology.name}</span>)}
                 {!profile.technologies.length && <span style={{ color: '#667085', fontSize: 12 }}>No technologies added yet.</span>}
               </div>
             </section>
@@ -880,13 +908,29 @@ export const SalesView: React.FC = () => {
       </> : <>
         {salesSection === 'dashboard' && <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 14, marginBottom: 20 }}>
           {([
-            ['Total Accounts', counts.total, 'All assigned accounts', 'All'],
-            ['Prospect Accounts', counts.prospect, 'Not yet customers', 'Prospect'],
-            ['Active Accounts', counts.active, 'Ongoing relationships', 'Active'],
+            ['Total accounts', counts.total, 'All assigned accounts', 'All'],
+            ['Prospect accounts', counts.prospect, 'Not yet customers', 'Prospect'],
+            ['Active accounts', counts.active, 'Ongoing relationships', 'Active'],
           ] as const).map(([label, value, caption, status]) => <button className="sales-lift-card interactive-lift-card sales-count-card" key={label} onClick={() => { setStatusFilter(status); setOwnerFilter(''); setSalesSection('accounts'); setProfile(null); setSelectedAccountId(null); }} style={{ ...panelStyle, textAlign: 'left', cursor: 'pointer', color: '#101828' }}>
-            <span style={{ color: '#667085', fontSize: 13 }}>{label}</span><strong style={{ display: 'block', fontSize: 28, margin: '9px 0 3px' }}>{value}</strong><span style={{ color: '#667085', fontSize: 12 }}>{caption} →</span>
+            <span style={{ color: '#667085', fontSize: 12 }}>{label}</span><strong style={{ display: 'block', fontSize: 24, margin: '4px 0 2px' }}>{value}</strong><span style={{ color: '#667085', fontSize: 11 }}>{caption}</span>
           </button>)}
         </div>}
+        {salesSection === 'dashboard' && <section className="sales-lift-card sales-pipeline-card" style={{ ...panelStyle, padding: 18, marginBottom: 16 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 12 }}>
+            <div><h2 style={{ margin: 0, fontSize: 16 }}>Pipeline overview</h2><p style={{ margin: '5px 0 0', color: '#667085', fontSize: 12 }}>Your accounts by status</p></div>
+            <button type="button" className="sales-text-link" onClick={() => { setStatusFilter('All'); setOwnerFilter(''); setAppliedSearch(''); setSearch(''); setSalesSection('accounts'); }}>View all accounts</button>
+          </div>
+          <div className="sales-pipeline-bar" role="img" aria-label={`${counts.prospect} prospect accounts and ${counts.active} active accounts`}>
+            {counts.total > 0 && <>
+              <span className="sales-pipeline-prospect" style={{ width: `${(counts.prospect / counts.total) * 100}%` }} />
+              <span className="sales-pipeline-active" style={{ width: `${(counts.active / counts.total) * 100}%` }} />
+            </>}
+          </div>
+          <div className="sales-pipeline-legend">
+            <span><i className="sales-pipeline-dot sales-pipeline-prospect" />Prospect <strong>{counts.prospect}</strong> ({counts.total ? Math.round((counts.prospect / counts.total) * 100) : 0}%)</span>
+            <span><i className="sales-pipeline-dot sales-pipeline-active" />Active <strong>{counts.active}</strong> ({counts.total ? Math.round((counts.active / counts.total) * 100) : 0}%)</span>
+          </div>
+        </section>}
         {salesSection === 'dashboard' && <div className="sales-dashboard-grid">
           <section className="sales-lift-card interactive-lift-card" style={{ ...panelStyle, padding: 18 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 14 }}>
@@ -902,7 +946,7 @@ export const SalesView: React.FC = () => {
                   {isAdmin && <small className="sales-follow-up-owner">{followUp.ownerName}</small>}
                 </button>;
               })}
-            </div> : <div className="sales-dashboard-empty">You’re all caught up. No overdue or due-today follow-ups.</div>}
+            </div> : <div className="sales-dashboard-empty sales-follow-up-empty"><span className="sales-dashboard-success-icon"><CircleCheck size={17} /></span><strong>You are all caught up</strong><span>No overdue or due-today follow-ups.</span></div>}
           </section>
           <section className="sales-lift-card interactive-lift-card" style={{ ...panelStyle, padding: 18 }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 14 }}>
@@ -924,20 +968,29 @@ export const SalesView: React.FC = () => {
             <div><h2 style={{ margin: 0, fontSize: 18 }}>{salesSection === 'dashboard' ? isAdmin ? 'Sales accounts' : 'Your sales accounts' : salesSection === 'accounts' ? 'Accounts' : `${salesSection[0].toUpperCase()}${salesSection.slice(1)} by account`}</h2><p style={{ margin: '5px 0 0', color: '#667085', fontSize: 13 }}>{salesSection === 'dashboard' ? isAdmin ? 'A quick view across all company accounts.' : 'A quick view of your accounts and customer relationships.' : `Choose an account to open its ${salesSection === 'accounts' ? 'details' : salesSection} section.`}</p></div>
             <button style={primaryButton} onClick={() => openModal('account')}><CirclePlus size={15} style={{ verticalAlign: 'middle', marginRight: 6 }} />Add account</button>
           </div>
+          {(salesSection === 'dashboard' || salesSection === 'accounts') && <div className="sales-account-status-tabs" role="group" aria-label="Filter accounts by status">
+            {([
+              ['All', counts.total],
+              ['Prospect', counts.prospect],
+              ['Active', counts.active],
+            ] as const).map(([status, count]) => <button key={status} type="button" aria-pressed={statusFilter === status} className={`sales-account-status-tab${statusFilter === status ? ' is-active' : ''}`} onClick={() => setStatusFilter(status)}>
+              {status}<span>{count}</span>
+            </button>)}
+          </div>}
           <div style={{ display: 'flex', gap: 8, marginBottom: 15, flexWrap: 'wrap' }}>
-            <form onSubmit={event => { event.preventDefault(); setAppliedSearch(search.trim()); setSalesSection('accounts'); }} style={{ display: 'flex', gap: 7, flex: 1, minWidth: 220 }}>
-              <div style={{ position: 'relative', flex: 1 }}><Search size={15} style={{ position: 'absolute', top: 11, left: 11, color: '#98A2B3' }} /><input aria-label="Search accounts" placeholder="Search company, industry or location" value={search} onChange={event => setSearch(event.target.value)} style={{ ...inputStyle, paddingLeft: 34 }} /></div>
-              <button style={quietButton}>Search</button>
+            <form onSubmit={event => { event.preventDefault(); setAppliedSearch(search.trim()); }} style={{ display: 'flex', gap: 7, flex: 1, minWidth: 220 }}>
+              <div style={{ position: 'relative', flex: 1 }}><Search size={15} style={{ position: 'absolute', top: 11, left: 11, color: '#98A2B3' }} /><input aria-label="Search accounts" placeholder="Search company, industry or location" value={search} onChange={event => { setSearch(event.target.value); setAppliedSearch(event.target.value.trim()); }} style={{ ...inputStyle, paddingLeft: 34 }} /></div>
             </form>
-            <select className="sales-select" aria-label="Filter by account status" value={statusFilter} onChange={event => { setStatusFilter(event.target.value as typeof statusFilter); setSalesSection('accounts'); }} style={{ ...selectStyle, width: 150 }}>
+            <select className="sales-select" aria-label="Filter by account status" value={statusFilter} onChange={event => setStatusFilter(event.target.value as typeof statusFilter)} style={{ ...selectStyle, width: 150 }}>
               <option value="All">All statuses</option><option value="Prospect">Prospect</option><option value="Active">Active</option>
             </select>
-            {isAdmin && <select className="sales-select" aria-label="Filter by account owner" value={ownerFilter} onChange={event => { setOwnerFilter(event.target.value); setSalesSection('accounts'); }} style={{ ...selectStyle, width: 190 }}>
+            {isAdmin && <select className="sales-select" aria-label="Filter by account owner" value={ownerFilter} onChange={event => setOwnerFilter(event.target.value)} style={{ ...selectStyle, width: 190 }}>
               <option value="">All account owners</option>{salesOwnerOptions.map(owner => <option key={owner.id} value={owner.id}>{owner.name}</option>)}
             </select>}
           </div>
-          {loading ? <p style={{ color: '#667085', fontSize: 13 }}>Loading sales accounts…</p> : filteredAccounts.length ? <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+          {loading ? <p style={{ color: '#667085', fontSize: 13 }}>Loading sales accounts…</p> : filteredAccounts.length ? <>
+            <div style={{ overflowX: 'auto' }}>
+            <table className="sales-account-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
               <thead><tr>{['Company', 'Industry', 'Location', ...(isAdmin ? ['Account owner'] : []), 'Status', ''].map(heading => <th key={heading} style={{ textAlign: 'left', padding: '11px 10px', color: '#667085', borderBottom: '1px solid #EAECF0', whiteSpace: 'nowrap' }}>{heading}</th>)}</tr></thead>
               <tbody>{filteredAccounts.map(account => <tr className="sales-account-row" key={account.id}>
                 <td style={{ padding: '14px 10px', borderBottom: '1px solid #F0F1F4', fontWeight: 600 }}><button type="button" className="sales-open-account" onClick={() => openAccount(account)}>{account.companyName}</button></td>
@@ -945,10 +998,12 @@ export const SalesView: React.FC = () => {
                 <td style={{ padding: '14px 10px', borderBottom: '1px solid #F0F1F4', color: '#667085' }}>{account.location || '—'}</td>
                 {isAdmin && <td style={{ padding: '14px 10px', borderBottom: '1px solid #F0F1F4', color: '#667085' }}>{account.ownerName}</td>}
                 <td style={{ padding: '14px 10px', borderBottom: '1px solid #F0F1F4' }}><span style={{ ...statusColor(account.status), borderRadius: 12, padding: '4px 9px' }}>{account.status}</span></td>
-                <td style={{ padding: '14px 10px', borderBottom: '1px solid #F0F1F4', color: '#667085' }}><ExternalLink size={14} /></td>
+                <td style={{ padding: '10px', borderBottom: '1px solid #F0F1F4' }}><button type="button" className="sales-account-open-icon" aria-label={`Open ${account.companyName}`} onClick={() => openAccount(account)}><ExternalLink size={14} /></button></td>
               </tr>)}</tbody>
             </table>
-          </div> : <div style={{ textAlign: 'center', padding: '36px 12px', color: '#667085' }}><Building2 size={24} /><p style={{ margin: '10px 0 4px', fontWeight: 600, color: '#344054' }}>No accounts found</p><span style={{ fontSize: 13 }}>Add an account or update your search filters.</span></div>}
+            </div>
+            <div className="sales-account-table-footer">Showing {filteredAccounts.length} {filteredAccounts.length === 1 ? 'account' : 'accounts'}</div>
+          </> : <div style={{ textAlign: 'center', padding: '36px 12px', color: '#667085' }}><Building2 size={24} /><p style={{ margin: '10px 0 4px', fontWeight: 600, color: '#344054' }}>No accounts found</p><span style={{ fontSize: 13 }}>Add an account or update your search filters.</span></div>}
         </section>
       </>}
 
@@ -1010,9 +1065,9 @@ function SalesModal({
   const contactSelect = (label: string) => <Field label={label} key="contactId"><select className="sales-select" name="contactId" defaultValue={record && 'contactId' in record ? record.contactId ?? '' : defaultContactId ?? ''} style={selectStyle}><option value="">No contact</option>{contactOptions.map(contact => <option key={contact.id} value={contact.id}>{contact.name}</option>)}</select></Field>;
   const recordName = (name: string) => (record && name in record ? String((record as unknown as Record<string, unknown>)[name] ?? '') : '');
 
-  return <div role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(16,24,40,.45)', display: 'grid', placeItems: 'center', padding: 16 }}>
-    <form onSubmit={event => { event.preventDefault(); void onSubmit(event.currentTarget); }} style={{ width: 'min(560px, 100%)', maxHeight: '90dvh', overflowY: 'auto', background: '#fff', borderRadius: 14, padding: 22, boxShadow: '0 20px 50px rgba(16,24,40,.22)' }}>
-      <h2 style={{ margin: '0 0 18px', fontSize: 19 }}>{title}</h2>
+  return <div className="sales-modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(16,24,40,.45)', display: 'grid', placeItems: 'center', padding: 16 }}>
+    <form className="sales-modal" onSubmit={event => { event.preventDefault(); void onSubmit(event.currentTarget); }} style={{ width: 'min(560px, 100%)', maxHeight: '90dvh', overflowY: 'auto', background: '#fff', borderRadius: 14, padding: 22, boxShadow: '0 20px 50px rgba(16,24,40,.22)' }}>
+      <h2 className="sales-modal-title" style={{ margin: '0 0 18px', fontSize: 19 }}>{title}</h2>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(210px, 1fr))', gap: 14 }}>
         {kind === 'account' && <>
           {field('Company name', 'companyName', account?.companyName ?? '', 'text', true)}
@@ -1080,10 +1135,10 @@ function ContactDetailsModal({
     ['Phone', contact.phone || '—'],
     ['Status', contact.status],
   ];
-  return <div role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(16,24,40,.45)', display: 'grid', placeItems: 'center', padding: 16 }}>
-    <section role="dialog" aria-modal="true" aria-labelledby="sales-contact-title" style={{ width: 'min(520px, 100%)', background: '#fff', borderRadius: 14, padding: 22, boxShadow: '0 20px 50px rgba(16,24,40,.22)' }}>
+  return <div className="sales-modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) onClose(); }} style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'rgba(16,24,40,.45)', display: 'grid', placeItems: 'center', padding: 16 }}>
+    <section className="sales-modal" role="dialog" aria-modal="true" aria-labelledby="sales-contact-title" style={{ width: 'min(520px, 100%)', background: '#fff', borderRadius: 14, padding: 22, boxShadow: '0 20px 50px rgba(16,24,40,.22)' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 18 }}>
-        <div><h2 id="sales-contact-title" style={{ margin: 0, fontSize: 19 }}>{contact.name}</h2><p style={{ margin: '5px 0 0', color: '#667085', fontSize: 13 }}>Contact details</p></div>
+        <div><h2 className="sales-modal-title" id="sales-contact-title" style={{ margin: 0, fontSize: 19 }}>{contact.name}</h2><p style={{ margin: '5px 0 0', color: '#667085', fontSize: 13 }}>Contact details</p></div>
         <button type="button" onClick={onClose} style={quietButton}>Close</button>
       </div>
       <dl style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px 20px', margin: 0 }}>
