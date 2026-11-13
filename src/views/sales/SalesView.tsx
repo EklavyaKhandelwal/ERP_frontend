@@ -724,24 +724,25 @@ export const SalesView: React.FC = () => {
                 <strong>{metric.value}</strong>
               </button>)}
             </div>
-              <section className="sales-lift-card sales-profile-dashboard-card sales-profile-activity-card" style={{ ...panelStyle, padding: 14 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 13 }}>
-                  <div><h3 style={{ margin: 0, fontSize: 15 }}>Recent activities</h3><p style={{ margin: '4px 0 0', color: '#667085', fontSize: 12 }}>Latest interactions with this account</p></div>
-                  <button className="sales-text-link" onClick={() => { setTab('Activities'); setSalesSection('activities'); }}>View all</button>
-                </div>
-                {recentProfileActivities.length ? <div style={{ display: 'grid', gap: 8 }}>
-                  {recentProfileActivities.map(activity => <article key={activity.id} className="sales-profile-activity">
-                    <span className="sales-profile-activity-icon"><Activity size={14} /></span>
-                    <div className="sales-profile-activity-body">
-                      <div className="sales-profile-activity-heading"><strong>{contactLabel(activity.contactId)}</strong><span>{activity.type}</span><time>{new Date(`${activity.activityDate}T12:00:00`).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}</time></div>
-                      <p>{activity.remarks}</p>
-                    </div>
-                  </article>)}
-                </div> : <div className="sales-dashboard-empty">No activities recorded yet.</div>}
-              </section>
-              <section className="sales-lift-card sales-profile-dashboard-card sales-profile-contacts-card" style={{ ...panelStyle, padding: 14 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 13 }}>
-                  <div><h3 style={{ margin: 0, fontSize: 15 }}>Key contacts</h3><p style={{ margin: '4px 0 0', color: '#667085', fontSize: 12 }}>Active people at this account</p></div>
+            <section className="sales-lift-card sales-profile-dashboard-card sales-profile-activity-card" style={{ ...panelStyle, padding: 24 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+                <div><h3 style={{ margin: 0, fontSize: 20 }}>Recent activities</h3><p style={{ margin: '4px 0 0', color: '#667085', fontSize: 15 }}>Latest interactions with this account</p></div>
+                <button className="sales-text-link" onClick={() => { setTab('Activities'); setSalesSection('activities'); }}>View all</button>
+              </div>
+              {recentProfileActivities.length ? <div style={{ display: 'grid', gap: 8 }}>
+                {recentProfileActivities.map(activity => <article key={activity.id} className="sales-profile-activity">
+                  <span className="sales-profile-activity-icon"><Activity size={16} /></span>
+                  <div className="sales-profile-activity-body">
+                    <div className="sales-profile-activity-heading"><strong>{contactLabel(activity.contactId)}</strong><span>{activity.type}</span><time>{new Date(`${activity.activityDate}T12:00:00`).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })}</time></div>
+                    <p>{activity.remarks}</p>
+                  </div>
+                </article>)}
+              </div> : <div className="sales-dashboard-empty">No activities recorded yet.</div>}
+            </section>
+            <div className="sales-profile-right-stack">
+              <section className="sales-lift-card sales-profile-dashboard-card sales-profile-contacts-card" style={{ ...panelStyle, padding: 24 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
+                  <div><h3 style={{ margin: 0, fontSize: 20 }}>Key contacts</h3><p style={{ margin: '4px 0 0', color: '#667085', fontSize: 15 }}>Active people at this account</p></div>
                   <button className="sales-text-link" onClick={() => { setTab('Contacts'); setSalesSection('contacts'); }}>View all</button>
                 </div>
                 {keyContacts.length ? <div style={{ display: 'grid', gap: 8 }}>
@@ -749,19 +750,20 @@ export const SalesView: React.FC = () => {
                     <span className="sales-profile-contact-avatar">{contact.name.slice(0, 1).toUpperCase()}</span>
                     <span className="sales-profile-contact-info"><strong>{contact.name}</strong><small>{contact.designation || 'Contact'}</small></span>
                     {index === 0 && <span className="sales-profile-contact-key">Key contact</span>}
-                    <span className="sales-profile-contact-actions">{contact.email && <a aria-label={`Email ${contact.name}`} href={`mailto:${contact.email}`}><Mail size={14} /></a>}{contact.phone && <a aria-label={`Call ${contact.name}`} href={`tel:${contact.phone}`}><Phone size={14} /></a>}</span>
+                    <span className="sales-profile-contact-actions">{contact.email && <a aria-label={`Email ${contact.name}`} href={`mailto:${contact.email}`}><Mail size={16} /></a>}{contact.phone && <a aria-label={`Call ${contact.name}`} href={`tel:${contact.phone}`}><Phone size={16} /></a>}</span>
                   </div>)}
                 </div> : <div className="sales-dashboard-empty">No active contacts yet.</div>}
               </section>
-            <section className="sales-lift-card sales-profile-dashboard-card sales-profile-technology-card" style={{ ...panelStyle, padding: 14 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 12 }}>
-                <div><h3 style={{ margin: 0, fontSize: 15 }}>Technology stack</h3><p style={{ margin: '4px 0 0', color: '#667085', fontSize: 12 }}>Technologies recorded for this company</p></div>
-                <button className="sales-text-link" onClick={() => { setTab('Technology'); setSalesSection('technology'); }}>Manage</button>
-              </div>
-              <div className="sales-profile-tech-list">{profile.technologies.slice(0, 12).map((technology, index) => <span className={`sales-profile-tech-chip tone-${index % 5}`} key={technology.id}>{technology.name}</span>)}
-                {!profile.technologies.length && <span style={{ color: '#667085', fontSize: 12 }}>No technologies added yet.</span>}
-              </div>
-            </section>
+              <section className="sales-lift-card sales-profile-dashboard-card sales-profile-technology-card" style={{ ...panelStyle, padding: 24 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 18 }}>
+                  <div><h3 style={{ margin: 0, fontSize: 20 }}>Technology stack</h3><p style={{ margin: '4px 0 0', color: '#667085', fontSize: 15 }}>Technologies recorded for this company</p></div>
+                  <button className="sales-text-link" onClick={() => { setTab('Technology'); setSalesSection('technology'); }}>Manage</button>
+                </div>
+                <div className="sales-profile-tech-list">{profile.technologies.slice(0, 12).map((technology, index) => <span className={`sales-profile-tech-chip tone-${index % 5}`} key={technology.id}>{technology.name}</span>)}
+                  {!profile.technologies.length && <span style={{ color: '#667085', fontSize: 14 }}>No technologies added yet.</span>}
+                </div>
+              </section>
+            </div>
           </div>}
           {activeTab === 'Account Information' && <section className="sales-account-overview">
             <div className="sales-account-overview-header">
