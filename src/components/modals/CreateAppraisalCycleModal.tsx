@@ -186,7 +186,7 @@ export const CreateAppraisalCycleModal: React.FC<Props> = ({ isOpen, onClose }) 
             </div>
           </div>
           {error && (
-            <div role="alert" style={{ padding: '10px 12px', marginTop: '12px', borderRadius: '8px', color: '#CF202F', backgroundColor: '#FEECEE', fontSize: '13px' }}>
+            <div role="alert" style={{ padding: '10px 12px', marginTop: '12px', borderRadius: '8px', color: 'var(--danger)', backgroundColor: 'var(--danger-bg)', fontSize: '13px' }}>
               {error}
             </div>
           )}

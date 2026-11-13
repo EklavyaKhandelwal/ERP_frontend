@@ -173,7 +173,7 @@ export const EmployeeProfileView: React.FC = () => {
                 )}
               </div>
               <div style={{ fontSize: '15px', color: 'var(--text-secondary)', marginTop: '4px', fontWeight: '500' }}>
-                {employee.designation} • <span style={{ color: '#0052FF' }}>{employee.department}</span>
+                {employee.designation} • <span style={{ color: 'var(--primary)' }}>{employee.department}</span>
               </div>
               <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginTop: '12px', fontSize: '13px', color: 'var(--text-muted)' }}>
                 <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
@@ -268,7 +268,7 @@ export const EmployeeProfileView: React.FC = () => {
               <span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Core Competencies & Skills</span>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginTop: '8px' }}>
                 {employee.skills.map(skill => (
-                  <span key={skill} style={{ backgroundColor: '#F1F3F5', color: '#0A0B0D', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: '500' }}>
+                  <span key={skill} style={{ backgroundColor: 'var(--primary-light)', color: 'var(--primary)', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: '500' }}>
                     {skill}
                   </span>
                 ))}
@@ -302,7 +302,7 @@ export const EmployeeProfileView: React.FC = () => {
             <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-main)', margin: '0 0 16px' }}>
               Employee documents
             </h3>
-            {documentsError && <p role="alert" style={{ color: '#CF202F', fontSize: '13px' }}>{documentsError}</p>}
+            {documentsError && <p role="alert" style={{ color: 'var(--danger)', fontSize: '13px' }}>{documentsError}</p>}
             {documentsLoading && <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0 }}>Loading documents…</p>}
             {!documentsLoading && !documentsError && documents.length === 0 && (
               <p style={{ color: 'var(--text-muted)', fontSize: '13px', margin: 0 }}>No onboarding documents have been uploaded.</p>
@@ -311,7 +311,7 @@ export const EmployeeProfileView: React.FC = () => {
               {documents.map(document => (
                 <div key={document.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', border: '1px solid var(--border-light)', borderRadius: '8px', padding: '12px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                    <FileText size={18} color="#0052FF" />
+                    <FileText size={18} color="var(--primary)" />
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: '13px', fontWeight: '600', overflow: 'hidden', textOverflow: 'ellipsis' }}>{document.fileName}</div>
                       <div style={{ color: 'var(--text-muted)', fontSize: '12px' }}>
@@ -336,19 +336,19 @@ export const EmployeeProfileView: React.FC = () => {
             Compensation & Payroll Configuration
           </h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
-            <div style={{ padding: '16px', backgroundColor: '#F8F9FA', borderRadius: '8px' }}>
+            <div style={{ padding: '16px', backgroundColor: 'var(--bg-subtle)', borderRadius: '8px' }}>
               <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Monthly Base Salary</div>
               <div style={{ fontSize: '22px', fontWeight: '800', color: 'var(--text-main)', marginTop: '4px' }}>
                 {employee.salary === undefined ? 'Not set' : formatINR(employee.salary)}
               </div>
             </div>
-            <div style={{ padding: '16px', backgroundColor: '#F8F9FA', borderRadius: '8px' }}>
+            <div style={{ padding: '16px', backgroundColor: 'var(--bg-subtle)', borderRadius: '8px' }}>
               <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Pay Frequency</div>
               <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)', marginTop: '4px' }}>
                 Monthly
               </div>
             </div>
-            <div style={{ padding: '16px', backgroundColor: '#F8F9FA', borderRadius: '8px' }}>
+            <div style={{ padding: '16px', backgroundColor: 'var(--bg-subtle)', borderRadius: '8px' }}>
               <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Tax Configuration</div>
               <div style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-main)', marginTop: '4px' }}>
                 Deductions entered manually
@@ -362,19 +362,19 @@ export const EmployeeProfileView: React.FC = () => {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px' }}>
           <div className="card" style={{ padding: '24px' }}>
             <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Annual Leave Available</div>
-            <div style={{ fontSize: '32px', fontWeight: '800', color: '#0052FF', marginTop: '6px' }}>
+            <div style={{ fontSize: '32px', fontWeight: '800', color: 'var(--primary)', marginTop: '6px' }}>
               {employee.leaveBalance.annual} <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-muted)' }}>/ {employee.leaveBalance.annualTotal} days</span>
             </div>
           </div>
           <div className="card" style={{ padding: '24px' }}>
             <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Sick Leave Available</div>
-            <div style={{ fontSize: '32px', fontWeight: '800', color: '#05B169', marginTop: '6px' }}>
+            <div style={{ fontSize: '32px', fontWeight: '800', color: 'var(--success)', marginTop: '6px' }}>
               {employee.leaveBalance.sick} <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-muted)' }}>/ {employee.leaveBalance.sickTotal} days</span>
             </div>
           </div>
           <div className="card" style={{ padding: '24px' }}>
             <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Casual Leave Available</div>
-            <div style={{ fontSize: '32px', fontWeight: '800', color: '#F4B000', marginTop: '6px' }}>
+            <div style={{ fontSize: '32px', fontWeight: '800', color: '#6941C6', marginTop: '6px' }}>
               {employee.leaveBalance.casual} <span style={{ fontSize: '14px', fontWeight: '500', color: 'var(--text-muted)' }}>/ {employee.leaveBalance.casualTotal} days</span>
             </div>
           </div>
@@ -389,11 +389,11 @@ export const EmployeeProfileView: React.FC = () => {
           {(role === 'admin' || isSelf) && projectsLoading ? (
             <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Loading assigned projects…</p>
           ) : (role === 'admin' || isSelf) && projectsError ? (
-            <p role="alert" style={{ color: '#CF202F', fontSize: '13px' }}>{projectsError}</p>
+            <p role="alert" style={{ color: 'var(--danger)', fontSize: '13px' }}>{projectsError}</p>
           ) : role !== 'admin' && !isSelf && directoryProjects.employeeId !== employee.id ? (
             <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>Loading assigned projects…</p>
           ) : role !== 'admin' && !isSelf && directoryProjects.error ? (
-            <p role="alert" style={{ color: '#CF202F', fontSize: '13px' }}>{directoryProjects.error}</p>
+            <p role="alert" style={{ color: 'var(--danger)', fontSize: '13px' }}>{directoryProjects.error}</p>
           ) : assignedProjectSummaries.length === 0 ? (
             <p style={{ color: 'var(--text-muted)', fontSize: '13px' }}>No assigned projects.</p>
           ) : (

@@ -183,17 +183,17 @@ export const LeavesView: React.FC = () => {
           <>
             <div className="card interactive-lift-card leaves-summary-card">
               <span className="leaves-summary-label">PENDING REVIEW</span>
-              <div className="leaves-summary-value" style={{ color: '#B45309' }}>{pendingCount}</div>
+              <div className="leaves-summary-value" style={{ color: 'var(--warning-text)' }}>{pendingCount}</div>
               <div className="leaves-summary-caption">Requests awaiting a decision</div>
             </div>
             <div className="card interactive-lift-card leaves-summary-card">
               <span className="leaves-summary-label">ON LEAVE TODAY</span>
-              <div className="leaves-summary-value" style={{ color: '#0052FF' }}>{onLeaveToday}</div>
+              <div className="leaves-summary-value" style={{ color: 'var(--primary)' }}>{onLeaveToday}</div>
               <div className="leaves-summary-caption">Employees with approved leave</div>
             </div>
             <div className="card interactive-lift-card leaves-summary-card">
               <span className="leaves-summary-label">UPCOMING (30 DAYS)</span>
-              <div className="leaves-summary-value" style={{ color: '#05B169' }}>{upcomingCount}</div>
+              <div className="leaves-summary-value" style={{ color: 'var(--success)' }}>{upcomingCount}</div>
               <div className="leaves-summary-caption">Approved requests starting soon</div>
             </div>
             <div className="card interactive-lift-card leaves-summary-card">
@@ -204,9 +204,9 @@ export const LeavesView: React.FC = () => {
           </>
         ) : (
           <>
-        <div className="card interactive-lift-card" style={{ padding: '20px' }}>
+        <div className="card interactive-lift-card color-accent-card color-accent-blue" style={{ padding: '20px' }}>
           <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>ANNUAL LEAVE {leaveBalance?.year ? `(${leaveBalance.year})` : ''}</span>
-          <div style={{ fontSize: '26px', fontWeight: '800', color: '#0052FF', marginTop: '4px' }}>
+          <div style={{ fontSize: '26px', fontWeight: '800', color: 'var(--primary)', marginTop: '4px' }}>
             {leaveBalance ? `${leaveBalance.annual} / ${leaveBalance.annualTotal}` : '— / —'} <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-muted)' }}>days · {leaveBalance ? `${Math.max(0, leaveBalance.annualTotal - leaveBalance.annual)} used` : ''}</span>
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -214,9 +214,9 @@ export const LeavesView: React.FC = () => {
           </div>
         </div>
 
-        <div className="card interactive-lift-card" style={{ padding: '20px' }}>
+        <div className="card interactive-lift-card color-accent-card color-accent-green" style={{ padding: '20px' }}>
           <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>SICK / MEDICAL</span>
-          <div style={{ fontSize: '26px', fontWeight: '800', color: '#05B169', marginTop: '4px' }}>
+          <div style={{ fontSize: '26px', fontWeight: '800', color: 'var(--success)', marginTop: '4px' }}>
             {leaveBalance ? `${leaveBalance.sick} / ${leaveBalance.sickTotal}` : '— / —'} <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-muted)' }}>days · {leaveBalance ? `${Math.max(0, leaveBalance.sickTotal - leaveBalance.sick)} used` : ''}</span>
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -224,9 +224,9 @@ export const LeavesView: React.FC = () => {
           </div>
         </div>
 
-        <div className="card interactive-lift-card" style={{ padding: '20px' }}>
+        <div className="card interactive-lift-card color-accent-card color-accent-purple" style={{ padding: '20px' }}>
           <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>CASUAL / PERSONAL</span>
-          <div style={{ fontSize: '26px', fontWeight: '800', color: '#F4B000', marginTop: '4px' }}>
+          <div style={{ fontSize: '26px', fontWeight: '800', color: '#6941C6', marginTop: '4px' }}>
             {leaveBalance ? `${leaveBalance.casual} / ${leaveBalance.casualTotal}` : '— / —'} <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-muted)' }}>days · {leaveBalance ? `${Math.max(0, leaveBalance.casualTotal - leaveBalance.casual)} used` : ''}</span>
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px' }}>
@@ -234,12 +234,12 @@ export const LeavesView: React.FC = () => {
           </div>
         </div>
 
-        <div className="card interactive-lift-card" style={{ padding: '20px' }}>
+        <div className="card interactive-lift-card color-accent-card color-accent-amber" style={{ padding: '20px' }}>
           <span style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: '600' }}>PENDING DECISIONS</span>
-          <div style={{ fontSize: '26px', fontWeight: '800', color: '#B45309', marginTop: '4px' }}>
+          <div style={{ fontSize: '26px', fontWeight: '800', color: 'var(--warning-text)', marginTop: '4px' }}>
             {leaves.filter(l => l.status === 'Pending').length} <span style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-muted)' }}>awaiting</span>
           </div>
-          <div style={{ fontSize: '12px', color: '#B45309', marginTop: '4px' }}>Awaiting administrator review</div>
+          <div style={{ fontSize: '12px', color: 'var(--warning-text)', marginTop: '4px' }}>Awaiting administrator review</div>
         </div>
           </>
         )}
@@ -262,12 +262,12 @@ export const LeavesView: React.FC = () => {
       </div>
 
       {leavesError && (
-        <div role="alert" style={{ padding: '12px 16px', marginBottom: '16px', borderRadius: '8px', color: '#CF202F', backgroundColor: '#FEECEE' }}>
+        <div role="alert" style={{ padding: '12px 16px', marginBottom: '16px', borderRadius: '8px', color: 'var(--danger)', backgroundColor: 'var(--danger-bg)' }}>
           {leavesError}
         </div>
       )}
       {holidayError && !isHolidayModalOpen && !holidayToDelete && (
-        <div role="alert" style={{ padding: '12px 16px', marginBottom: '16px', borderRadius: '8px', color: '#CF202F', backgroundColor: '#FEECEE' }}>
+        <div role="alert" style={{ padding: '12px 16px', marginBottom: '16px', borderRadius: '8px', color: 'var(--danger)', backgroundColor: 'var(--danger-bg)' }}>
           {holidayError}
         </div>
       )}
@@ -423,7 +423,7 @@ export const LeavesView: React.FC = () => {
                     </div>
                   </td>
                   <td>
-                    <span style={{ fontWeight: '600', color: '#0052FF' }}>{leave.leaveType}</span>
+                    <span style={{ fontWeight: '600', color: 'var(--primary)' }}>{leave.leaveType}</span>
                   </td>
                   <td>
                     <div style={{ fontWeight: '600', color: 'var(--text-main)' }}>
@@ -438,7 +438,7 @@ export const LeavesView: React.FC = () => {
                       {leave.reason.length > 45 ? `${leave.reason.slice(0, 45)}...` : leave.reason}
                     </span>
                     {leave.reviewNote && (
-                      <div style={{ fontSize: '11px', color: '#05B169', marginTop: '2px' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--success)', marginTop: '2px' }}>
                         Note: {leave.reviewNote}
                       </div>
                     )}

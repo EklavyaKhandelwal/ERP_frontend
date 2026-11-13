@@ -453,7 +453,7 @@ export const Header: React.FC = () => {
                 )}
               </div>
               {notificationError && (
-                <div role="alert" style={{ padding: '10px 16px', color: '#CF202F', backgroundColor: '#FEECEE', fontSize: '12px' }}>
+                <div role="alert" style={{ padding: '10px 16px', color: 'var(--danger)', backgroundColor: 'var(--danger-bg)', fontSize: '12px' }}>
                   {notificationError}
                 </div>
               )}

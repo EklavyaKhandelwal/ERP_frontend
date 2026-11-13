@@ -163,7 +163,7 @@ export const LoginView: React.FC = () => {
       }}>
         <div className="login-form-content" style={{ width: '100%', maxWidth: '400px' }}>
           <div style={{ marginBottom: '32px' }}>
-            <h2 style={{ fontSize: '26px', fontWeight: '800', color: '#0A0B0D', letterSpacing: '-0.02em', margin: 0 }}>
+            <h2 style={{ fontSize: '26px', fontWeight: '800', color: 'var(--text-main)', letterSpacing: '-0.02em', margin: 0 }}>
               Sign in
             </h2>
             <p style={{ fontSize: '14px', color: '#5B616E', marginTop: '6px' }}>
@@ -178,10 +178,10 @@ export const LoginView: React.FC = () => {
               alignItems: 'flex-start',
               gap: '10px',
               padding: '12px 14px',
-              backgroundColor: '#FEECEE',
-              border: '1px solid #F7BAC0',
+              backgroundColor: 'var(--danger-bg)',
+              border: '1px solid var(--danger-border)',
               borderRadius: '8px',
-              color: '#CF202F',
+              color: 'var(--danger)',
               fontSize: '13px',
               marginBottom: '20px',
               animation: 'fadeIn 0.2s ease-out'
@@ -208,7 +208,7 @@ export const LoginView: React.FC = () => {
                   className="form-control"
                   style={{
                     paddingLeft: '38px',
-                    borderColor: errorMessage ? '#CF202F' : undefined
+                    borderColor: errorMessage ? 'var(--danger)' : undefined
                   }}
                 />
               </div>
@@ -231,7 +231,7 @@ export const LoginView: React.FC = () => {
                   style={{
                     paddingLeft: '38px',
                     paddingRight: '38px',
-                    borderColor: errorMessage ? '#CF202F' : undefined
+                    borderColor: errorMessage ? 'var(--danger)' : undefined
                   }}
                 />
                 <button
@@ -256,7 +256,7 @@ export const LoginView: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setCurrentView('forgot-password')}
-                style={{ color: '#0052FF', background: 'none', border: 'none', fontSize: '13px', cursor: 'pointer', fontWeight: '600', padding: 0 }}
+                style={{ color: 'var(--primary)', background: 'none', border: 'none', fontSize: '13px', cursor: 'pointer', fontWeight: '600', padding: 0 }}
               >
                 Forgot password?
               </button>
@@ -269,7 +269,7 @@ export const LoginView: React.FC = () => {
                 id="remember"
                 checked={rememberMe}
                 onChange={e => setRememberMe(e.target.checked)}
-                style={{ width: '16px', height: '16px', accentColor: '#0052FF', cursor: 'pointer' }}
+                style={{ width: '16px', height: '16px', accentColor: 'var(--primary)', cursor: 'pointer' }}
               />
               <label htmlFor="remember" style={{ fontSize: '13px', color: '#5B616E', cursor: 'pointer', userSelect: 'none' }}>
                 Keep me signed in on this device

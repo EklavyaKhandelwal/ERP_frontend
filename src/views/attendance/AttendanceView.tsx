@@ -300,8 +300,8 @@ export const AttendanceView: React.FC = () => {
         </div>
       </div>
 
-      {error && <div role="alert" style={{ padding: '12px 16px', marginBottom: '16px', borderRadius: '8px', color: '#CF202F', background: '#FEECEE' }}>{error}</div>}
-      {truncated && <div role="status" style={{ padding: '12px 16px', marginBottom: '16px', borderRadius: '8px', color: '#8A5A00', background: '#FFF4D6' }}>Showing the latest 500 records. Narrow the date range to view a smaller selection.</div>}
+      {error && <div role="alert" style={{ padding: '12px 16px', marginBottom: '16px', borderRadius: '8px', color: 'var(--danger)', background: 'var(--danger-bg)' }}>{error}</div>}
+      {truncated && <div role="status" style={{ padding: '12px 16px', marginBottom: '16px', borderRadius: '8px', color: 'var(--warning-text)', background: 'var(--warning-bg)' }}>Showing the latest 500 records. Narrow the date range to view a smaller selection.</div>}
 
       {canClock && (
         <section className="card" style={{ padding: '24px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '18px' }}>

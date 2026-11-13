@@ -211,7 +211,7 @@ export const ProjectDetailView: React.FC = () => {
         <button className="btn btn-secondary btn-sm" onClick={() => setCurrentView('projects')}>
           <ArrowLeft size={16} /> Back to Projects
         </button>
-        {projectsError && <div role="alert" style={{ padding: '12px 16px', marginTop: '16px', color: '#CF202F', backgroundColor: '#FEECEE' }}>{projectsError}</div>}
+        {projectsError && <div role="alert" style={{ padding: '12px 16px', marginTop: '16px', color: 'var(--danger)', backgroundColor: 'var(--danger-bg)' }}>{projectsError}</div>}
         {projectsLoading
           ? <div style={{ marginTop: '24px' }}><SectionSkeleton rows={6} /></div>
           : <div className="card" style={{ padding: '40px', marginTop: '24px', textAlign: 'center' }}>This project is unavailable or has not been assigned to you.</div>}
@@ -319,12 +319,12 @@ export const ProjectDetailView: React.FC = () => {
         </button>
       </div>
       {projectsError && (
-        <div role="alert" style={{ padding: '12px 16px', marginBottom: '16px', color: '#CF202F', backgroundColor: '#FEECEE' }}>
+        <div role="alert" style={{ padding: '12px 16px', marginBottom: '16px', color: 'var(--danger)', backgroundColor: 'var(--danger-bg)' }}>
           {projectsError}
         </div>
       )}
 
-      <section className="card" style={{ padding: '28px', marginBottom: '20px' }}>
+      <section className="card color-accent-card color-accent-blue" style={{ padding: '28px', marginBottom: '20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '20px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -357,7 +357,7 @@ export const ProjectDetailView: React.FC = () => {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.5fr) minmax(260px, 1fr)', gap: '20px', alignItems: 'start' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <section className="card" style={{ padding: '22px' }}>
+          <section className="card color-accent-card color-accent-blue" style={{ padding: '22px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
               <div>
                 <h3 style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: 0, fontSize: '16px' }}>
@@ -477,7 +477,7 @@ export const ProjectDetailView: React.FC = () => {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           {isAdmin && (
-            <section className="card" style={{ padding: '22px' }}>
+            <section className="card color-accent-card color-accent-amber" style={{ padding: '22px' }}>
               <h3 style={{ margin: '0 0 14px', fontSize: '16px' }}>Project Budget</h3>
               <div style={{ display: 'grid', gap: '12px' }}>
                 <div><span style={{ color: 'var(--text-muted)', fontSize: '12px' }}>Approved Budget</span><strong style={{ display: 'block', marginTop: '3px' }}>{formatINR(project.budget)}</strong></div>
@@ -487,7 +487,7 @@ export const ProjectDetailView: React.FC = () => {
             </section>
           )}
 
-          <section className="card" style={{ padding: '22px' }}>
+          <section className="card color-accent-card color-accent-purple" style={{ padding: '22px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
               <h3 style={{ margin: 0, fontSize: '16px' }}>Project Team ({project.team.length})</h3>
               {isAdmin && !isManagingTeam && (
@@ -577,7 +577,7 @@ export const ProjectDetailView: React.FC = () => {
             )}
           </section>
 
-          <section className="card" style={{ padding: '22px' }}>
+          <section className="card color-accent-card color-accent-green" style={{ padding: '22px' }}>
             <h3 style={{ margin: '0 0 12px', fontSize: '16px' }}>Key Dates</h3>
             <div style={{ display: 'grid', gap: '10px', fontSize: '13px' }}>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center', color: 'var(--text-secondary)' }}>

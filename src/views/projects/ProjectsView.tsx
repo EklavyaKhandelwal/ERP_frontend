@@ -57,7 +57,7 @@ export const ProjectsView: React.FC = () => {
       </div>
 
       {projectsError && (
-        <div role="alert" style={{ padding: '12px 16px', marginBottom: '16px', borderRadius: '8px', color: '#CF202F', backgroundColor: '#FEECEE' }}>
+        <div role="alert" style={{ padding: '12px 16px', marginBottom: '16px', borderRadius: '8px', color: 'var(--danger)', backgroundColor: 'var(--danger-bg)' }}>
           {projectsError}
         </div>
       )}
@@ -152,10 +152,10 @@ export const ProjectsView: React.FC = () => {
                   <div style={{ marginBottom: '16px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', marginBottom: '6px' }}>
                       <span style={{ color: 'var(--text-muted)' }}>Task progress</span>
-                      <strong style={{ color: '#0052FF' }}>{project.totalTasks ? project.progress : '—'}{project.totalTasks ? '%' : ''}</strong>
+                      <strong style={{ color: 'var(--primary)' }}>{project.totalTasks ? project.progress : '—'}{project.totalTasks ? '%' : ''}</strong>
                     </div>
                     <div style={{ width: '100%', height: '6px', backgroundColor: '#EEF0F3', borderRadius: '3px', overflow: 'hidden' }}>
-                      <div style={{ width: `${project.progress}%`, height: '100%', backgroundColor: '#0052FF', borderRadius: '3px' }} />
+                      <div style={{ width: `${project.progress}%`, height: '100%', background: 'linear-gradient(90deg, #3478F6, #7956D8)', borderRadius: '3px' }} />
                     </div>
                   </div>
 

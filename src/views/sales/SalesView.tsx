@@ -63,7 +63,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 function statusColor(status: string) {
   const tones: Record<string, { color: string; background: string }> = {
-    Prospect: { color: '#B54708', background: '#FFF4DB' },
+    Prospect: { color: 'var(--warning-text)', background: 'var(--warning-bg)' },
     Active: { color: '#067647', background: '#E8F8EF' },
     Won: { color: '#067647', background: '#E8F8EF' },
     Qualified: { color: '#067647', background: '#E8F8EF' },
@@ -72,8 +72,8 @@ function statusColor(status: string) {
     Contacted: { color: '#175CD3', background: '#EAF2FF' },
     Prospecting: { color: '#6941C6', background: '#F1EBFF' },
     Qualification: { color: '#6941C6', background: '#F1EBFF' },
-    Proposal: { color: '#B54708', background: '#FFF4DB' },
-    Negotiation: { color: '#B54708', background: '#FFF4DB' },
+    Proposal: { color: 'var(--warning-text)', background: 'var(--warning-bg)' },
+    Negotiation: { color: 'var(--warning-text)', background: 'var(--warning-bg)' },
     Lost: { color: '#B42318', background: '#FEECEB' },
     Disqualified: { color: '#B42318', background: '#FEECEB' },
     Inactive: { color: '#667085', background: '#F2F4F7' },
@@ -855,7 +855,7 @@ export const SalesView: React.FC = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}><div><h3 style={{ margin: 0, fontSize: 16 }}>Activities</h3><p style={{ color: '#667085', fontSize: 13, margin: '5px 0 0' }}>Calls, emails, meetings and follow-ups.</p></div><button style={primaryButton} onClick={() => openModal('activities')}><Plus size={14} style={{ verticalAlign: 'middle', marginRight: 5 }} />Log activity</button></div>
             {(overdueFollowUps.length > 0 || dueFollowUps.length > 0) && <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 14 }}>
               {overdueFollowUps.length > 0 && <div role="status" style={{ padding: '10px 12px', borderRadius: 9, background: '#FEF3F2', color: '#B42318', fontSize: 13, fontWeight: 600 }}>{overdueFollowUps.length} overdue follow-up{overdueFollowUps.length === 1 ? '' : 's'} to review</div>}
-              {dueFollowUps.length > 0 && <div role="status" style={{ padding: '10px 12px', borderRadius: 9, background: '#FFFAEB', color: '#B54708', fontSize: 13, fontWeight: 600 }}>{dueFollowUps.length} follow-up{dueFollowUps.length === 1 ? '' : 's'} due today</div>}
+              {dueFollowUps.length > 0 && <div role="status" style={{ padding: '10px 12px', borderRadius: 9, background: 'var(--warning-bg)', color: 'var(--warning-text)', fontSize: 13, fontWeight: 600 }}>{dueFollowUps.length} follow-up{dueFollowUps.length === 1 ? '' : 's'} due today</div>}
             </div>}
             {renderRecordRows(profile.activities as SalesRecord[], 'activities', [
               record => (record as SalesActivity).type,
@@ -868,7 +868,7 @@ export const SalesView: React.FC = () => {
                 const tone = date < followUpTodayKey
                   ? { color: '#B42318', background: '#FEF3F2', label: 'Overdue' }
                   : date === followUpTodayKey
-                  ? { color: '#B54708', background: '#FFFAEB', label: 'Due today' }
+                  ? { color: 'var(--warning-text)', background: 'var(--warning-bg)', label: 'Due today' }
                   : { color: '#067647', background: '#ECFDF3', label: 'Upcoming' };
                 return <span style={{ display: 'inline-flex', gap: 6, alignItems: 'center' }}><time>{date}</time><small style={{ color: tone.color, background: tone.background, borderRadius: 12, padding: '3px 7px' }}>{tone.label}</small></span>;
               },

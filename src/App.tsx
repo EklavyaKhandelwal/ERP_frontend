@@ -145,7 +145,7 @@ const AppContent: React.FC = () => {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, minHeight: 0, backgroundColor: 'var(--bg-canvas)' }}>
         <Header />
         {authError && (
-          <div role="alert" style={{ padding: '12px 24px', color: '#CF202F', backgroundColor: '#FEECEE' }}>
+          <div role="alert" style={{ padding: '12px 24px', color: 'var(--danger)', backgroundColor: 'var(--danger-bg)' }}>
             {authError}
           </div>
         )}

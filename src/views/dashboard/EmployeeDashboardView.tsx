@@ -100,7 +100,7 @@ export const EmployeeDashboardView: React.FC = () => {
     <div className="employee-dashboard-page" style={{ padding: '32px' }}>
       {/* Welcome Banner */}
       <div className="employee-dashboard-welcome" style={{
-        background: 'radial-gradient(circle at 88% 12%, rgba(119, 142, 255, .36), transparent 34%), linear-gradient(120deg, #173B85 0%, #2864E8 56%, #6246C7 100%)',
+        background: 'radial-gradient(circle at 88% 12%, rgba(0, 82, 255, .2), transparent 34%), linear-gradient(120deg, #0A0B0D 0%, #16181C 100%)',
         color: '#FFFFFF',
         borderRadius: '16px',
         padding: '32px',
@@ -172,7 +172,7 @@ export const EmployeeDashboardView: React.FC = () => {
           </h3>
           <button className="employee-dashboard-text-link"
             onClick={() => setCurrentView('leaves')} 
-            style={{ fontSize: '12.5px', color: '#2864E8', background: 'none', border: 'none', fontWeight: '600', cursor: 'pointer' }}
+            style={{ fontSize: '12.5px', color: 'var(--primary)', background: 'none', border: 'none', fontWeight: '600', cursor: 'pointer' }}
           >
             Leave History & Rules →
           </button>
@@ -186,13 +186,13 @@ export const EmployeeDashboardView: React.FC = () => {
               height: '60px',
               borderRadius: '50%',
               border: '4px solid #E5EEFF',
-              borderTopColor: '#2864E8',
+              borderTopColor: 'var(--primary)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: '800',
               fontSize: '18px',
-              color: '#2864E8',
+              color: 'var(--primary)',
               flexShrink: 0
             }}>
               {dashboardLoading ? <SkeletonLine width="24px" height={18} /> : leaveBalance?.annual ?? '—'}
