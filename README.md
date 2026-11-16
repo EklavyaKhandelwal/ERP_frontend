@@ -11,7 +11,7 @@ A React + TypeScript frontend for employee, attendance, leave, project, timeshee
 ## Local setup
 
 1. Create a Supabase project. In the Supabase dashboard, open **Connect** and copy a PostgreSQL connection string. For a local Node.js server, use the **Session pooler** connection option if the direct connection is unavailable on your network or IPv4-only environment.
-2. In PowerShell, run `Copy-Item backend\.env.example backend\.env`, then edit `backend\.env`. Set `DATABASE_URL` to the Supabase PostgreSQL connection string and replace the seed password with a unique password of at least 12 characters (maximum 72 UTF-8 bytes for bcrypt). Keep the file private and do not commit it. If the database password contains URL-special characters, use Supabase's URI-encoded connection string or percent-encode those characters.
+2. In PowerShell, run `Copy-Item backend\.env.example backend\.env`, then edit `backend\.env`. Set `DATABASE_URL` to the Supabase PostgreSQL connection string, download the project's CA certificate from **Database Settings → SSL Configuration**, and set `DATABASE_SSL_CA_PATH` to its absolute file path. Both the API and Drizzle migration tool validate this certificate and fail closed if it is missing or invalid. Replace the seed password with a unique password of at least 12 characters (maximum 72 UTF-8 bytes for bcrypt). Keep the file private and do not commit it. If the database password contains URL-special characters, use Supabase's URI-encoded connection string or percent-encode those characters.
 3. Install dependencies:
 
    ```powershell
