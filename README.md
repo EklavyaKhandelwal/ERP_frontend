@@ -11,21 +11,22 @@ A React + TypeScript frontend for employee, attendance, leave, project, timeshee
 ## Local setup
 
 1. Create a Supabase project. In the Supabase dashboard, open **Connect** and copy a PostgreSQL connection string. For a local Node.js server, use the **Session pooler** connection option if the direct connection is unavailable on your network or IPv4-only environment.
-2. In PowerShell, run `Copy-Item backend\.env.example backend\.env`, then edit `backend\.env`. Set `DATABASE_URL` to the Supabase PostgreSQL connection string, download the project's CA certificate from **Database Settings → SSL Configuration**, and set `DATABASE_SSL_CA_PATH` to its absolute file path. Both the API and Drizzle migration tool validate this certificate and fail closed if it is missing or invalid. Replace the seed password with a unique password of at least 12 characters (maximum 72 UTF-8 bytes for bcrypt). Keep the file private and do not commit it. If the database password contains URL-special characters, use Supabase's URI-encoded connection string or percent-encode those characters.
+2. In PowerShell, run `Copy-Item backend\.env.example backend\.env`, then edit `backend\.env`. Set `DATABASE_URL` to the Supabase PostgreSQL connection string, download the project's CA certificate from **Database Settings → SSL Configuration**, and set `DATABASE_SSL_CA_PATH` to its absolute file path. Both the API and Drizzle migration tool validate this certificate and fail closed if it is missing or invalid. Set `FIELD_ENCRYPTION_KEYRING` to a JSON keyring containing a fresh 32-byte base64 key. Generate one with `node -e "console.log(require('node:crypto').randomBytes(32).toString('base64'))"` and keep it in a private environment variable. In production, store the keyring as a Render secret; do not put it in source control or the database. Replace the seed password with a unique password of at least 12 characters (maximum 72 UTF-8 bytes for bcrypt). Keep the file private and do not commit it. If the database password contains URL-special characters, use Supabase's URI-encoded connection string or percent-encode those characters.
 3. Install dependencies:
 
    ```powershell
    corepack pnpm install
    ```
 
-4. Apply the checked-in database migrations and create or complete the seeded account's employee profile:
+4. Apply the checked-in database migrations, encrypt existing sensitive values, and create or complete the seeded account's employee profile:
 
    ```powershell
    corepack pnpm db:migrate
+   corepack pnpm db:encrypt-backfill
    corepack pnpm db:seed
    ```
 
-   The seed script creates the initial HR account from `SEED_USER_*` settings if it does not exist, then creates its linked employee profile. For an existing account it does not change the password or account details; it only adds the missing profile. Employee login accounts should be created by HR from the employee directory, not by running the seed command.
+   For an existing production database, take and verify a backup, stop all API instances and other writers, then run the migration and backfill before starting the updated API. Each backfill update is conditional on the values and encryption context read from that row; if a row changes before its update, the batch fails without overwriting the newer value. The backfill also verifies that every migrated value decrypts with its expected context and that row counts remain stable. The API refuses to decrypt plaintext. Do not start the new API until the backfill succeeds. The backfill is safe to rerun and also re-encrypts values when the active key changes. Keep every key needed by retained backups. The seed script creates the initial HR account from `SEED_USER_*` settings if it does not exist, then creates its linked employee profile. For an existing account it does not change the password or account details; it only adds the missing profile. Employee login accounts should be created by HR from the employee directory, not by running the seed command.
 
 5. Start the frontend and API:
 
@@ -146,6 +147,14 @@ After changing the Drizzle schema in [`backend/src/db/schema.ts`](./backend/src/
 corepack pnpm db:generate
 corepack pnpm db:migrate
 ```
+
+### Sensitive-field encryption
+
+The API uses AES-256-GCM with a fresh nonce and field-specific authenticated context for employee salary and bank details, payroll amounts and payment details, and employee document bytes. The browser continues to receive the same authorized plaintext response shapes; ciphertext is only stored in PostgreSQL. Payroll arithmetic and summaries now run after authorized backend decryption rather than SQL aggregation.
+
+`FIELD_ENCRYPTION_KEYRING` is a JSON object with an `activeKeyId` and a `keys` map. For key rotation, add a new key, set it as active, retain old keys, and run `corepack pnpm db:encrypt-backfill` with the API stopped. Keep old keys available until backups containing data encrypted by them have expired. Loss of all corresponding keys makes the protected values unrecoverable.
+
+The encryption migration changes numeric salary and payroll columns to text and removes plaintext defaults. It is an in-place migration that needs a maintenance window, a tested backup, and the backfill before API traffic resumes. Older backups and exports can still contain plaintext; handle their retention and disposal separately. Provider-managed database, backup, and replica encryption still needs to be enabled and verified in the Supabase dashboard.
 
 Migrations are applied in order from `backend/drizzle/` by `corepack pnpm db:migrate`; do not paste SQL into the Supabase SQL Editor when using this command. Phase 5 adds payroll tables, Phase 6 adds appraisal review records, Phase 7 adds one-time account-access tokens, password recovery adds expiring reset-token records, migration `0010` adds the original owner-managed HR invitation records, migration `0011` adds employee onboarding and private document storage, migration `0012` adds resignation applications, migration `0013` adds notification preferences and notification categories, migration `0014` adds structured appraisal ratings and updates the review stage label, migration `0015` adds project tasks, migration `0016` adds weekly work report summaries and per-day timesheet descriptions, migration `0017` adds configurable company leave allowances and policy history, migration `0018` adds annual employee leave balances and backfills the current calendar year, migration `0023` adds a configurable resignation notice policy and stores the confirmed notice duration, migration `0024` adds resignation activity history, offboarding checklist items, and configurable escalation timing, migration `0025` adds reviewer assignment, migration `0027` adds payroll publication and revision tracking, migration `0028` adds employee bank details, and migration `0029` adds Sales access and account records. Apply migrations with `corepack pnpm db:migrate` before using company policies.
 
