@@ -72,6 +72,11 @@ export type SalesActivity = {
   remarks: string;
   nextFollowUpDate: string | null;
 };
+export type SalesActivityMonthlySummary = {
+  month: string;
+  type: SalesActivity['type'];
+  count: number;
+};
 export type SalesLead = {
   id: string;
   accountId: string;
