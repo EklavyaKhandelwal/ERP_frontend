@@ -4,6 +4,7 @@ import type {
   SalesAccountInput,
   SalesAccountProfile,
   SalesActivity,
+  SalesActivityMonthlySummary,
   SalesContact,
   SalesContactListItem,
   SalesDashboardFollowUp,
@@ -16,6 +17,7 @@ import type {
 
 export type SalesRecordKind = 'contacts' | 'activities' | 'leads' | 'opportunities' | 'notes';
 export const salesApi = {
+  getActivitySummary: () => request<{ summary: SalesActivityMonthlySummary[] }>('/sales/activity-summary'),
   listContacts: async (filters: { search?: string; status?: SalesContact['status'] } = {}) => {
     const query = new URLSearchParams();
     if (filters.search) query.set('search', filters.search);

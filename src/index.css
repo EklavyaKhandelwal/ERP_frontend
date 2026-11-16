@@ -3912,7 +3912,7 @@ button, input, select, textarea {
 
 .sales-account-dashboard-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1.14fr) minmax(300px, 1fr);
   gap: 18px;
 }
 
@@ -3981,10 +3981,775 @@ button, input, select, textarea {
   line-height: 1.2;
 }
 
-.sales-profile-dashboard-card {
+.sales-profile-trend-card {
+  grid-column: 1 / -1;
   min-width: 0;
-  align-self: start;
   padding: 24px;
+  border: 1px solid #E6EAF1;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.sales-profile-trend-header,
+.sales-profile-trend-summary,
+.sales-profile-trend-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.sales-profile-trend-header h3 {
+  margin: 0;
+  color: #101828;
+  font-size: 20px;
+}
+
+.sales-profile-trend-header p {
+  max-width: 700px;
+  margin: 4px 0 0;
+  color: #667085;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.sales-profile-trend-range {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  gap: 4px;
+  color: #667085;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.sales-profile-trend-range-trigger {
+  display: flex;
+  min-width: 174px;
+  min-height: 40px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 12px;
+  border: 1px solid #C9D7F2;
+  border-radius: 10px;
+  color: #182230;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(16, 24, 40, 0.06);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+}
+
+.sales-profile-trend-range-trigger:hover,
+.sales-profile-trend-range-trigger[aria-expanded="true"] {
+  border-color: #98B4EC;
+  background: #FCFDFF;
+}
+
+.sales-profile-trend-range-trigger:focus-visible,
+.sales-profile-trend-range-option:focus-visible {
+  border-color: #2864E8;
+  outline: 3px solid rgba(40, 100, 232, 0.18);
+  outline-offset: 2px;
+}
+
+.sales-profile-trend-range-trigger > svg,
+.sales-profile-trend-range-option > svg {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  fill: none;
+  stroke: #667085;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.7;
+}
+
+.sales-profile-trend-range-trigger[aria-expanded="true"] > svg {
+  transform: rotate(180deg);
+}
+
+.sales-profile-trend-range-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 10;
+  display: grid;
+  width: max(100%, 204px);
+  gap: 3px;
+  padding: 8px;
+  border: 1px solid #EAECF0;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 12px 28px rgba(16, 24, 40, 0.14), 0 2px 6px rgba(16, 24, 40, 0.06);
+  animation: sales-profile-range-enter 120ms ease-out;
+}
+
+.sales-profile-trend-range-menu-heading {
+  padding: 5px 9px 7px;
+  color: #98A2B3;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.sales-profile-trend-range-option {
+  display: flex;
+  min-height: 38px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 9px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  color: #344054;
+  background: transparent;
+  font: inherit;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  transition: color 120ms ease, background-color 120ms ease;
+}
+
+.sales-profile-trend-range-option:hover {
+  color: #1849A9;
+  background: #F5F8FF;
+}
+
+.sales-profile-trend-range-option.is-selected {
+  color: #1849A9;
+  background: #EEF4FF;
+  font-weight: 600;
+}
+
+.sales-profile-trend-range-option.is-selected > svg {
+  stroke: #2864E8;
+}
+
+@keyframes sales-profile-range-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sales-profile-trend-summary {
+  justify-content: flex-start;
+  flex-wrap: wrap;
+  margin-top: 20px;
+}
+
+.sales-profile-trend-summary > div:first-child {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.sales-profile-trend-summary > div:first-child strong {
+  color: #101828;
+  font-size: 24px;
+}
+
+.sales-profile-trend-summary > div:first-child span,
+.sales-profile-trend-top-type {
+  color: #667085;
+  font-size: 13px;
+}
+
+.sales-profile-trend-top-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #F8FAFC;
+}
+
+.sales-profile-trend-top-type strong {
+  color: #344054;
+}
+
+.sales-profile-trend-comparison {
+  padding: 6px 10px;
+  border-radius: 999px;
+  color: #475467;
+  background: #F2F4F7;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.sales-profile-trend-comparison.is-up {
+  color: #067647;
+  background: #ECFDF3;
+}
+
+.sales-profile-trend-comparison.is-down {
+  color: #B42318;
+  background: #FEF3F2;
+}
+
+.sales-profile-trend-scroll {
+  overflow-x: auto;
+  margin-top: 14px;
+}
+
+.sales-profile-trend-chart-area {
+  position: relative;
+  min-width: 540px;
+}
+
+.sales-profile-trend-empty {
+  display: grid;
+  min-height: 260px;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 24px;
+  border: 1px dashed #DDE3EC;
+  border-radius: 10px;
+  color: #667085;
+  background: #FCFCFD;
+  font-size: 13px;
+  text-align: center;
+}
+
+.sales-profile-trend-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.sales-profile-trend-gridline {
+  stroke: #EAECF0;
+  stroke-width: 1;
+}
+
+.sales-profile-trend-axis {
+  stroke: #D0D5DD;
+  stroke-width: 1;
+}
+
+.sales-profile-trend-axis-label,
+.sales-profile-trend-axis-title {
+  fill: #667085;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.sales-profile-trend-axis-title {
+  font-size: 10px;
+}
+
+.sales-profile-trend-selected-column {
+  fill: #F5F7FB;
+}
+
+.sales-profile-trend-hover-column {
+  fill: #F3F5F9;
+}
+
+.sales-profile-trend-crosshair {
+  stroke: #C8D1E0;
+  stroke-width: 1;
+}
+
+.sales-profile-trend-x-label {
+  fill: #667085;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.sales-profile-trend-x-label.is-selected {
+  fill: #101828;
+  font-weight: 700;
+}
+
+.sales-profile-trend-line {
+  fill: none;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sales-profile-trend-line.call,
+.sales-profile-trend-point.call {
+  stroke: #2864E8;
+}
+
+.sales-profile-trend-line.email,
+.sales-profile-trend-point.email {
+  stroke: #16A785;
+}
+
+.sales-profile-trend-line.meeting,
+.sales-profile-trend-point.meeting {
+  stroke: #875BF7;
+}
+
+.sales-profile-trend-line.linkedin,
+.sales-profile-trend-point.linkedin {
+  stroke: #F79009;
+}
+
+.sales-profile-trend-line.follow-up,
+.sales-profile-trend-point.follow-up {
+  stroke: #E5484D;
+}
+
+.sales-profile-trend-point {
+  fill: #fff;
+  stroke-width: 1.5;
+}
+
+.sales-profile-trend-point.is-emphasized.call {
+  fill: #2864E8;
+}
+
+.sales-profile-trend-point.is-emphasized.email {
+  fill: #16A785;
+}
+
+.sales-profile-trend-point.is-emphasized.meeting {
+  fill: #875BF7;
+}
+
+.sales-profile-trend-point.is-emphasized.linkedin {
+  fill: #F79009;
+}
+
+.sales-profile-trend-point.is-emphasized.follow-up {
+  fill: #E5484D;
+}
+
+.sales-profile-trend-tooltip {
+  position: absolute;
+  z-index: 2;
+  top: 16px;
+  display: grid;
+  width: max-content;
+  max-width: 220px;
+  gap: 7px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  color: #F9FAFB;
+  background: #101828;
+  box-shadow: 0 10px 24px rgba(16, 24, 40, 0.24);
+  font-size: 12px;
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.sales-profile-trend-tooltip-heading,
+.sales-profile-trend-tooltip-row,
+.sales-profile-trend-tooltip-row > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.sales-profile-trend-tooltip-heading {
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.sales-profile-trend-tooltip-row {
+  color: #E4E7EC;
+  font-size: 11px;
+}
+
+.sales-profile-trend-tooltip-row strong {
+  color: #fff;
+}
+
+.sales-profile-trend-tooltip .sales-profile-trend-dot {
+  width: 7px;
+  height: 7px;
+  flex-basis: 7px;
+}
+
+.sales-profile-trend-tooltip-empty {
+  color: #D0D5DD;
+  font-size: 11px;
+}
+
+.sales-overview-activity-chart {
+  grid-column: 1 / -1;
+  min-width: 0;
+  padding: 22px 24px;
+  border: 1px solid #E6EAF1;
+  border-radius: 12px;
+  background: #fff;
+}
+
+.sales-overview-activity-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.sales-overview-activity-header h2 {
+  margin: 0;
+  color: #101828;
+  font-size: 18px;
+}
+
+.sales-overview-activity-header p {
+  max-width: 700px;
+  margin: 5px 0 0;
+  color: #667085;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.sales-overview-activity-period {
+  display: grid;
+  gap: 5px;
+  color: #667085;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.sales-overview-activity-period-options {
+  display: inline-flex;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid #E4E7EC;
+  border-radius: 9px;
+  background: #F9FAFB;
+}
+
+.sales-overview-activity-period-options button {
+  min-width: 44px;
+  padding: 6px 9px;
+  border: 0;
+  border-radius: 6px;
+  color: #475467;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+}
+
+.sales-overview-activity-period-options button:hover {
+  color: #1849A9;
+  background: #EEF4FF;
+}
+
+.sales-overview-activity-period-options button.is-selected {
+  color: #1849A9;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.14);
+  font-weight: 700;
+}
+
+.sales-overview-activity-period-options button:focus-visible {
+  outline: 2px solid #2864E8;
+  outline-offset: 1px;
+}
+
+.sales-overview-activity-summary {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px 20px;
+  margin-top: 16px;
+}
+
+.sales-overview-activity-summary > div:first-child {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.sales-overview-activity-summary > div:first-child strong {
+  color: #101828;
+  font-size: 24px;
+}
+
+.sales-overview-activity-summary > div:first-child span,
+.sales-overview-activity-top-type {
+  color: #667085;
+  font-size: 13px;
+}
+
+.sales-overview-activity-top-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #F8FAFC;
+}
+
+.sales-overview-activity-top-type strong {
+  color: #344054;
+}
+
+.sales-overview-activity-scroll {
+  overflow-x: auto;
+  margin-top: 12px;
+}
+
+.sales-overview-activity-chart-area {
+  position: relative;
+  min-width: 540px;
+}
+
+.sales-overview-activity-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.sales-overview-activity-gridline {
+  stroke: #EAECF0;
+  stroke-width: 1;
+}
+
+.sales-overview-activity-axis {
+  stroke: #D0D5DD;
+  stroke-width: 1;
+}
+
+.sales-overview-activity-axis-label,
+.sales-overview-activity-axis-title {
+  fill: #667085;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.sales-overview-activity-axis-title {
+  font-size: 10px;
+}
+
+.sales-overview-activity-hover-column {
+  fill: #F5F7FB;
+}
+
+.sales-overview-activity-bar-segment {
+  transition: opacity 140ms ease;
+}
+
+.sales-overview-activity-x-label {
+  fill: #667085;
+  font-family: inherit;
+  font-size: 11px;
+}
+
+.sales-overview-activity-x-label.is-selected {
+  fill: #101828;
+  font-weight: 700;
+}
+
+.sales-overview-activity-state {
+  display: grid;
+  min-height: 260px;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+  padding: 24px;
+  border: 1px dashed #DDE3EC;
+  border-radius: 10px;
+  color: #667085;
+  background: #FCFCFD;
+  font-size: 13px;
+  text-align: center;
+}
+
+.sales-overview-activity-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  margin-top: 8px;
+}
+
+.sales-overview-activity-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #475467;
+  font-size: 12px;
+}
+
+.sales-profile-trend-months-scroll {
+  overflow-x: auto;
+  margin-top: 8px;
+}
+
+.sales-profile-trend-months {
+  display: grid;
+  gap: 8px;
+}
+
+.sales-profile-trend-month {
+  display: grid;
+  min-width: 0;
+  min-height: 58px;
+  align-content: center;
+  justify-items: start;
+  gap: 4px;
+  padding: 8px 12px;
+  border: 1px solid #EAECF0;
+  border-radius: 12px;
+  color: #344054;
+  background: #F8FAFC;
+  font: inherit;
+  cursor: pointer;
+  transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+}
+
+.sales-profile-trend-month:hover {
+  border-color: #C9D7F2;
+  background: #F2F6FF;
+}
+
+.sales-profile-trend-month.is-selected {
+  border-color: #344054;
+  background: #fff;
+  box-shadow: 0 0 0 1px #344054;
+}
+
+.sales-profile-trend-month:focus-visible {
+  outline: 3px solid rgba(21, 94, 239, 0.3);
+  outline-offset: 2px;
+}
+
+.sales-profile-trend-month-label {
+  overflow: hidden;
+  color: #667085;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sales-profile-trend-total {
+  color: #344054;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.sales-profile-trend-breakdown {
+  display: grid;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.sales-profile-trend-breakdown-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  color: #667085;
+  font-size: 12px;
+}
+
+.sales-profile-trend-breakdown-heading strong {
+  color: #344054;
+  font-size: 14px;
+}
+
+.sales-profile-trend-breakdown-row {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 10px;
+  color: #667085;
+  font-size: 12px;
+}
+
+.sales-profile-trend-breakdown-row > strong {
+  color: #344054;
+  font-size: 12px;
+  text-align: right;
+}
+
+.sales-profile-trend-breakdown-track {
+  display: block;
+  height: 6px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #E8ECF3;
+}
+
+.sales-profile-trend-breakdown-fill {
+  display: block;
+  height: 100%;
+  min-width: 0;
+  border-radius: inherit;
+}
+
+.sales-profile-trend-breakdown-fill.call,
+.sales-profile-trend-dot.call {
+  background: #2864E8;
+}
+
+.sales-profile-trend-breakdown-fill.email,
+.sales-profile-trend-dot.email {
+  background: #16A785;
+}
+
+.sales-profile-trend-breakdown-fill.meeting,
+.sales-profile-trend-dot.meeting {
+  background: #875BF7;
+}
+
+.sales-profile-trend-breakdown-fill.linkedin,
+.sales-profile-trend-dot.linkedin {
+  background: #F79009;
+}
+
+.sales-profile-trend-breakdown-fill.follow-up,
+.sales-profile-trend-dot.follow-up {
+  background: #E5484D;
+}
+
+.sales-profile-trend-footer {
+  margin-top: 14px;
+}
+
+.sales-profile-trend-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+
+.sales-profile-trend-legend > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #475467;
+  font-size: 12px;
+}
+
+.sales-profile-trend-dot {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  flex: 0 0 9px;
+  border-radius: 50%;
+}
+
+.sales-profile-dashboard-card {
+  width: 100%;
+  min-width: 0;
+  align-self: stretch;
+  padding: 18px;
   border: 1px solid #E6EAF1;
   border-radius: 12px;
   background: #fff;
@@ -3996,6 +4761,7 @@ button, input, select, textarea {
 
 .sales-profile-right-stack {
   display: flex;
+  width: 100%;
   min-width: 0;
   align-self: start;
   flex-direction: column;
@@ -4006,7 +4772,7 @@ button, input, select, textarea {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  padding: 16px;
+  padding: 12px;
   border: 1px solid #EEF1F5;
   border-radius: 9px;
   background: #FCFCFD;
@@ -4014,9 +4780,9 @@ button, input, select, textarea {
 
 .sales-profile-activity-icon {
   display: grid;
-  flex: 0 0 32px;
-  width: 32px;
-  height: 32px;
+  flex: 0 0 28px;
+  width: 28px;
+  height: 28px;
   place-items: center;
   border-radius: 50%;
   color: #027A68;
@@ -4037,7 +4803,7 @@ button, input, select, textarea {
 
 .sales-profile-activity-heading strong {
   color: #101828;
-  font-size: 14px;
+  font-size: 13px;
 }
 
 .sales-profile-activity-heading > span {
@@ -4051,14 +4817,14 @@ button, input, select, textarea {
 .sales-profile-activity-heading time {
   margin-left: auto;
   color: #667085;
-  font-size: 13px;
+  font-size: 11px;
 }
 
 .sales-profile-activity-body p {
   margin: 4px 0 0;
   color: #475467;
-  font-size: 14px;
-  line-height: 1.65;
+  font-size: 12px;
+  line-height: 1.55;
   overflow-wrap: anywhere;
 }
 
@@ -4067,7 +4833,7 @@ button, input, select, textarea {
   min-width: 0;
   align-items: center;
   gap: 12px;
-  padding: 14px;
+  padding: 10px 12px;
   border: 1px solid #EEF1F5;
   border-radius: 9px;
   background: #FCFCFD;
@@ -4075,9 +4841,9 @@ button, input, select, textarea {
 
 .sales-profile-contact-avatar {
   display: grid;
-  flex: 0 0 38px;
-  width: 38px;
-  height: 38px;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
   place-items: center;
   border-radius: 50%;
   color: #6941C6;
@@ -4096,23 +4862,23 @@ button, input, select, textarea {
 .sales-profile-contact-info strong {
   overflow: hidden;
   color: #101828;
-  font-size: 14px;
+  font-size: 13px;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .sales-profile-contact-info small {
   color: #667085;
-  font-size: 13px;
+  font-size: 11px;
 }
 
 .sales-profile-contact-key {
   flex: 0 0 auto;
-  padding: 4px 7px;
+  padding: 3px 6px;
   border-radius: 999px;
   color: #475467;
   background: #F2F4F7;
-  font-size: 12px;
+  font-size: 10px;
 }
 
 .sales-profile-contact-actions {
@@ -4122,8 +4888,8 @@ button, input, select, textarea {
 
 .sales-profile-contact-actions a {
   display: grid;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   place-items: center;
   border: 1px solid #E1E5EC;
   border-radius: 6px;
@@ -4143,9 +4909,9 @@ button, input, select, textarea {
 }
 
 .sales-profile-tech-chip {
-  padding: 8px 13px;
+  padding: 6px 11px;
   border-radius: 999px;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
 }
 
@@ -4505,6 +5271,32 @@ button, input, select, textarea {
 }
 
 @media (max-width: 600px) {
+  .sales-profile-trend-card {
+    padding: 18px;
+  }
+
+  .sales-overview-activity-chart {
+    padding: 18px;
+  }
+
+  .sales-overview-activity-header h2 {
+    font-size: 16px;
+  }
+
+  .sales-overview-activity-period {
+    width: 100%;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+  }
+
+  .sales-overview-activity-period-options {
+    justify-content: flex-end;
+  }
+
+  .sales-profile-trend-header h3 {
+    font-size: 18px;
+  }
+
   .sales-profile-heading {
     flex-wrap: wrap;
     padding-right: 12px;

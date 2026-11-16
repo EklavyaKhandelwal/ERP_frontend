@@ -7,6 +7,7 @@ import type {
   SalesAccountInput,
   SalesAccountProfile,
   SalesActivity,
+  SalesActivityMonthlySummary,
   SalesContact,
   SalesContactListItem,
   SalesDashboardFollowUp,
@@ -17,6 +18,8 @@ import type {
   SalesTeamUpdate,
 } from '../../lib/api/types';
 import type { SalesRecordKind } from '../../lib/api/sales';
+import { ActivityTrendChart } from './ActivityTrendChart';
+import { SalesActivityOverviewChart } from './SalesActivityOverviewChart';
 
 type AccountTab = 'Dashboard' | 'Account Information' | 'Technology' | 'Contacts' | 'Activities' | 'Leads' | 'Opportunities' | 'Notes';
 type ModalKind = 'account' | 'contacts' | 'activities' | 'leads' | 'opportunities' | 'notes';
@@ -96,10 +99,15 @@ export const SalesView: React.FC = () => {
   const [accounts, setAccounts] = useState<SalesAccount[]>([]);
   const [recentAccounts, setRecentAccounts] = useState<SalesAccount[]>([]);
   const [followUps, setFollowUps] = useState<SalesDashboardFollowUp[]>([]);
+  const [activityTrendSummary, setActivityTrendSummary] = useState<SalesActivityMonthlySummary[]>([]);
+  const [activityTrendLoading, setActivityTrendLoading] = useState(true);
+  const [activityTrendError, setActivityTrendError] = useState('');
+  const [activityTrendRequest, setActivityTrendRequest] = useState(0);
   const [counts, setCounts] = useState<Counts>({ total: 0, prospect: 0, active: 0 });
   const [profile, setProfile] = useState<SalesAccountProfile | null>(null);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [tab, setTab] = useState<AccountTab>('Account Information');
+  const [selectedActivityMonth, setSelectedActivityMonth] = useState<string | null>(null);
   const [contactSearch, setContactSearch] = useState('');
   const [contactStatusFilter, setContactStatusFilter] = useState<'All' | SalesContact['status']>('All');
   const [viewingContact, setViewingContact] = useState<SalesContact | null>(null);
@@ -171,6 +179,28 @@ export const SalesView: React.FC = () => {
   }, [isAdmin]);
 
   useEffect(() => {
+    if (salesSection !== 'dashboard') return;
+    let active = true;
+    void salesApi.getActivitySummary().then(result => {
+      if (active) {
+        setActivityTrendSummary(result.summary);
+        setActivityTrendError('');
+      }
+    }).catch(loadError => {
+      if (active) setActivityTrendError(messageOf(loadError));
+    }).finally(() => {
+      if (active) setActivityTrendLoading(false);
+    });
+    return () => { active = false; };
+  }, [salesSection, isAdmin, activityTrendRequest]);
+
+  const retryActivityTrend = () => {
+    setActivityTrendLoading(true);
+    setActivityTrendError('');
+    setActivityTrendRequest(request => request + 1);
+  };
+
+  useEffect(() => {
     const timeout = window.setTimeout(() => {
       void loadAccounts({
         ...(appliedSearch ? { search: appliedSearch } : {}),
@@ -238,6 +268,7 @@ export const SalesView: React.FC = () => {
 
   const openAccount = (account: SalesAccount) => {
     setProfile(null);
+    setSelectedActivityMonth(null);
     setSelectedAccountId(account.id);
     const sectionTabs: Partial<Record<typeof salesSection, AccountTab>> = {
       'account-profile': 'Dashboard',
@@ -260,6 +291,7 @@ export const SalesView: React.FC = () => {
 
   const openGlobalContact = (contact: SalesContactListItem, edit = false) => {
     setProfile(null);
+    setSelectedActivityMonth(null);
     setSelectedAccountId(contact.accountId);
     setTab('Contacts');
     setSalesSection('contacts');
@@ -346,6 +378,7 @@ export const SalesView: React.FC = () => {
       const saved = editing
         ? await salesApi.updateAccount((editing as SalesAccount).id, input)
         : await salesApi.createAccount(input);
+      setSelectedActivityMonth(null);
       setSelectedAccountId(saved.id);
       setModal(null);
       setEditing(null);
@@ -491,9 +524,16 @@ export const SalesView: React.FC = () => {
     notes: 'Notes',
   };
   const activeTab = sectionTab[salesSection] ?? tab;
-  const recentProfileActivities = profile
-    ? [...profile.activities].sort((a, b) => b.activityDate.localeCompare(a.activityDate)).slice(0, 5)
+  const sortedProfileActivities = profile
+    ? [...profile.activities].sort((a, b) => b.activityDate.localeCompare(a.activityDate))
     : [];
+  const selectedMonthActivities = selectedActivityMonth
+    ? sortedProfileActivities.filter(activity => activity.activityDate.startsWith(selectedActivityMonth))
+    : [];
+  const recentProfileActivities = selectedActivityMonth ? selectedMonthActivities : sortedProfileActivities.slice(0, 5);
+  const selectedActivityMonthLabel = selectedActivityMonth
+    ? new Date(`${selectedActivityMonth}-01T00:00:00Z`).toLocaleDateString(undefined, { month: 'long', year: 'numeric', timeZone: 'UTC' })
+    : null;
   const keyContacts = profile?.contacts.filter(contact => contact.status === 'Active').slice(0, 4) ?? [];
   const filteredContacts = useMemo(() => {
     const query = contactSearch.trim().toLowerCase();
@@ -520,6 +560,7 @@ export const SalesView: React.FC = () => {
   };
   const openAccountActivity = (accountId: string) => {
     setProfile(null);
+    setSelectedActivityMonth(null);
     setSelectedAccountId(accountId);
     setTab('Activities');
     setSalesSection('activities');
@@ -724,9 +765,19 @@ export const SalesView: React.FC = () => {
                 <strong>{metric.value}</strong>
               </button>)}
             </div>
-            <section className="sales-lift-card sales-profile-dashboard-card sales-profile-activity-card" style={{ ...panelStyle, padding: 24 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-                <div><h3 style={{ margin: 0, fontSize: 20 }}>Recent activities</h3><p style={{ margin: '4px 0 0', color: '#667085', fontSize: 15 }}>Latest interactions with this account</p></div>
+            <ActivityTrendChart
+              activities={profile.activities}
+              selectedMonth={selectedActivityMonth}
+              onSelectMonth={setSelectedActivityMonth}
+            />
+            <section className="sales-lift-card sales-profile-dashboard-card sales-profile-activity-card" style={{ ...panelStyle, padding: 18 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: 16 }}>{selectedActivityMonthLabel ? `Activities in ${selectedActivityMonthLabel}` : 'Recent activities'}</h3>
+                  <p style={{ margin: '4px 0 0', color: '#667085', fontSize: 12 }}>
+                    {selectedActivityMonthLabel ? `${recentProfileActivities.length} logged ${recentProfileActivities.length === 1 ? 'interaction' : 'interactions'} in this month` : 'Latest interactions with this account'}
+                  </p>
+                </div>
                 <button className="sales-text-link" onClick={() => { setTab('Activities'); setSalesSection('activities'); }}>View all</button>
               </div>
               {recentProfileActivities.length ? <div style={{ display: 'grid', gap: 8 }}>
@@ -737,12 +788,12 @@ export const SalesView: React.FC = () => {
                     <p>{activity.remarks}</p>
                   </div>
                 </article>)}
-              </div> : <div className="sales-dashboard-empty">No activities recorded yet.</div>}
+              </div> : <div className="sales-dashboard-empty">{selectedActivityMonthLabel ? `No activities recorded in ${selectedActivityMonthLabel}.` : 'No activities recorded yet.'}</div>}
             </section>
             <div className="sales-profile-right-stack">
-              <section className="sales-lift-card sales-profile-dashboard-card sales-profile-contacts-card" style={{ ...panelStyle, padding: 24 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18 }}>
-                  <div><h3 style={{ margin: 0, fontSize: 20 }}>Key contacts</h3><p style={{ margin: '4px 0 0', color: '#667085', fontSize: 15 }}>Active people at this account</p></div>
+              <section className="sales-lift-card sales-profile-dashboard-card sales-profile-contacts-card" style={{ ...panelStyle, padding: 18 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <div><h3 style={{ margin: 0, fontSize: 16 }}>Key contacts</h3><p style={{ margin: '4px 0 0', color: '#667085', fontSize: 12 }}>Active people at this account</p></div>
                   <button className="sales-text-link" onClick={() => { setTab('Contacts'); setSalesSection('contacts'); }}>View all</button>
                 </div>
                 {keyContacts.length ? <div style={{ display: 'grid', gap: 8 }}>
@@ -754,9 +805,9 @@ export const SalesView: React.FC = () => {
                   </div>)}
                 </div> : <div className="sales-dashboard-empty">No active contacts yet.</div>}
               </section>
-              <section className="sales-lift-card sales-profile-dashboard-card sales-profile-technology-card" style={{ ...panelStyle, padding: 24 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 18 }}>
-                  <div><h3 style={{ margin: 0, fontSize: 20 }}>Technology stack</h3><p style={{ margin: '4px 0 0', color: '#667085', fontSize: 15 }}>Technologies recorded for this company</p></div>
+              <section className="sales-lift-card sales-profile-dashboard-card sales-profile-technology-card" style={{ ...panelStyle, padding: 18 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+                  <div><h3 style={{ margin: 0, fontSize: 16 }}>Technology stack</h3><p style={{ margin: '4px 0 0', color: '#667085', fontSize: 12 }}>Technologies recorded for this company</p></div>
                   <button className="sales-text-link" onClick={() => { setTab('Technology'); setSalesSection('technology'); }}>Manage</button>
                 </div>
                 <div className="sales-profile-tech-list">{profile.technologies.slice(0, 12).map((technology, index) => <span className={`sales-profile-tech-chip tone-${index % 5}`} key={technology.id}>{technology.name}</span>)}
@@ -964,6 +1015,13 @@ export const SalesView: React.FC = () => {
               </button>)}
             </div> : <div className="sales-dashboard-empty">Accounts you update will appear here.</div>}
           </section>
+          <SalesActivityOverviewChart
+            summary={activityTrendSummary}
+            isAdmin={isAdmin}
+            loading={activityTrendLoading}
+            error={activityTrendError}
+            onRetry={retryActivityTrend}
+          />
         </div>}
         <section className="sales-lift-card interactive-lift-card" style={panelStyle}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 14, flexWrap: 'wrap', marginBottom: 16 }}>
