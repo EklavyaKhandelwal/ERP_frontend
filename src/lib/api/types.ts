@@ -322,6 +322,7 @@ export type NotificationPreferences = {
   appraisalCycleUpdates: boolean;
   employeeOnboarding: boolean;
   projectMilestones: boolean;
+  salesFollowUps: boolean;
 };
 export type ResignationReason =
   | 'Career growth'
