@@ -22,6 +22,7 @@ const notificationOptions = [
   { id: 'appraisalCycleUpdates', title: 'Appraisal Cycle Updates', description: 'Get notified when a new review cycle is ready' },
   { id: 'employeeOnboarding', title: 'New Employee Onboarding', description: 'Alerts when new employees are added' },
   { id: 'projectMilestones', title: 'Project Milestones', description: 'Updates when projects are assigned or reach progress milestones' },
+  { id: 'salesFollowUps', title: 'Sales Follow-ups', description: 'Daily reminders for your overdue and due-today sales follow-ups' },
 ] as const;
 
 const defaultPreferences: NotificationPreferences = {
@@ -30,6 +31,7 @@ const defaultPreferences: NotificationPreferences = {
   appraisalCycleUpdates: true,
   employeeOnboarding: true,
   projectMilestones: false,
+  salesFollowUps: true,
 };
 
 const defaultLeavePolicy: LeavePolicy = {
